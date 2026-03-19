@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Search, ChevronRight, Phone } from "lucide-react";
 
 const clients = [
@@ -10,6 +11,7 @@ const clients = [
 ];
 
 const Clients = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-5 pt-6 pb-2">
@@ -38,7 +40,8 @@ const Clients = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.98 }}
-            className="card-surface p-4 flex items-center gap-4"
+            onClick={() => navigate(`/client/${c.name.toLowerCase().replace(/\s+/g, "-")}`)}
+            className="card-surface p-4 flex items-center gap-4 cursor-pointer"
           >
             <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-bold text-primary">{c.initials}</span>
