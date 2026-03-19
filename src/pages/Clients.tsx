@@ -11,6 +11,7 @@ const clients = [
 ];
 
 const Clients = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-5 pt-6 pb-2">
