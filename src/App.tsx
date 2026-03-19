@@ -10,6 +10,7 @@ import Clients from "./pages/Clients";
 import Orders from "./pages/Orders";
 import More from "./pages/More";
 import AddNew from "./pages/AddNew";
+import ClientProfile from "./pages/ClientProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
