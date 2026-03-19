@@ -29,6 +29,7 @@ const App = () => (
             <Route path="/orders" element={<Orders />} />
             <Route path="/more" element={<More />} />
             <Route path="/add" element={<AddNew />} />
+            <Route path="/client/:id" element={<ClientProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
