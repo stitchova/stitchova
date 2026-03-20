@@ -24,10 +24,10 @@ const stats = [
 ];
 
 const quickActions = [
-  { icon: UserPlus, label: "Add Client" },
-  { icon: Ruler, label: "Measure" },
-  { icon: ClipboardList, label: "New Order" },
-  { icon: CalendarDays, label: "Appointment" },
+  { icon: UserPlus, label: "Add Client", path: "/clients" },
+  { icon: Ruler, label: "Measure", path: "/measurements" },
+  { icon: ClipboardList, label: "New Order", path: "/orders" },
+  { icon: CalendarDays, label: "Appointment", path: "/appointments" },
 ];
 
 const orders = [
