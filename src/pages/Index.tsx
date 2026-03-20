@@ -43,6 +43,7 @@ const fabrics = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
