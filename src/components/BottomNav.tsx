@@ -1,8 +1,16 @@
-import { Home, Users, ShoppingBag, BarChart3, MoreHorizontal, Plus } from "lucide-react";
+import { Home, Users, ShoppingBag, BarChart3, MoreHorizontal, Plus, Compass, CalendarDays, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useRole } from "@/contexts/RoleContext";
 
-const navItems = [
+interface NavItem {
+  icon: typeof Home;
+  label: string;
+  path: string;
+  isCenter?: boolean;
+}
+
+const designerNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/" },
   { icon: Users, label: "Clients", path: "/clients" },
   { icon: Plus, label: "Add", path: "/add", isCenter: true },
@@ -10,11 +18,26 @@ const navItems = [
   { icon: MoreHorizontal, label: "More", path: "/more" },
 ];
 
+const clientNav: NavItem[] = [
+  { icon: Home, label: "Home", path: "/client-home" },
+  { icon: Compass, label: "Discover", path: "/discover" },
+  { icon: ShoppingBag, label: "Orders", path: "/client-orders" },
+  { icon: CalendarDays, label: "Bookings", path: "/appointments" },
+  { icon: User, label: "Profile", path: "/profile" },
+];
+
+const hiddenPaths = ["/onboarding", "/messages"];
+
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { role } = useRole();
 
-  if (location.pathname === "/onboarding") return null;
+  if (hiddenPaths.includes(location.pathname)) return null;
+  // Hide on designer profile pages for client (has its own CTA bar)
+  if (location.pathname.startsWith("/designer/")) return null;
+
+  const navItems = role === "designer" ? designerNav : clientNav;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
@@ -22,7 +45,7 @@ const BottomNav = () => {
         <div className="flex items-center justify-around px-2 py-2 max-w-md mx-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
-            
+
             if (item.isCenter) {
               return (
                 <motion.button
