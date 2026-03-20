@@ -11,6 +11,9 @@ import Orders from "./pages/Orders";
 import More from "./pages/More";
 import AddNew from "./pages/AddNew";
 import ClientProfile from "./pages/ClientProfile";
+import Appointments from "./pages/Appointments";
+import Analytics from "./pages/Analytics";
+import Measurements from "./pages/Measurements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
