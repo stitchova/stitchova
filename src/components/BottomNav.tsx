@@ -18,7 +18,7 @@ const designerNav: NavItem[] = [
   { icon: MoreHorizontal, label: "More", path: "/more" },
 ];
 
-const clientNav = [
+const clientNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/client-home" },
   { icon: Compass, label: "Discover", path: "/discover" },
   { icon: ShoppingBag, label: "Orders", path: "/client-orders" },
