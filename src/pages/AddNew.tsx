@@ -3,12 +3,12 @@ import { UserPlus, Ruler, ClipboardList, CalendarDays, Shirt, Package, ArrowLeft
 import { useNavigate } from "react-router-dom";
 
 const actions = [
-  { icon: UserPlus, label: "New Client", desc: "Add a new client to your list", color: "text-primary" },
-  { icon: ClipboardList, label: "New Order", desc: "Create a fashion order", color: "text-primary" },
-  { icon: Ruler, label: "Record Measurement", desc: "Take client measurements", color: "text-primary" },
-  { icon: CalendarDays, label: "Book Appointment", desc: "Schedule a fitting session", color: "text-primary" },
-  { icon: Shirt, label: "Add Fabric", desc: "Add to your fabric collection", color: "text-primary" },
-  { icon: Package, label: "Add Worker", desc: "Register a new team member", color: "text-primary" },
+  { icon: UserPlus, label: "New Client", desc: "Add a new client to your list", color: "text-primary", path: "/clients" },
+  { icon: ClipboardList, label: "New Order", desc: "Create a fashion order", color: "text-primary", path: "/orders" },
+  { icon: Ruler, label: "Record Measurement", desc: "Take client measurements", color: "text-primary", path: "/measurements" },
+  { icon: CalendarDays, label: "Book Appointment", desc: "Schedule a fitting session", color: "text-primary", path: "/appointments" },
+  { icon: Shirt, label: "Add Fabric", desc: "Add to your fabric collection", color: "text-primary", path: "/add" },
+  { icon: Package, label: "Add Worker", desc: "Register a new team member", color: "text-primary", path: "/add" },
 ];
 
 const AddNew = () => {
@@ -34,6 +34,7 @@ const AddNew = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => navigate(a.path)}
             className="card-surface p-4 flex items-center gap-4 w-full text-left"
           >
             <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">

@@ -11,6 +11,9 @@ import Orders from "./pages/Orders";
 import More from "./pages/More";
 import AddNew from "./pages/AddNew";
 import ClientProfile from "./pages/ClientProfile";
+import Appointments from "./pages/Appointments";
+import Analytics from "./pages/Analytics";
+import Measurements from "./pages/Measurements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +33,9 @@ const App = () => (
             <Route path="/more" element={<More />} />
             <Route path="/add" element={<AddNew />} />
             <Route path="/client/:id" element={<ClientProfile />} />
+            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/measurements" element={<Measurements />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />

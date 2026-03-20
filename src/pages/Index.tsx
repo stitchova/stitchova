@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight } from "lucide-react";
 import orderWedding from "@/assets/order-wedding.jpg";
@@ -23,10 +24,10 @@ const stats = [
 ];
 
 const quickActions = [
-  { icon: UserPlus, label: "Add Client" },
-  { icon: Ruler, label: "Measure" },
-  { icon: ClipboardList, label: "New Order" },
-  { icon: CalendarDays, label: "Appointment" },
+  { icon: UserPlus, label: "Add Client", path: "/clients" },
+  { icon: Ruler, label: "Measure", path: "/measurements" },
+  { icon: ClipboardList, label: "New Order", path: "/orders" },
+  { icon: CalendarDays, label: "Appointment", path: "/appointments" },
 ];
 
 const orders = [
@@ -42,6 +43,7 @@ const fabrics = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -95,6 +97,7 @@ const Index = () => {
               <motion.button
                 key={a.label}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => navigate(a.path)}
                 className="card-surface p-3 flex flex-col items-center gap-2"
               >
                 <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
