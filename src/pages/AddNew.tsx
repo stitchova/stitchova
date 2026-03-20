@@ -34,6 +34,7 @@ const AddNew = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => navigate(a.path)}
             className="card-surface p-4 flex items-center gap-4 w-full text-left"
           >
             <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
