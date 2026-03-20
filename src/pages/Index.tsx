@@ -97,6 +97,7 @@ const Index = () => {
               <motion.button
                 key={a.label}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => navigate(a.path)}
                 className="card-surface p-3 flex flex-col items-center gap-2"
               >
                 <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
