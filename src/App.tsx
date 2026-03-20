@@ -33,6 +33,9 @@ const App = () => (
             <Route path="/more" element={<More />} />
             <Route path="/add" element={<AddNew />} />
             <Route path="/client/:id" element={<ClientProfile />} />
+            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/measurements" element={<Measurements />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
