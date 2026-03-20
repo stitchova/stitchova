@@ -3,12 +3,12 @@ import { UserPlus, Ruler, ClipboardList, CalendarDays, Shirt, Package, ArrowLeft
 import { useNavigate } from "react-router-dom";
 
 const actions = [
-  { icon: UserPlus, label: "New Client", desc: "Add a new client to your list", color: "text-primary" },
-  { icon: ClipboardList, label: "New Order", desc: "Create a fashion order", color: "text-primary" },
-  { icon: Ruler, label: "Record Measurement", desc: "Take client measurements", color: "text-primary" },
-  { icon: CalendarDays, label: "Book Appointment", desc: "Schedule a fitting session", color: "text-primary" },
-  { icon: Shirt, label: "Add Fabric", desc: "Add to your fabric collection", color: "text-primary" },
-  { icon: Package, label: "Add Worker", desc: "Register a new team member", color: "text-primary" },
+  { icon: UserPlus, label: "New Client", desc: "Add a new client to your list", color: "text-primary", path: "/clients" },
+  { icon: ClipboardList, label: "New Order", desc: "Create a fashion order", color: "text-primary", path: "/orders" },
+  { icon: Ruler, label: "Record Measurement", desc: "Take client measurements", color: "text-primary", path: "/measurements" },
+  { icon: CalendarDays, label: "Book Appointment", desc: "Schedule a fitting session", color: "text-primary", path: "/appointments" },
+  { icon: Shirt, label: "Add Fabric", desc: "Add to your fabric collection", color: "text-primary", path: "/add" },
+  { icon: Package, label: "Add Worker", desc: "Register a new team member", color: "text-primary", path: "/add" },
 ];
 
 const AddNew = () => {
