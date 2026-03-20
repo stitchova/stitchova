@@ -3,7 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useRole } from "@/contexts/RoleContext";
 
-const designerNav = [
+interface NavItem {
+  icon: typeof Home;
+  label: string;
+  path: string;
+  isCenter?: boolean;
+}
+
+const designerNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/" },
   { icon: Users, label: "Clients", path: "/clients" },
   { icon: Plus, label: "Add", path: "/add", isCenter: true },
