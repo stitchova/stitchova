@@ -26,7 +26,7 @@ const clientNav: NavItem[] = [
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
-const hiddenPaths = ["/onboarding", "/auth", "/messages"];
+const hiddenPaths = ["/onboarding", "/auth", "/messages", "/designer-messages"];
 
 const BottomNav = () => {
   const location = useLocation();

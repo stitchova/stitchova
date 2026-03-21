@@ -44,9 +44,9 @@ const Messages = () => {
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </motion.button>
-        <img src={designerAvatar1} alt="Designer" className="w-9 h-9 rounded-full object-cover" />
+        <img src={avatar} alt="Designer" className="w-9 h-9 rounded-full object-cover" />
         <div>
-          <p className="text-sm font-semibold text-foreground">Nana Ama Couture</p>
+          <p className="text-sm font-semibold text-foreground">{designerName}</p>
           <p className="text-[10px] text-muted-foreground">Online</p>
         </div>
       </div>

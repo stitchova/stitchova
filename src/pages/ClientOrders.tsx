@@ -78,7 +78,18 @@ const ClientOrders = () => {
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-[10px] text-muted-foreground">Due: {o.date}</span>
-                  <span className="text-xs font-semibold text-primary">{o.price}</span>
+                  <div className="flex items-center gap-2">
+                    {!o.active && (
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/review/${o.designerId}`); }}
+                        className="flex items-center gap-1 text-[10px] font-medium text-primary"
+                      >
+                        <Star className="w-3 h-3" /> Rate
+                      </motion.button>
+                    )}
+                    <span className="text-xs font-semibold text-primary">{o.price}</span>
+                  </div>
                 </div>
               </div>
             </div>
