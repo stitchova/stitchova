@@ -21,6 +21,7 @@ import DesignerProfilePage from "./pages/DesignerProfilePage";
 import ClientOrders from "./pages/ClientOrders";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
           <div className="max-w-md mx-auto min-h-screen relative">
             <Routes>
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/auth" element={<Auth />} />
               {/* Designer routes */}
               <Route path="/" element={<Index />} />
               <Route path="/clients" element={<Clients />} />

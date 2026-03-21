@@ -126,7 +126,7 @@ const Onboarding = () => {
           whileTap={{ scale: 0.97 }}
           onClick={() => {
             if (isLast) {
-              navigate("/");
+              navigate("/auth");
             } else {
               emblaApi?.scrollNext();
             }
