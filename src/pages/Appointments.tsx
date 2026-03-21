@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Clock, MapPin, User, Check, CalendarDays } from "lucide-react";
 import { format, addDays, isSameDay } from "date-fns";
