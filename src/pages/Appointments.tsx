@@ -54,7 +54,7 @@ const Appointments = () => {
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </motion.button>
-        <h1 className="text-lg font-semibold text-foreground">Book Appointment</h1>
+        <h1 className="text-lg font-semibold text-foreground">Book with {designerName}</h1>
       </div>
 
       {/* Step indicators */}
