@@ -9,9 +9,9 @@ import portfolio4 from "@/assets/designer-portfolio-4.jpg";
 const tabs = ["Active", "Completed", "All"];
 
 const orders = [
-  { img: portfolio1, type: "Wedding Gown", designer: "Nana Ama Couture", status: "Sewing", date: "Mar 28", price: "GHS 3,200", progress: 65, statusColor: "bg-status-sewing", active: true },
-  { img: portfolio2, type: "3-Piece Agbada", designer: "Kwame Styles", status: "Cutting", date: "Apr 5", price: "GHS 2,100", progress: 30, statusColor: "bg-status-cutting", active: true },
-  { img: portfolio4, type: "Evening Gown", designer: "Efya Designs", status: "Completed", date: "Feb 14", price: "GHS 1,800", progress: 100, statusColor: "bg-status-completed", active: false },
+  { img: portfolio1, type: "Wedding Gown", designer: "Nana Ama Couture", designerId: "nana-ama", status: "Sewing", date: "Mar 28", price: "GHS 3,200", progress: 65, statusColor: "bg-status-sewing", active: true },
+  { img: portfolio2, type: "3-Piece Agbada", designer: "Kwame Styles", designerId: "kwame-styles", status: "Cutting", date: "Apr 5", price: "GHS 2,100", progress: 30, statusColor: "bg-status-cutting", active: true },
+  { img: portfolio4, type: "Evening Gown", designer: "Efya Designs", designerId: "efya-designs", status: "Completed", date: "Feb 14", price: "GHS 1,800", progress: 100, statusColor: "bg-status-completed", active: false },
 ];
 
 const ClientOrders = () => {
