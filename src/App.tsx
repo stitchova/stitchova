@@ -36,6 +36,7 @@ const App = () => (
           <div className="max-w-md mx-auto min-h-screen relative">
             <Routes>
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/auth" element={<Auth />} />
               {/* Designer routes */}
               <Route path="/" element={<Index />} />
               <Route path="/clients" element={<Clients />} />
