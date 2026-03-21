@@ -83,7 +83,7 @@ const Appointments = () => {
             </motion.div>
             <h2 className="text-2xl font-bold text-foreground">Booking Confirmed!</h2>
             <p className="text-muted-foreground text-center text-sm">
-              {selectedService} with {clientName}<br />
+              {selectedService} with {designerName}<br />
               {selectedDate && format(selectedDate, "EEEE, MMM d")} at {selectedTime}
             </p>
           </motion.div>
