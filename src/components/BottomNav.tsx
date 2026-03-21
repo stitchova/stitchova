@@ -14,7 +14,7 @@ const designerNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/" },
   { icon: Users, label: "Clients", path: "/clients" },
   { icon: Plus, label: "Add", path: "/add", isCenter: true },
-  { icon: ShoppingBag, label: "Orders", path: "/orders" },
+  { icon: MessageCircle, label: "Messages", path: "/designer-messages" },
   { icon: MoreHorizontal, label: "More", path: "/more" },
 ];
 
