@@ -1,17 +1,30 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Send } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
+import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
+import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
 
-const initialMessages = [
-  { id: 1, from: "designer", text: "Hello! Thank you for your interest. How can I help you today?", time: "10:30 AM" },
-  { id: 2, from: "client", text: "Hi! I'm looking for a custom wedding gown. Do you have availability in April?", time: "10:32 AM" },
-  { id: 3, from: "designer", text: "Yes, I have a slot opening April 2nd. Would you like to book a consultation to discuss your vision?", time: "10:33 AM" },
-];
+const designerAvatars: Record<string, string> = {
+  "nana-ama": designerAvatar1,
+  "kwame-styles": designerAvatar2,
+  "efya-designs": designerAvatar3,
+};
 
 const Messages = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const designerId = searchParams.get("designer") || "nana-ama";
+  const designerName = searchParams.get("name") || "Nana Ama Couture";
+  const avatar = designerAvatars[designerId] || designerAvatar1;
+
+  const initialMessages = [
+    { id: 1, from: "designer", text: "Hello! Thank you for your interest. How can I help you today?", time: "10:30 AM" },
+    { id: 2, from: "client", text: "Hi! I'm looking for a custom wedding gown. Do you have availability in April?", time: "10:32 AM" },
+    { id: 3, from: "designer", text: "Yes, I have a slot opening April 2nd. Would you like to book a consultation to discuss your vision?", time: "10:33 AM" },
+  ];
+
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
 
