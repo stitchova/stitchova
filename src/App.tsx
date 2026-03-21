@@ -20,6 +20,8 @@ import DiscoverDesigners from "./pages/DiscoverDesigners";
 import DesignerProfilePage from "./pages/DesignerProfilePage";
 import ClientOrders from "./pages/ClientOrders";
 import Messages from "./pages/Messages";
+import DesignerMessages from "./pages/DesignerMessages";
+import ReviewDesigner from "./pages/ReviewDesigner";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
