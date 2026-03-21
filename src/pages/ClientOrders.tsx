@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import portfolio1 from "@/assets/designer-portfolio-1.jpg";
 import portfolio2 from "@/assets/designer-portfolio-2.jpg";
