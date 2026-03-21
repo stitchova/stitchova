@@ -27,6 +27,9 @@ const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 
 const Appointments = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const designerName = searchParams.get("name") || "Designer";
+  const designerId = searchParams.get("designer") || "";
   const [step, setStep] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
