@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import portfolio1 from "@/assets/designer-portfolio-1.jpg";
 import portfolio2 from "@/assets/designer-portfolio-2.jpg";
@@ -9,9 +9,9 @@ import portfolio4 from "@/assets/designer-portfolio-4.jpg";
 const tabs = ["Active", "Completed", "All"];
 
 const orders = [
-  { img: portfolio1, type: "Wedding Gown", designer: "Nana Ama Couture", status: "Sewing", date: "Mar 28", price: "GHS 3,200", progress: 65, statusColor: "bg-status-sewing", active: true },
-  { img: portfolio2, type: "3-Piece Agbada", designer: "Kwame Styles", status: "Cutting", date: "Apr 5", price: "GHS 2,100", progress: 30, statusColor: "bg-status-cutting", active: true },
-  { img: portfolio4, type: "Evening Gown", designer: "Efya Designs", status: "Completed", date: "Feb 14", price: "GHS 1,800", progress: 100, statusColor: "bg-status-completed", active: false },
+  { img: portfolio1, type: "Wedding Gown", designer: "Nana Ama Couture", designerId: "nana-ama", status: "Sewing", date: "Mar 28", price: "GHS 3,200", progress: 65, statusColor: "bg-status-sewing", active: true },
+  { img: portfolio2, type: "3-Piece Agbada", designer: "Kwame Styles", designerId: "kwame-styles", status: "Cutting", date: "Apr 5", price: "GHS 2,100", progress: 30, statusColor: "bg-status-cutting", active: true },
+  { img: portfolio4, type: "Evening Gown", designer: "Efya Designs", designerId: "efya-designs", status: "Completed", date: "Feb 14", price: "GHS 1,800", progress: 100, statusColor: "bg-status-completed", active: false },
 ];
 
 const ClientOrders = () => {
@@ -78,7 +78,18 @@ const ClientOrders = () => {
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-[10px] text-muted-foreground">Due: {o.date}</span>
-                  <span className="text-xs font-semibold text-primary">{o.price}</span>
+                  <div className="flex items-center gap-2">
+                    {!o.active && (
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/review/${o.designerId}`); }}
+                        className="flex items-center gap-1 text-[10px] font-medium text-primary"
+                      >
+                        <Star className="w-3 h-3" /> Rate
+                      </motion.button>
+                    )}
+                    <span className="text-xs font-semibold text-primary">{o.price}</span>
+                  </div>
                 </div>
               </div>
             </div>

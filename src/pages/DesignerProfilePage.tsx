@@ -291,14 +291,14 @@ const DesignerProfilePage = () => {
           <div className="flex gap-3">
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/messages")}
+              onClick={() => navigate(`/messages?designer=${id || "nana-ama"}&name=${encodeURIComponent(designer.name)}`)}
               className="flex-1 py-3 rounded-xl bg-secondary text-foreground text-sm font-semibold flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-4 h-4" /> Message
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/appointments")}
+              onClick={() => navigate(`/appointments?designer=${id || "nana-ama"}&name=${encodeURIComponent(designer.name)}&avatar=${encodeURIComponent(designer.avatar)}`)}
               className="flex-[2] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2"
             >
               <CalendarDays className="w-4 h-4" /> Book Appointment

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Clock, MapPin, User, Check, CalendarDays } from "lucide-react";
 import { format, addDays, isSameDay } from "date-fns";
@@ -27,6 +27,9 @@ const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 
 const Appointments = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const designerName = searchParams.get("name") || "Designer";
+  const designerId = searchParams.get("designer") || "";
   const [step, setStep] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -51,7 +54,7 @@ const Appointments = () => {
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </motion.button>
-        <h1 className="text-lg font-semibold text-foreground">Book Appointment</h1>
+        <h1 className="text-lg font-semibold text-foreground">Book with {designerName}</h1>
       </div>
 
       {/* Step indicators */}
@@ -80,7 +83,7 @@ const Appointments = () => {
             </motion.div>
             <h2 className="text-2xl font-bold text-foreground">Booking Confirmed!</h2>
             <p className="text-muted-foreground text-center text-sm">
-              {selectedService} with {clientName}<br />
+              {selectedService} with {designerName}<br />
               {selectedDate && format(selectedDate, "EEEE, MMM d")} at {selectedTime}
             </p>
           </motion.div>

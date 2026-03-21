@@ -1,4 +1,4 @@
-import { Home, Users, ShoppingBag, BarChart3, MoreHorizontal, Plus, Compass, CalendarDays, User } from "lucide-react";
+import { Home, Users, ShoppingBag, BarChart3, MoreHorizontal, Plus, Compass, CalendarDays, User, MessageCircle } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useRole } from "@/contexts/RoleContext";
@@ -14,7 +14,7 @@ const designerNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/" },
   { icon: Users, label: "Clients", path: "/clients" },
   { icon: Plus, label: "Add", path: "/add", isCenter: true },
-  { icon: ShoppingBag, label: "Orders", path: "/orders" },
+  { icon: MessageCircle, label: "Messages", path: "/designer-messages" },
   { icon: MoreHorizontal, label: "More", path: "/more" },
 ];
 
@@ -26,7 +26,7 @@ const clientNav: NavItem[] = [
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
-const hiddenPaths = ["/onboarding", "/auth", "/messages"];
+const hiddenPaths = ["/onboarding", "/auth", "/messages", "/designer-messages"];
 
 const BottomNav = () => {
   const location = useLocation();

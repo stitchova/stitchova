@@ -20,6 +20,8 @@ import DiscoverDesigners from "./pages/DiscoverDesigners";
 import DesignerProfilePage from "./pages/DesignerProfilePage";
 import ClientOrders from "./pages/ClientOrders";
 import Messages from "./pages/Messages";
+import DesignerMessages from "./pages/DesignerMessages";
+import ReviewDesigner from "./pages/ReviewDesigner";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -47,12 +49,14 @@ const App = () => (
               <Route path="/appointments" element={<Appointments />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/measurements" element={<Measurements />} />
+              <Route path="/designer-messages" element={<DesignerMessages />} />
               {/* Client routes */}
               <Route path="/client-home" element={<ClientHome />} />
               <Route path="/discover" element={<DiscoverDesigners />} />
               <Route path="/designer/:id" element={<DesignerProfilePage />} />
               <Route path="/client-orders" element={<ClientOrders />} />
               <Route path="/messages" element={<Messages />} />
+              <Route path="/review/:id" element={<ReviewDesigner />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
