@@ -20,8 +20,8 @@ const fadeUp = {
 };
 
 const stats = [
-  { label: "Revenue", value: "GHS 12,450", icon: DollarSign, sub: "This month" },
-  { label: "Active Orders", value: "23", icon: ShoppingBag, sub: "8 due this week" },
+  { label: "Revenue", value: "GHS 12,450", icon: DollarSign, sub: "This month", path: "/analytics" },
+  { label: "Active Orders", value: "23", icon: ShoppingBag, sub: "8 due this week", path: "/orders" },
 ];
 
 const quickActions = [
@@ -32,9 +32,9 @@ const quickActions = [
 ];
 
 const orders = [
-  { img: orderWedding, type: "Wedding Gown", client: "Ama Serwaa", status: "Sewing", date: "Mar 25", statusColor: "bg-status-sewing" },
-  { img: orderSuit, type: "3-Piece Suit", client: "Kofi Mensah", status: "Cutting", date: "Mar 28", statusColor: "bg-status-cutting" },
-  { img: orderAgbada, type: "Agbada Set", client: "Yaw Boateng", status: "Completed", date: "Mar 15", statusColor: "bg-status-completed" },
+  { img: orderWedding, type: "Wedding Gown", client: "Ama Serwaa", clientId: "ama-serwaa", status: "Sewing", date: "Mar 25", statusColor: "bg-status-sewing" },
+  { img: orderSuit, type: "3-Piece Suit", client: "Kofi Mensah", clientId: "kofi-mensah", status: "Cutting", date: "Mar 28", statusColor: "bg-status-cutting" },
+  { img: orderAgbada, type: "Agbada Set", client: "Yaw Boateng", clientId: "yaw-boateng", status: "Completed", date: "Mar 15", statusColor: "bg-status-completed" },
 ];
 
 const fabrics = [
@@ -62,7 +62,7 @@ const Index = () => {
             <span className="text-xs text-muted-foreground">053 698 7839</span>
           </div>
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center relative">
+        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/designer-messages")} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center relative">
           <Bell className="w-5 h-5 text-foreground" />
           <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
         </motion.button>
@@ -79,14 +79,19 @@ const Index = () => {
           </div>
           <div className="grid grid-cols-2 gap-3">
             {stats.map((s) => (
-              <div key={s.label} className="card-surface p-4 space-y-2">
+              <motion.button
+                key={s.label}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate(s.path)}
+                className="card-surface p-4 space-y-2 text-left"
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{s.label}</span>
                   <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
                 </div>
                 <p className="text-xl font-bold text-foreground">{s.value}</p>
                 <span className="text-[10px] text-muted-foreground">{s.sub}</span>
-              </div>
+              </motion.button>
             ))}
           </div>
         </motion.div>
@@ -115,7 +120,7 @@ const Index = () => {
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground">Recent Orders</h2>
-            <button className="text-xs text-muted-foreground flex items-center gap-1">
+            <button onClick={() => navigate("/orders")} className="text-xs text-muted-foreground flex items-center gap-1">
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -124,7 +129,8 @@ const Index = () => {
               <motion.div
                 key={o.type}
                 whileTap={{ scale: 0.97 }}
-                className="card-surface min-w-[160px] overflow-hidden flex-shrink-0"
+                onClick={() => navigate(`/client/${o.clientId}`)}
+                className="card-surface min-w-[160px] overflow-hidden flex-shrink-0 cursor-pointer"
               >
                 <div className="relative h-28">
                   <img src={o.img} alt={o.type} className="w-full h-full object-cover" />
@@ -147,7 +153,7 @@ const Index = () => {
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground">Fabric Collection</h2>
-            <button className="text-xs text-muted-foreground flex items-center gap-1">
+            <button onClick={() => navigate("/add")} className="text-xs text-muted-foreground flex items-center gap-1">
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -156,7 +162,8 @@ const Index = () => {
               <motion.div
                 key={f.name}
                 whileTap={{ scale: 0.97 }}
-                className="card-surface min-w-[140px] overflow-hidden flex-shrink-0"
+                onClick={() => navigate("/add")}
+                className="card-surface min-w-[140px] overflow-hidden flex-shrink-0 cursor-pointer"
               >
                 <div className="relative h-28">
                   <img src={f.img} alt={f.name} className="w-full h-full object-cover" />

@@ -10,11 +10,11 @@ const Profile = () => {
   const isDesigner = role === "designer";
 
   const menuItems = [
-    { icon: Bell, label: "Notifications", desc: "Manage your alerts" },
-    { icon: CreditCard, label: "Payments", desc: "Payment methods & history" },
-    { icon: Shield, label: "Privacy & Security", desc: "Account protection" },
-    { icon: Settings, label: "Settings", desc: "App preferences" },
-    { icon: HelpCircle, label: "Help & Support", desc: "Get assistance" },
+    { icon: Bell, label: "Notifications", desc: "Manage your alerts", path: "/designer-messages" },
+    { icon: CreditCard, label: "Payments", desc: "Payment methods & history", path: "/analytics" },
+    { icon: Shield, label: "Privacy & Security", desc: "Account protection", path: "/profile" },
+    { icon: Settings, label: "Settings", desc: "App preferences", path: "/profile" },
+    { icon: HelpCircle, label: "Help & Support", desc: "Get assistance", path: "/profile" },
   ];
 
   return (
@@ -66,6 +66,7 @@ const Profile = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               whileTap={{ scale: 0.98 }}
+              onClick={() => navigate(item.path)}
               className="w-full card-surface p-4 flex items-center gap-3"
             >
               <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
@@ -81,7 +82,7 @@ const Profile = () => {
         </div>
 
         {/* Logout */}
-        <motion.button whileTap={{ scale: 0.98 }} className="w-full mt-4 p-4 flex items-center justify-center gap-2 rounded-2xl border border-destructive/20">
+        <motion.button whileTap={{ scale: 0.98 }} onClick={() => navigate("/auth")} className="w-full mt-4 p-4 flex items-center justify-center gap-2 rounded-2xl border border-destructive/20">
           <LogOut className="w-4 h-4 text-destructive" />
           <span className="text-sm font-semibold text-destructive">Log Out</span>
         </motion.button>

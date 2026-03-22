@@ -57,7 +57,8 @@ const ClientOrders = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
             whileTap={{ scale: 0.98 }}
-            className="card-surface overflow-hidden"
+            onClick={() => navigate(`/designer/${o.designerId}`)}
+            className="card-surface overflow-hidden cursor-pointer"
           >
             <div className="flex">
               <img src={o.img} alt={o.type} className="w-24 h-24 object-cover" />
