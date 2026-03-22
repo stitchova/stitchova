@@ -21,8 +21,8 @@ const fadeUp = {
 };
 
 const activeOrders = [
-  { type: "Wedding Gown", designer: "Nana Ama Couture", status: "Sewing", progress: 65, date: "Mar 28", statusColor: "bg-status-sewing" },
-  { type: "3-Piece Suit", designer: "Kwame Styles", status: "Cutting", progress: 30, date: "Apr 5", statusColor: "bg-status-cutting" },
+  { type: "Wedding Gown", designer: "Nana Ama Couture", designerId: "nana-ama", status: "Sewing", progress: 65, date: "Mar 28", statusColor: "bg-status-sewing" },
+  { type: "3-Piece Suit", designer: "Kwame Styles", designerId: "kwame-styles", status: "Cutting", progress: 30, date: "Apr 5", statusColor: "bg-status-cutting" },
 ];
 
 const recommended = [
@@ -52,7 +52,7 @@ const ClientHome = () => {
             <p className="text-xs text-muted-foreground">Find your perfect designer</p>
           </div>
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center relative">
+        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/client-orders")} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center relative">
           <Bell className="w-5 h-5 text-foreground" />
           <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
         </motion.button>
@@ -104,7 +104,12 @@ const ClientHome = () => {
           </div>
           <div className="space-y-3">
             {activeOrders.map((o) => (
-              <motion.div key={o.type} whileTap={{ scale: 0.98 }} className="card-surface p-4">
+              <motion.div
+                key={o.type}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate(`/designer/${o.designerId}`)}
+                className="card-surface p-4 cursor-pointer"
+              >
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="text-xs font-semibold text-foreground">{o.type}</p>
