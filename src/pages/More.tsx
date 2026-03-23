@@ -1,18 +1,26 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera } from "lucide-react";
+import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut } from "lucide-react";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import FeatureGate from "@/components/FeatureGate";
+
+const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium" };
+const planColors = { basic: "text-muted-foreground", pro: "text-primary", premium: "text-primary" };
 
 const menuItems = [
-  { icon: User, label: "My Account", desc: "View history and manage subscriptions", path: "/profile" },
-  { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/add" },
+  { icon: User, label: "My Account", desc: "View profile and settings", path: "/profile" },
+  { icon: Crown, label: "Subscription", desc: "Manage your plan", path: "/subscription" },
+  { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/add", requiresPlan: "pro" as const },
   { icon: CreditCard, label: "Payments", desc: "Track revenue and expenses", path: "/analytics" },
-  { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics" },
+  { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
   { icon: HelpCircle, label: "Help & Support", desc: "Get help with any issue", path: "/profile" },
   { icon: Settings, label: "Settings", desc: "Customize the app", path: "/profile" },
 ];
 
 const More = () => {
   const navigate = useNavigate();
+  const { plan, expiryDate } = useSubscription();
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Profile Header */}
@@ -27,6 +35,20 @@ const More = () => {
         </motion.button>
         <h2 className="text-lg font-bold text-foreground mt-3">Justice Ansah</h2>
         <p className="text-sm text-muted-foreground">053 698 7839</p>
+
+        {/* Plan Badge */}
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate("/subscription")}
+          className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-card"
+        >
+          <Crown className={`w-4 h-4 ${planColors[plan]}`} />
+          <span className="text-xs font-semibold text-foreground">{planLabels[plan]} Plan</span>
+          {plan !== "basic" && (
+            <span className="text-[10px] text-muted-foreground">· Expires {expiryDate}</span>
+          )}
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+        </motion.button>
       </div>
 
       {/* Menu */}
@@ -51,6 +73,24 @@ const More = () => {
             <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           </motion.button>
         ))}
+
+        {/* Logout */}
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: menuItems.length * 0.05 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate("/auth")}
+          className="card-surface p-4 flex items-center gap-4 w-full text-left"
+        >
+          <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
+            <LogOut className="w-5 h-5 text-destructive" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-destructive">Log Out</p>
+            <p className="text-[11px] text-muted-foreground">Sign out of your account</p>
+          </div>
+        </motion.button>
       </div>
     </div>
   );
