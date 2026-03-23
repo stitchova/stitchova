@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight } from "lucide-react";
+import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight, Crown, TrendingUp } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
 import orderAgbada from "@/assets/order-agbada.jpg";
@@ -20,8 +21,8 @@ const fadeUp = {
 };
 
 const stats = [
-  { label: "Revenue", value: "GHS 12,450", icon: DollarSign, sub: "This month", path: "/analytics" },
-  { label: "Active Orders", value: "23", icon: ShoppingBag, sub: "8 due this week", path: "/orders" },
+  { label: "Revenue", value: "GHS 12,450", icon: DollarSign, sub: "This month", trend: "+12%", path: "/analytics" },
+  { label: "Active Orders", value: "23", icon: ShoppingBag, sub: "8 due this week", trend: "+3", path: "/orders" },
 ];
 
 const quickActions = [
@@ -43,9 +44,13 @@ const fabrics = [
   { img: fabricLace, name: "French Lace", brand: "Imported", color: "Ivory" },
 ];
 
+const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium" };
+
 const Index = () => {
   const navigate = useNavigate();
   const { toggleRole } = useRole();
+  const { plan } = useSubscription();
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -69,6 +74,26 @@ const Index = () => {
       </div>
 
       <motion.div variants={stagger} initial="hidden" animate="show" className="px-5 space-y-6">
+        {/* Subscription Banner */}
+        {plan === "basic" && (
+          <motion.div variants={fadeUp}>
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate("/subscription")}
+              className="w-full p-4 rounded-2xl bg-gradient-to-r from-primary/20 to-primary/5 border border-primary/20 flex items-center gap-3"
+            >
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <Crown className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-xs font-semibold text-foreground">Upgrade to Pro</p>
+                <p className="text-[10px] text-muted-foreground">Unlock analytics, workers & more</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-primary" />
+            </motion.button>
+          </motion.div>
+        )}
+
         {/* Stats */}
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
@@ -83,11 +108,14 @@ const Index = () => {
                 key={s.label}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate(s.path)}
-                className="card-surface p-4 space-y-2 text-left"
+                className="card-surface p-4 space-y-2 text-left backdrop-blur-sm"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{s.label}</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3 text-status-completed" />
+                    <span className="text-[10px] text-status-completed font-medium">{s.trend}</span>
+                  </div>
                 </div>
                 <p className="text-xl font-bold text-foreground">{s.value}</p>
                 <span className="text-[10px] text-muted-foreground">{s.sub}</span>

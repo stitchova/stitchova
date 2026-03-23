@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Filter, ChevronRight } from "lucide-react";
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
 import orderAgbada from "@/assets/order-agbada.jpg";
@@ -7,13 +9,18 @@ import orderAgbada from "@/assets/order-agbada.jpg";
 const tabs = ["All", "Cutting", "Sewing", "Completed"];
 
 const orders = [
-  { img: orderWedding, type: "Wedding Gown", client: "Ama Serwaa", status: "Sewing", date: "Mar 25", price: "GHS 2,500", statusColor: "bg-status-sewing text-primary-foreground" },
-  { img: orderSuit, type: "3-Piece Suit", client: "Kofi Mensah", status: "Cutting", date: "Mar 28", price: "GHS 1,800", statusColor: "bg-status-cutting text-primary-foreground" },
-  { img: orderAgbada, type: "Agbada Set", client: "Yaw Boateng", status: "Completed", date: "Mar 15", price: "GHS 3,200", statusColor: "bg-status-completed text-primary-foreground" },
-  { img: orderWedding, type: "Evening Dress", client: "Abena Poku", status: "Sewing", date: "Apr 2", price: "GHS 1,500", statusColor: "bg-status-sewing text-primary-foreground" },
+  { img: orderWedding, type: "Wedding Gown", client: "Ama Serwaa", clientId: "ama-serwaa", status: "Sewing", date: "Mar 25", price: "GHS 2,500", statusColor: "bg-status-sewing text-primary-foreground" },
+  { img: orderSuit, type: "3-Piece Suit", client: "Kofi Mensah", clientId: "kofi-mensah", status: "Cutting", date: "Mar 28", price: "GHS 1,800", statusColor: "bg-status-cutting text-primary-foreground" },
+  { img: orderAgbada, type: "Agbada Set", client: "Yaw Boateng", clientId: "yaw-boateng", status: "Completed", date: "Mar 15", price: "GHS 3,200", statusColor: "bg-status-completed text-primary-foreground" },
+  { img: orderWedding, type: "Evening Dress", client: "Abena Poku", clientId: "abena-poku", status: "Sewing", date: "Apr 2", price: "GHS 1,500", statusColor: "bg-status-sewing text-primary-foreground" },
 ];
 
 const Orders = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("All");
+
+  const filtered = activeTab === "All" ? orders : orders.filter((o) => o.status === activeTab);
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-5 pt-6 pb-2">
@@ -25,11 +32,7 @@ const Orders = () => {
       <div className="px-5 py-3 flex gap-2">
         <div className="flex items-center gap-3 bg-card rounded-xl px-4 py-3 flex-1">
           <Search className="w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search orders..."
-            className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground flex-1 outline-none"
-          />
+          <input type="text" placeholder="Search orders..." className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground flex-1 outline-none" />
         </div>
         <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 rounded-xl bg-card flex items-center justify-center">
           <Filter className="w-4 h-4 text-muted-foreground" />
@@ -38,11 +41,12 @@ const Orders = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 px-5 mb-4 overflow-x-auto scrollbar-hide">
-        {tabs.map((t, i) => (
+        {tabs.map((t) => (
           <button
             key={t}
+            onClick={() => setActiveTab(t)}
             className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
-              i === 0 ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground"
+              activeTab === t ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground"
             }`}
           >
             {t}
@@ -52,14 +56,15 @@ const Orders = () => {
 
       {/* Order List */}
       <div className="px-5 space-y-3">
-        {orders.map((o, i) => (
+        {filtered.map((o, i) => (
           <motion.div
             key={o.type + i}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.98 }}
-            className="card-surface p-3 flex gap-3"
+            onClick={() => navigate(`/client/${o.clientId}`)}
+            className="card-surface p-3 flex gap-3 cursor-pointer"
           >
             <img src={o.img} alt={o.type} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
             <div className="flex-1 min-w-0">
@@ -77,6 +82,7 @@ const Orders = () => {
                 <span className="text-xs font-bold text-primary">{o.price}</span>
               </div>
             </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground self-center flex-shrink-0" />
           </motion.div>
         ))}
       </div>

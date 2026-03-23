@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { cn } from "@/lib/utils";
+import FeatureGate from "@/components/FeatureGate";
 
 const revenueData = [
   { month: "Jan", revenue: 12400 }, { month: "Feb", revenue: 18200 },
@@ -54,6 +55,7 @@ const Analytics = () => {
   const [period, setPeriod] = useState("Month");
 
   return (
+    <FeatureGate requiredPlan="pro" feature="Analytics dashboard">
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
@@ -162,6 +164,7 @@ const Analytics = () => {
         </motion.div>
       </div>
     </div>
+    </FeatureGate>
   );
 };
 
