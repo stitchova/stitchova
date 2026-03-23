@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { cn } from "@/lib/utils";
+import FeatureGate from "@/components/FeatureGate";
 
 const revenueData = [
   { month: "Jan", revenue: 12400 }, { month: "Feb", revenue: 18200 },
