@@ -78,6 +78,13 @@
     @apply bg-card rounded-2xl;
   }
 
+  .card-glass {
+    background: hsla(240, 8%, 10%, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    @apply rounded-2xl border border-border/30;
+  }
+
   .card-elevated {
     background: hsl(var(--card-elevated));
     @apply rounded-2xl;
