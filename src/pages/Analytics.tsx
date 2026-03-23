@@ -55,6 +55,7 @@ const Analytics = () => {
   const [period, setPeriod] = useState("Month");
 
   return (
+    <FeatureGate requiredPlan="pro" feature="Analytics dashboard">
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
