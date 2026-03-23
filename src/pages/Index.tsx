@@ -56,7 +56,7 @@ const Index = () => {
       {/* Header */}
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <motion.button whileTap={{ scale: 0.95 }} onClick={toggleRole} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
             <span className="text-sm font-semibold text-foreground">JA</span>
           </motion.button>
           <div>
