@@ -164,6 +164,7 @@ const Analytics = () => {
         </motion.div>
       </div>
     </div>
+    </FeatureGate>
   );
 };
 
