@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Save, ChevronRight } from "lucide-react";
+import { ArrowLeft, Save, ChevronRight, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,7 +36,7 @@ const garmentTypes: Record<string, { label: string; emoji: string }[]> = {
   ],
 };
 
-const measurementFields: Record<string, string[]> = {
+const defaultMeasurementFields: Record<string, string[]> = {
   Agbada: ["Chest", "Shoulder", "Sleeve", "Length", "Round Arm", "Neck"],
   Senator: ["Chest", "Shoulder", "Sleeve", "Length", "Round Arm", "Neck"],
   Kaftan: ["Chest", "Shoulder", "Sleeve", "Length", "Round Arm"],
@@ -61,8 +61,36 @@ const Measurements = () => {
   const [garment, setGarment] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [values, setValues] = useState<Record<string, string>>({});
+  const [customFields, setCustomFields] = useState<string[]>([]);
+  const [newFieldName, setNewFieldName] = useState("");
+  const [showAddField, setShowAddField] = useState(false);
 
-  const fields = garment ? (measurementFields[garment] || []) : [];
+  const defaultFields = garment ? (defaultMeasurementFields[garment] || []) : [];
+  const allFields = [...defaultFields, ...customFields];
+
+  const handleAddField = () => {
+    const name = newFieldName.trim();
+    if (!name) return;
+    if (allFields.includes(name)) {
+      toast({ title: "Field exists", description: `"${name}" is already in the list.`, variant: "destructive" });
+      return;
+    }
+    setCustomFields((prev) => [...prev, name]);
+    setNewFieldName("");
+    setShowAddField(false);
+    toast({ title: "Field added", description: `"${name}" added to measurements.` });
+  };
+
+  const handleRemoveField = (field: string) => {
+    if (defaultFields.includes(field)) {
+      toast({ title: "Cannot remove", description: "Default fields cannot be removed.", variant: "destructive" });
+      return;
+    }
+    setCustomFields((prev) => prev.filter((f) => f !== field));
+    const newValues = { ...values };
+    delete newValues[field];
+    setValues(newValues);
+  };
 
   const handleSave = () => {
     toast({ title: "Measurements saved!", description: `${garment} measurements for ${clientName || "client"} recorded.` });
@@ -124,13 +152,13 @@ const Measurements = () => {
                   <motion.button
                     key={g.label}
                     whileTap={{ scale: 0.96 }}
-                    onClick={() => { setGarment(g.label); setValues({}); }}
+                    onClick={() => { setGarment(g.label); setValues({}); setCustomFields([]); }}
                     className="card-surface p-4 flex items-center gap-3 border border-transparent hover:border-border transition-all text-left"
                   >
                     <span className="text-2xl">{g.emoji}</span>
                     <div className="flex-1">
                       <span className="text-sm font-medium text-foreground">{g.label}</span>
-                      <span className="block text-[11px] text-muted-foreground">{measurementFields[g.label]?.length || 0} fields</span>
+                      <span className="block text-[11px] text-muted-foreground">{defaultMeasurementFields[g.label]?.length || 0} fields</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </motion.button>
@@ -140,25 +168,85 @@ const Measurements = () => {
           </motion.div>
         ) : (
           <motion.div key="fields" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-4">
-            <p className="text-sm text-muted-foreground">All measurements in inches</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">All measurements in inches</p>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowAddField(true)}
+                className="text-xs text-primary font-medium flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Field
+              </motion.button>
+            </div>
+
+            {/* Add custom field input */}
+            <AnimatePresence>
+              {showAddField && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex gap-2">
+                    <input
+                      value={newFieldName}
+                      onChange={(e) => setNewFieldName(e.target.value)}
+                      placeholder="e.g. Back Width"
+                      onKeyDown={(e) => e.key === "Enter" && handleAddField()}
+                      className="flex-1 bg-card border border-border rounded-xl py-2.5 px-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary transition-colors"
+                      autoFocus
+                    />
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleAddField}
+                      className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium"
+                    >
+                      Add
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => { setShowAddField(false); setNewFieldName(""); }}
+                      className="px-3 py-2.5 rounded-xl bg-muted text-muted-foreground text-sm"
+                    >
+                      <X className="w-4 h-4" />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="grid grid-cols-2 gap-3">
-              {fields.map((field) => (
-                <div key={field} className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground">{field}</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      value={values[field] || ""}
-                      onChange={(e) => setValues({ ...values, [field]: e.target.value })}
-                      placeholder="0.0"
-                      className="w-full bg-card border border-border rounded-xl py-3 px-4 pr-10 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary transition-colors"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">in</span>
+              {allFields.map((field) => {
+                const isCustom = customFields.includes(field);
+                return (
+                  <div key={field} className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-muted-foreground">{field}</label>
+                      {isCustom && (
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleRemoveField(field)}
+                          className="p-0.5"
+                        >
+                          <X className="w-3 h-3 text-destructive" />
+                        </motion.button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        value={values[field] || ""}
+                        onChange={(e) => setValues({ ...values, [field]: e.target.value })}
+                        placeholder="0.0"
+                        className="w-full bg-card border border-border rounded-xl py-3 px-4 pr-10 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary transition-colors"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">in</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Notes */}
