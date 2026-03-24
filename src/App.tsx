@@ -26,6 +26,8 @@ import ReviewDesigner from "./pages/ReviewDesigner";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
+import Fabrics from "./pages/Fabrics";
+import Workers from "./pages/Workers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
