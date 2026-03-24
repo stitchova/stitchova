@@ -26,6 +26,8 @@ import ReviewDesigner from "./pages/ReviewDesigner";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
+import Fabrics from "./pages/Fabrics";
+import Workers from "./pages/Workers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +55,8 @@ const App = () => (
                 <Route path="/appointments" element={<Appointments />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/measurements" element={<Measurements />} />
+                <Route path="/fabrics" element={<Fabrics />} />
+                <Route path="/workers" element={<Workers />} />
                 <Route path="/designer-messages" element={<DesignerMessages />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
