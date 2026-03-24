@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Clock, MapPin, User, Check, CalendarDays } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Check, CalendarDays, Clock } from "lucide-react";
 import { format, addDays, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
-const timeSlots = [
+const defaultTimeSlots = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM",
   "11:00 AM", "11:30 AM", "12:00 PM", "01:00 PM",
   "01:30 PM", "02:00 PM", "02:30 PM", "03:00 PM",
@@ -21,54 +22,82 @@ const serviceTypes = [
   { label: "Pickup", icon: "📦", duration: "15 min" },
 ];
 
-const quickDates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
+const quickDates = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i));
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 
+interface AvailabilitySlot {
+  id: string;
+  date: Date;
+  times: string[];
+  services: string[];
+}
+
 const Appointments = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const designerName = searchParams.get("name") || "Designer";
-  const designerId = searchParams.get("designer") || "";
-  const [step, setStep] = useState(0);
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [clientName, setClientName] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
+  const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+  const [saved, setSaved] = useState(false);
 
-  const canProceed =
-    step === 0 ? !!selectedService :
-    step === 1 ? !!selectedDate && !!selectedTime :
-    step === 2 ? clientName.trim().length > 0 : false;
+  const toggleTime = (t: string) => {
+    setSelectedTimes((prev) =>
+      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+    );
+  };
 
-  const handleConfirm = () => {
-    setConfirmed(true);
-    setTimeout(() => navigate("/"), 2500);
+  const toggleService = (s: string) => {
+    setSelectedServices((prev) =>
+      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
+    );
+  };
+
+  const canAdd = !!selectedDate && selectedTimes.length > 0 && selectedServices.length > 0;
+
+  const handleAddSlot = () => {
+    if (!selectedDate) return;
+    const newSlot: AvailabilitySlot = {
+      id: Date.now().toString(),
+      date: selectedDate,
+      times: [...selectedTimes],
+      services: [...selectedServices],
+    };
+    setSlots((prev) => [...prev, newSlot]);
+    setSelectedDate(undefined);
+    setSelectedTimes([]);
+    setSelectedServices([]);
+    toast({ title: "Slot added", description: `Availability set for ${format(newSlot.date, "MMM d")}` });
+  };
+
+  const removeSlot = (id: string) => {
+    setSlots((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleSave = () => {
+    setSaved(true);
+    toast({ title: "Availability saved!", description: `${slots.length} slot(s) published for client booking.` });
+    setTimeout(() => navigate("/"), 2000);
   };
 
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
-        <motion.button whileTap={{ scale: 0.9 }} onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}>
+        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </motion.button>
-        <h1 className="text-lg font-semibold text-foreground">Book with {designerName}</h1>
-      </div>
-
-      {/* Step indicators */}
-      <div className="px-6 pt-4 pb-2 flex gap-2">
-        {[0, 1, 2].map((s) => (
-          <div key={s} className={cn("h-1 flex-1 rounded-full transition-all duration-300", s <= step ? "bg-primary" : "bg-muted")} />
-        ))}
+        <div className="flex-1">
+          <h1 className="text-lg font-semibold text-foreground">Schedule Availability</h1>
+          <p className="text-[11px] text-muted-foreground">Set your available times for client bookings</p>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
-        {/* Confirmation overlay */}
-        {confirmed && (
+        {saved ? (
           <motion.div
-            key="confirmed"
+            key="saved"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center px-6 pt-20 gap-6"
@@ -81,46 +110,40 @@ const Appointments = () => {
             >
               <Check className="w-10 h-10 text-status-completed" />
             </motion.div>
-            <h2 className="text-2xl font-bold text-foreground">Booking Confirmed!</h2>
+            <h2 className="text-2xl font-bold text-foreground">Availability Published!</h2>
             <p className="text-muted-foreground text-center text-sm">
-              {selectedService} with {designerName}<br />
-              {selectedDate && format(selectedDate, "EEEE, MMM d")} at {selectedTime}
+              Clients can now book appointments on your available dates.
             </p>
           </motion.div>
-        )}
-
-        {/* Step 0: Service selection */}
-        {!confirmed && step === 0 && (
-          <motion.div key="step0" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-4">
-            <p className="text-sm text-muted-foreground">Select service type</p>
-            <div className="grid grid-cols-2 gap-3">
-              {serviceTypes.map((s) => (
-                <motion.button
-                  key={s.label}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => setSelectedService(s.label)}
-                  className={cn(
-                    "card-surface p-4 flex flex-col items-start gap-2 border transition-all",
-                    selectedService === s.label ? "border-primary bg-primary/10" : "border-transparent"
-                  )}
-                >
-                  <span className="text-2xl">{s.icon}</span>
-                  <span className="text-sm font-medium text-foreground">{s.label}</span>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {s.duration}
-                  </span>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Step 1: Date & Time */}
-        {!confirmed && step === 1 && (
-          <motion.div key="step1" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-5">
+        ) : (
+          <motion.div key="form" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-5">
+            {/* Services */}
             <div>
-              <p className="text-sm text-muted-foreground mb-3">Pick a date</p>
-              {/* Quick date pills */}
+              <p className="text-sm text-muted-foreground mb-2">Services you'll offer</p>
+              <div className="grid grid-cols-2 gap-3">
+                {serviceTypes.map((s) => (
+                  <motion.button
+                    key={s.label}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => toggleService(s.label)}
+                    className={cn(
+                      "card-surface p-3 flex items-center gap-3 border transition-all text-left",
+                      selectedServices.includes(s.label) ? "border-primary bg-primary/10" : "border-transparent"
+                    )}
+                  >
+                    <span className="text-xl">{s.icon}</span>
+                    <div>
+                      <span className="text-xs font-medium text-foreground">{s.label}</span>
+                      <span className="block text-[10px] text-muted-foreground">{s.duration}</span>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            {/* Date */}
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Select date</p>
               <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
                 {quickDates.map((d) => (
                   <motion.button
@@ -128,7 +151,7 @@ const Appointments = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedDate(d)}
                     className={cn(
-                      "flex flex-col items-center min-w-[3.5rem] px-3 py-2 rounded-xl border transition-all",
+                      "flex flex-col items-center min-w-[3.5rem] px-3 py-2 rounded-xl border transition-all flex-shrink-0",
                       selectedDate && isSameDay(d, selectedDate) ? "border-primary bg-primary/10" : "border-border bg-card"
                     )}
                   >
@@ -137,8 +160,6 @@ const Appointments = () => {
                   </motion.button>
                 ))}
               </div>
-
-              {/* Full calendar popover */}
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="mt-2 text-xs text-primary flex items-center gap-1">
@@ -157,17 +178,18 @@ const Appointments = () => {
               </Popover>
             </div>
 
+            {/* Time slots */}
             <div>
-              <p className="text-sm text-muted-foreground mb-3">Select time</p>
+              <p className="text-sm text-muted-foreground mb-2">Available time slots</p>
               <div className="grid grid-cols-4 gap-2">
-                {timeSlots.map((t) => (
+                {defaultTimeSlots.map((t) => (
                   <motion.button
                     key={t}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedTime(t)}
+                    onClick={() => toggleTime(t)}
                     className={cn(
                       "py-2 rounded-xl text-xs font-medium border transition-all",
-                      selectedTime === t ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
+                      selectedTimes.includes(t) ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
                     )}
                   >
                     {t}
@@ -175,61 +197,67 @@ const Appointments = () => {
                 ))}
               </div>
             </div>
-          </motion.div>
-        )}
 
-        {/* Step 2: Client & Confirm */}
-        {!confirmed && step === 2 && (
-          <motion.div key="step2" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-5">
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Client name</p>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  placeholder="Enter client name"
-                  className="w-full bg-card border border-border rounded-xl py-3 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-            </div>
+            {/* Add slot button */}
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              disabled={!canAdd}
+              onClick={handleAddSlot}
+              className={cn(
+                "w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all",
+                canAdd ? "bg-secondary text-foreground" : "bg-muted text-muted-foreground"
+              )}
+            >
+              <Plus className="w-4 h-4" /> Add Availability Slot
+            </motion.button>
 
-            {/* Summary card */}
-            <div className="card-elevated p-4 space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">Booking Summary</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Service</span>
-                  <span className="text-foreground font-medium">{selectedService}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Date</span>
-                  <span className="text-foreground font-medium">{selectedDate && format(selectedDate, "MMM d, yyyy")}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Time</span>
-                  <span className="text-foreground font-medium">{selectedTime}</span>
-                </div>
+            {/* Added slots */}
+            {slots.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-foreground">Your Availability ({slots.length})</p>
+                {slots.map((slot, i) => (
+                  <motion.div
+                    key={slot.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="card-surface p-4 flex items-start gap-3"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <CalendarDays className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{format(slot.date, "EEEE, MMM d")}</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {slot.times.map((t) => (
+                          <span key={t} className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground flex items-center gap-0.5">
+                            <Clock className="w-2.5 h-2.5" /> {t}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">{slot.services.join(", ")}</p>
+                    </div>
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => removeSlot(slot.id)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </motion.button>
+                  </motion.div>
+                ))}
               </div>
-            </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Bottom CTA */}
-      {!confirmed && (
+      {/* Save button */}
+      {!saved && slots.length > 0 && (
         <div className="fixed bottom-20 left-0 right-0 px-5">
           <div className="max-w-md mx-auto">
             <motion.button
               whileTap={{ scale: 0.97 }}
-              disabled={!canProceed}
-              onClick={() => (step < 2 ? setStep(step + 1) : handleConfirm())}
-              className={cn(
-                "w-full py-3.5 rounded-xl font-semibold text-sm transition-all",
-                canProceed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              )}
+              onClick={handleSave}
+              className="w-full py-3.5 rounded-xl font-semibold text-sm bg-primary text-primary-foreground flex items-center justify-center gap-2"
             >
-              {step < 2 ? "Continue" : "Confirm Booking"}
+              <Check className="w-4 h-4" /> Publish Availability ({slots.length} slots)
             </motion.button>
           </div>
         </div>
