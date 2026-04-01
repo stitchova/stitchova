@@ -63,7 +63,7 @@ const Orders = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => navigate(`/client/${o.clientId}`)}
+            onClick={() => navigate(`/order/${o.clientId}`)}
             className="card-surface p-3 flex gap-3 cursor-pointer"
           >
             <img src={o.img} alt={o.type} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
