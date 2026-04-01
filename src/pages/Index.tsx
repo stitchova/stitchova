@@ -178,6 +178,9 @@ const Index = () => {
           </div>
         </motion.div>
 
+        {/* Worker Progress Tracking */}
+        <WorkerProgressTracker />
+
         {/* Fabrics */}
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
