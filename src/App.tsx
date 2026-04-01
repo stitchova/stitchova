@@ -28,6 +28,11 @@ import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
 import Fabrics from "./pages/Fabrics";
 import Workers from "./pages/Workers";
+import WorkerDashboard from "./pages/WorkerDashboard";
+import WorkerTasks from "./pages/WorkerTasks";
+import WorkerMeasurements from "./pages/WorkerMeasurements";
+import WorkerMaterials from "./pages/WorkerMaterials";
+import WorkerProfile from "./pages/WorkerProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +71,12 @@ const App = () => (
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/review/:id" element={<ReviewDesigner />} />
                 <Route path="/profile" element={<Profile />} />
+                {/* Worker routes */}
+                <Route path="/worker-dashboard" element={<WorkerDashboard />} />
+                <Route path="/worker-tasks" element={<WorkerTasks />} />
+                <Route path="/worker-measurements" element={<WorkerMeasurements />} />
+                <Route path="/worker-materials" element={<WorkerMaterials />} />
+                <Route path="/worker-profile" element={<WorkerProfile />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <BottomNav />
