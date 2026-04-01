@@ -28,6 +28,11 @@ import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
 import Fabrics from "./pages/Fabrics";
 import Workers from "./pages/Workers";
+import WorkerDashboard from "./pages/WorkerDashboard";
+import WorkerTasks from "./pages/WorkerTasks";
+import WorkerMeasurements from "./pages/WorkerMeasurements";
+import WorkerMaterials from "./pages/WorkerMaterials";
+import WorkerProfile from "./pages/WorkerProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
