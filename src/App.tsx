@@ -71,6 +71,12 @@ const App = () => (
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/review/:id" element={<ReviewDesigner />} />
                 <Route path="/profile" element={<Profile />} />
+                {/* Worker routes */}
+                <Route path="/worker-dashboard" element={<WorkerDashboard />} />
+                <Route path="/worker-tasks" element={<WorkerTasks />} />
+                <Route path="/worker-measurements" element={<WorkerMeasurements />} />
+                <Route path="/worker-materials" element={<WorkerMaterials />} />
+                <Route path="/worker-profile" element={<WorkerProfile />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <BottomNav />
