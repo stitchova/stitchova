@@ -28,6 +28,7 @@ import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
 import Fabrics from "./pages/Fabrics";
 import Workers from "./pages/Workers";
+import OrderDetail from "./pages/OrderDetail";
 import WorkerDashboard from "./pages/WorkerDashboard";
 import WorkerTasks from "./pages/WorkerTasks";
 import WorkerMeasurements from "./pages/WorkerMeasurements";
@@ -62,6 +63,7 @@ const App = () => (
                 <Route path="/measurements" element={<Measurements />} />
                 <Route path="/fabrics" element={<Fabrics />} />
                 <Route path="/workers" element={<Workers />} />
+                <Route path="/order/:clientId" element={<OrderDetail />} />
                 <Route path="/designer-messages" element={<DesignerMessages />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
