@@ -26,6 +26,14 @@ const clientNav: NavItem[] = [
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
+const workerNav: NavItem[] = [
+  { icon: Home, label: "Home", path: "/worker-dashboard" },
+  { icon: ClipboardList, label: "Tasks", path: "/worker-tasks" },
+  { icon: Ruler, label: "Measure", path: "/worker-measurements" },
+  { icon: Package, label: "Materials", path: "/worker-materials" },
+  { icon: UserCircle, label: "Profile", path: "/worker-profile" },
+];
+
 const hiddenPaths = ["/onboarding", "/auth", "/messages", "/designer-messages"];
 
 const BottomNav = () => {
@@ -34,10 +42,9 @@ const BottomNav = () => {
   const { role } = useRole();
 
   if (hiddenPaths.includes(location.pathname)) return null;
-  // Hide on designer profile pages for client (has its own CTA bar)
   if (location.pathname.startsWith("/designer/")) return null;
 
-  const navItems = role === "designer" ? designerNav : clientNav;
+  const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
