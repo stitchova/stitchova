@@ -193,9 +193,9 @@ const OrderDetail = () => {
                     ) : (
                       <motion.button whileTap={{ scale: 0.95 }}
                         onClick={() => { setAssigningTaskId(task.id); setShowAssign(true); }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20">
-                        <UserPlus className="w-3 h-3 text-primary" />
-                        <span className="text-[10px] font-semibold text-primary">Assign Worker</span>
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
+                        <UserPlus className="w-4 h-4" />
+                        <span className="text-xs font-bold">Assign Worker</span>
                       </motion.button>
                     )}
                     {task.assignee && (

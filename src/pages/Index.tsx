@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight, Crown, TrendingUp } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import WorkerProgressTracker from "@/components/WorkerProgressTracker";
+
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
 import orderAgbada from "@/assets/order-agbada.jpg";
@@ -177,9 +177,6 @@ const Index = () => {
             ))}
           </div>
         </motion.div>
-
-        {/* Worker Progress Tracking */}
-        <WorkerProgressTracker />
 
         {/* Fabrics */}
         <motion.div variants={fadeUp}>
