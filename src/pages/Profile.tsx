@@ -41,21 +41,6 @@ const Profile = () => {
           <p className="text-xs text-muted-foreground">{isDesigner ? "Fashion Designer" : "Client"}</p>
         </div>
 
-        {/* Role Switch */}
-        <motion.button
-          whileTap={{ scale: 0.98 }}
-          onClick={toggleRole}
-          className="w-full card-surface p-4 flex items-center gap-3 mb-4"
-        >
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <ArrowLeftRight className="w-5 h-5 text-primary" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-foreground">Switch to {isDesigner ? "Client" : "Designer"} Mode</p>
-            <p className="text-[10px] text-muted-foreground">Currently in {isDesigner ? "Designer" : "Client"} mode</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
-        </motion.button>
 
         {/* Menu */}
         <div className="space-y-2">
