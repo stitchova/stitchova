@@ -75,19 +75,22 @@
   }
 
   .card-surface {
-    @apply bg-card rounded-2xl;
+    @apply bg-card rounded-2xl border border-border/10;
+    box-shadow: 0 2px 16px -4px rgba(0, 0, 0, 0.3);
   }
 
   .card-glass {
-    background: hsla(240, 8%, 10%, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    @apply rounded-2xl border border-border/30;
+    background: hsla(240, 8%, 10%, 0.65);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    @apply rounded-2xl border border-border/20;
+    box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 hsla(0, 0%, 100%, 0.04);
   }
 
   .card-elevated {
     background: hsl(var(--card-elevated));
     @apply rounded-2xl;
+    box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.4);
   }
 
   .scrollbar-hide {
@@ -100,5 +103,9 @@
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px -4px hsl(45, 100%, 50%, 0.3);
   }
 }

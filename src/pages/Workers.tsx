@@ -677,7 +677,14 @@ const Workers = () => {
           )}
         </AnimatePresence>
 
+        {/* Worker Progress & Activity */}
+        {!showForm && <WorkerProgressTracker />}
+
         {/* ── WORKER LIST ── */}
+        <div className="flex items-center justify-between mt-2">
+          <h2 className="text-sm font-semibold text-foreground">Your Team</h2>
+          <span className="text-[10px] text-muted-foreground">{workers.length} workers</span>
+        </div>
         {workers.map((w, i) => (
           <motion.div
             key={w.id}
