@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight, Crown, TrendingUp } from "lucide-react";
-import { useRole } from "@/contexts/RoleContext";
+
 import { useSubscription } from "@/contexts/SubscriptionContext";
 
 import orderWedding from "@/assets/order-wedding.jpg";
@@ -49,7 +49,7 @@ const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium" };
 
 const Index = () => {
   const navigate = useNavigate();
-  const { toggleRole } = useRole();
+  
   const { plan } = useSubscription();
 
   return (
