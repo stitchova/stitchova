@@ -33,7 +33,6 @@ const recommended = [
 
 const ClientHome = () => {
   const navigate = useNavigate();
-  const { toggleRole } = useRole();
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -42,7 +41,7 @@ const ClientHome = () => {
         <div className="flex items-center gap-3">
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={toggleRole}
+            onClick={() => navigate("/profile")}
             className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
           >
             <span className="text-sm font-semibold text-foreground">AK</span>
