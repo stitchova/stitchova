@@ -5,7 +5,7 @@ import { useRole } from "@/contexts/RoleContext";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { role, toggleRole } = useRole();
+  const { role } = useRole();
 
   const isDesigner = role === "designer";
 
