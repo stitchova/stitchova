@@ -9,6 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import WorkerProgressTracker from "@/components/WorkerProgressTracker";
 
 interface EmergencyContact {
   name: string;
