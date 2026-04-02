@@ -49,7 +49,7 @@ const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium" };
 
 const Index = () => {
   const navigate = useNavigate();
-  const { toggleRole } = useRole();
+  
   const { plan } = useSubscription();
 
   return (

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Camera, ChevronRight, LogOut, Bell, Shield, HelpCircle, Settings, CreditCard, ArrowLeftRight } from "lucide-react";
+import { ArrowLeft, Camera, ChevronRight, LogOut, Bell, Shield, HelpCircle, Settings, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 

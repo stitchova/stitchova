@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Bell, Search, ChevronRight, Star, MapPin, ShoppingBag, CalendarDays, Compass } from "lucide-react";
-import { useRole } from "@/contexts/RoleContext";
+
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
