@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { UserPlus, Ruler, ClipboardList, CalendarDays, Shirt, Package, ArrowLeft } from "lucide-react";
+import { UserPlus, Ruler, ClipboardList, CalendarDays, Shirt, Package, ArrowLeft, Boxes, Brain, Image } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const actions = [
@@ -8,7 +8,10 @@ const actions = [
   { icon: Ruler, label: "Record Measurement", desc: "Take client measurements", color: "text-primary", path: "/measurements" },
   { icon: CalendarDays, label: "Schedule Appointment", desc: "Schedule a fitting session for a client", color: "text-primary", path: "/appointments" },
   { icon: Shirt, label: "Add Fabric", desc: "Add to your fabric collection", color: "text-primary", path: "/fabrics" },
+  { icon: Boxes, label: "Add Material", desc: "Add threads, beads, buttons & more", color: "text-primary", path: "/materials" },
   { icon: Package, label: "Add Worker", desc: "Register a new team member", color: "text-primary", path: "/workers" },
+  { icon: Image, label: "Style Library", desc: "Browse style inspirations", color: "text-primary", path: "/style-library" },
+  { icon: Brain, label: "AI Insights", desc: "Smart predictions for your business", color: "text-primary", path: "/ai-insights" },
 ];
 
 const AddNew = () => {

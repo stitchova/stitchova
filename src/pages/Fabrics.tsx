@@ -13,14 +13,20 @@ interface Fabric {
   qty: string;
   price: string;
   image: string | null;
+  fabricType: string;
+  source: string;
+  dateReceived: string;
 }
 
+const fabricTypes = ["Lace", "Ankara", "Silk", "Denim", "Cotton", "Kente", "Brocade", "Wool", "Satin", "Other"];
+const sources = ["Client", "Designer"];
+
 const defaultFabrics: Fabric[] = [
-  { id: "1", name: "Ankara Print", brand: "Vlisco", color: "Multi", qty: "5 yards", price: "GHS 350", image: null },
-  { id: "2", name: "Silk Satin", brand: "Premium", color: "Navy/Gold", qty: "3 yards", price: "GHS 520", image: null },
-  { id: "3", name: "French Lace", brand: "Imported", color: "Ivory", qty: "4 yards", price: "GHS 780", image: null },
-  { id: "4", name: "Kente Cloth", brand: "Bonwire", color: "Gold/Green", qty: "6 yards", price: "GHS 900", image: null },
-  { id: "5", name: "Cotton Poplin", brand: "Local", color: "White", qty: "10 yards", price: "GHS 150", image: null },
+  { id: "1", name: "Ankara Print", brand: "Vlisco", color: "Multi", qty: "5 yards", price: "GHS 350", image: null, fabricType: "Ankara", source: "Designer", dateReceived: "2024-03-10" },
+  { id: "2", name: "Silk Satin", brand: "Premium", color: "Navy/Gold", qty: "3 yards", price: "GHS 520", image: null, fabricType: "Silk", source: "Client", dateReceived: "2024-03-08" },
+  { id: "3", name: "French Lace", brand: "Imported", color: "Ivory", qty: "4 yards", price: "GHS 780", image: null, fabricType: "Lace", source: "Designer", dateReceived: "2024-03-05" },
+  { id: "4", name: "Kente Cloth", brand: "Bonwire", color: "Gold/Green", qty: "6 yards", price: "GHS 900", image: null, fabricType: "Kente", source: "Designer", dateReceived: "2024-02-28" },
+  { id: "5", name: "Cotton Poplin", brand: "Local", color: "White", qty: "10 yards", price: "GHS 150", image: null, fabricType: "Cotton", source: "Designer", dateReceived: "2024-02-20" },
 ];
 
 const Fabrics = () => {
@@ -29,12 +35,12 @@ const Fabrics = () => {
   const [fabrics, setFabrics] = useState<Fabric[]>(defaultFabrics);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", brand: "", color: "", qty: "", price: "" });
+  const [form, setForm] = useState({ name: "", brand: "", color: "", qty: "", price: "", fabricType: "Ankara", source: "Designer", dateReceived: "" });
   const [formImage, setFormImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = fabrics.filter((f) =>
-    `${f.name} ${f.brand} ${f.color}`.toLowerCase().includes(search.toLowerCase())
+    `${f.name} ${f.brand} ${f.color} ${f.fabricType}`.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,16 +54,12 @@ const Fabrics = () => {
   const handleAdd = () => {
     if (!form.name.trim()) return;
     const newFabric: Fabric = {
-      id: Date.now().toString(),
-      name: form.name,
-      brand: form.brand || "—",
-      color: form.color || "—",
-      qty: form.qty || "—",
-      price: form.price || "—",
-      image: formImage,
+      id: Date.now().toString(), name: form.name, brand: form.brand || "—", color: form.color || "—",
+      qty: form.qty || "—", price: form.price || "—", image: formImage, fabricType: form.fabricType,
+      source: form.source, dateReceived: form.dateReceived || new Date().toISOString().split("T")[0],
     };
     setFabrics((prev) => [newFabric, ...prev]);
-    setForm({ name: "", brand: "", color: "", qty: "", price: "" });
+    setForm({ name: "", brand: "", color: "", qty: "", price: "", fabricType: "Ankara", source: "Designer", dateReceived: "" });
     setFormImage(null);
     setShowForm(false);
     toast({ title: "Fabric added ✨", description: `${newFabric.name} added to your collection.` });
@@ -70,50 +72,27 @@ const Fabrics = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </motion.button>
         <h1 className="text-lg font-semibold text-foreground flex-1">Fabric Collection</h1>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowForm(!showForm)}
-          className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/25"
-        >
+        <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowForm(!showForm)}
+          className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
           {showForm ? <X className="w-4 h-4 text-primary-foreground" /> : <Plus className="w-4 h-4 text-primary-foreground" />}
         </motion.button>
       </div>
 
       <div className="px-5 pt-4 space-y-4">
-        {/* Add form */}
         <AnimatePresence>
           {showForm && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
-            >
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
               <div className="card-glass p-5 space-y-4 mb-4">
                 <p className="text-sm font-bold text-foreground">Add New Fabric</p>
-
-                {/* Image upload */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageSelect}
-                />
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={cn(
-                    "w-full h-36 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all overflow-hidden",
-                    formImage ? "border-primary/40" : "border-border hover:border-primary/30"
-                  )}
-                >
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                <motion.button whileTap={{ scale: 0.97 }} onClick={() => fileInputRef.current?.click()}
+                  className={cn("w-full h-36 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all overflow-hidden",
+                    formImage ? "border-primary/40" : "border-border hover:border-primary/30")}>
                   {formImage ? (
                     <div className="relative w-full h-full">
                       <img src={formImage} alt="Preview" className="w-full h-full object-cover" />
@@ -138,23 +117,46 @@ const Fabrics = () => {
                   { key: "qty", placeholder: "Quantity (e.g. 5 yards)" },
                   { key: "price", placeholder: "Price (e.g. GHS 350)" },
                 ].map((input) => (
-                  <input
-                    key={input.key}
-                    value={form[input.key as keyof typeof form]}
-                    onChange={(e) => setForm({ ...form, [input.key]: e.target.value })}
-                    placeholder={input.placeholder}
-                    className="w-full bg-background border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
-                  />
+                  <input key={input.key} value={form[input.key as keyof typeof form]}
+                    onChange={(e) => setForm({ ...form, [input.key]: e.target.value })} placeholder={input.placeholder}
+                    className="w-full bg-background border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" />
                 ))}
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleAdd}
-                  disabled={!form.name.trim()}
-                  className={cn(
-                    "w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg",
-                    form.name.trim() ? "bg-primary text-primary-foreground shadow-primary/25" : "bg-muted text-muted-foreground shadow-none"
-                  )}
-                >
+
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Fabric Type</label>
+                  <div className="flex flex-wrap gap-2">
+                    {fabricTypes.map((t) => (
+                      <motion.button key={t} whileTap={{ scale: 0.95 }} onClick={() => setForm({ ...form, fabricType: t })}
+                        className={cn("px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
+                          form.fabricType === t ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
+                        {t}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Source</label>
+                  <div className="flex gap-2">
+                    {sources.map((s) => (
+                      <motion.button key={s} whileTap={{ scale: 0.95 }} onClick={() => setForm({ ...form, source: s })}
+                        className={cn("flex-1 py-2.5 rounded-xl text-xs font-medium border transition-all",
+                          form.source === s ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
+                        {s}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Date Received</label>
+                  <input type="date" value={form.dateReceived} onChange={(e) => setForm({ ...form, dateReceived: e.target.value })}
+                    className="w-full bg-background border border-border rounded-xl py-3 px-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all" />
+                </div>
+
+                <motion.button whileTap={{ scale: 0.97 }} onClick={handleAdd} disabled={!form.name.trim()}
+                  className={cn("w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg",
+                    form.name.trim() ? "bg-primary text-primary-foreground shadow-primary/25" : "bg-muted text-muted-foreground shadow-none")}>
                   <Save className="w-4 h-4" /> Add Fabric
                 </motion.button>
               </div>
@@ -162,58 +164,44 @@ const Fabrics = () => {
           )}
         </AnimatePresence>
 
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search fabrics..."
-            className="w-full bg-card border border-border rounded-2xl py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
-          />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search fabrics..."
+            className="w-full bg-card border border-border rounded-2xl py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" />
         </div>
 
-        {/* List */}
         <div className="space-y-3">
           {filtered.map((f, i) => (
-            <motion.div
-              key={f.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
-              className="card-glass p-3 flex items-center gap-4 group"
-            >
+            <motion.div key={f.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+              className="card-glass p-3 flex items-center gap-4 group">
               <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-secondary">
                 {f.image ? (
                   <img src={f.image} alt={f.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-xl">🧵</span>
-                  </div>
+                  <div className="w-full h-full flex items-center justify-center"><span className="text-xl">🧵</span></div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">{f.name}</p>
                 <p className="text-[11px] text-muted-foreground">{f.brand} · {f.color}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">{f.fabricType}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">{f.source}</span>
+                </div>
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="text-sm font-bold text-foreground">{f.price}</p>
                 <p className="text-[10px] text-muted-foreground">{f.qty}</p>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={(e) => { e.stopPropagation(); handleDelete(f.id); }}
-                className="opacity-50 group-hover:opacity-100 transition-opacity"
-              >
+              <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); handleDelete(f.id); }}
+                className="opacity-50 group-hover:opacity-100 transition-opacity">
                 <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors" />
               </motion.button>
             </motion.div>
           ))}
           {filtered.length === 0 && (
             <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-2xl bg-secondary mx-auto flex items-center justify-center mb-3">
-                <span className="text-2xl">🧵</span>
-              </div>
+              <div className="w-16 h-16 rounded-2xl bg-secondary mx-auto flex items-center justify-center mb-3"><span className="text-2xl">🧵</span></div>
               <p className="text-sm text-muted-foreground">No fabrics found</p>
             </div>
           )}

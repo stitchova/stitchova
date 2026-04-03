@@ -34,6 +34,9 @@ import WorkerTasks from "./pages/WorkerTasks";
 import WorkerMeasurements from "./pages/WorkerMeasurements";
 import WorkerMaterials from "./pages/WorkerMaterials";
 import WorkerProfile from "./pages/WorkerProfile";
+import Materials from "./pages/Materials";
+import AIInsights from "./pages/AIInsights";
+import StyleLibrary from "./pages/StyleLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +68,9 @@ const App = () => (
                 <Route path="/workers" element={<Workers />} />
                 <Route path="/order/:clientId" element={<OrderDetail />} />
                 <Route path="/designer-messages" element={<DesignerMessages />} />
+                <Route path="/materials" element={<Materials />} />
+                <Route path="/ai-insights" element={<AIInsights />} />
+                <Route path="/style-library" element={<StyleLibrary />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />

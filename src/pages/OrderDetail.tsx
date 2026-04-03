@@ -1,35 +1,45 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus } from "lucide-react";
+import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
 import orderAgbada from "@/assets/order-agbada.jpg";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } };
 
+const productionStages = ["Cutting", "Sewing", "Beading", "Finishing", "Quality Check"];
+
 const ordersData: Record<string, {
   img: string; type: string; client: string; status: string; date: string; price: string;
-  statusColor: string; description: string; fabrics: string[];
+  statusColor: string; description: string; fabrics: string[]; category: string; garment: string;
+  styleDesc: string; currentStage: number; paymentPlan: string; amountPaid: string; balance: string;
 }> = {
   "ama-serwaa": {
     img: orderWedding, type: "Wedding Gown", client: "Ama Serwaa", status: "Sewing",
     date: "Mar 25", price: "GHS 2,500", statusColor: "bg-status-sewing",
     description: "Custom wedding gown with lace overlay, sweetheart neckline, and cathedral train.",
-    fabrics: ["French Lace – Ivory", "Silk Satin – White"],
+    fabrics: ["French Lace – Ivory", "Silk Satin – White"], category: "Women", garment: "Bridal",
+    styleDesc: "Sweetheart neckline, mermaid silhouette with cathedral train and crystal embellishments",
+    currentStage: 1, paymentPlan: "Installment", amountPaid: "GHS 1,500", balance: "GHS 1,000",
   },
   "kofi-mensah": {
     img: orderSuit, type: "3-Piece Suit", client: "Kofi Mensah", status: "Cutting",
     date: "Mar 28", price: "GHS 1,800", statusColor: "bg-status-cutting",
     description: "Slim-fit 3-piece suit in navy blue with gold buttons and custom lining.",
-    fabrics: ["English Wool – Navy", "Silk Lining – Gold"],
+    fabrics: ["English Wool – Navy", "Silk Lining – Gold"], category: "Men", garment: "Suit",
+    styleDesc: "Slim fit, peak lapel, double-breasted waistcoat, flat-front trousers",
+    currentStage: 0, paymentPlan: "Full Payment", amountPaid: "GHS 1,800", balance: "GHS 0",
   },
   "yaw-boateng": {
     img: orderAgbada, type: "Agbada Set", client: "Yaw Boateng", status: "Completed",
     date: "Mar 15", price: "GHS 3,200", statusColor: "bg-status-completed",
     description: "Full agbada set with heavy embroidery, sokoto, and fila cap.",
-    fabrics: ["Guinea Brocade – Royal Blue", "Embroidery Thread – Gold"],
+    fabrics: ["Guinea Brocade – Royal Blue", "Embroidery Thread – Gold"], category: "Men", garment: "Agbada",
+    styleDesc: "Full-length agbada with heavy hand-embroidered patterns, matching sokoto and fila cap",
+    currentStage: 4, paymentPlan: "Deposit", amountPaid: "GHS 2,500", balance: "GHS 700",
   },
 };
 
@@ -43,12 +53,8 @@ const availableWorkers = [
 type TaskStatus = "not_started" | "in_progress" | "completed";
 
 interface OrderTask {
-  id: number;
-  title: string;
-  assignee: string | null;
-  assigneeAvatar: string | null;
-  status: TaskStatus;
-  deadline: string;
+  id: number; title: string; assignee: string | null; assigneeAvatar: string | null;
+  status: TaskStatus; deadline: string;
 }
 
 const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof Clock }> = {
@@ -77,23 +83,13 @@ const OrderDetail = () => {
 
   const assignWorker = (taskId: number, worker: typeof availableWorkers[0]) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignee: worker.name, assigneeAvatar: worker.avatar } : t));
-    setShowAssign(false);
-    setAssigningTaskId(null);
+    setShowAssign(false); setAssigningTaskId(null);
   };
 
   const addTask = () => {
     if (!newTaskTitle.trim()) return;
-    setTasks(prev => [...prev, {
-      id: Date.now(),
-      title: newTaskTitle.trim(),
-      assignee: null,
-      assigneeAvatar: null,
-      status: "not_started",
-      deadline: newTaskDeadline || "TBD",
-    }]);
-    setNewTaskTitle("");
-    setNewTaskDeadline("");
-    setShowAddTask(false);
+    setTasks(prev => [...prev, { id: Date.now(), title: newTaskTitle.trim(), assignee: null, assigneeAvatar: null, status: "not_started", deadline: newTaskDeadline || "TBD" }]);
+    setNewTaskTitle(""); setNewTaskDeadline(""); setShowAddTask(false);
   };
 
   const completedCount = tasks.filter(t => t.status === "completed").length;
@@ -101,7 +97,6 @@ const OrderDetail = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Hero */}
       <div className="relative h-56">
         <img src={order.img} alt={order.type} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
@@ -109,7 +104,11 @@ const OrderDetail = () => {
           <ArrowLeft className="w-4 h-4 text-foreground" />
         </button>
         <div className="absolute bottom-4 left-5 right-5">
-          <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${order.statusColor} text-primary-foreground`}>{order.status}</span>
+          <div className="flex items-center gap-2">
+            <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${order.statusColor} text-primary-foreground`}>{order.status}</span>
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{order.category}</span>
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{order.garment}</span>
+          </div>
           <h1 className="text-xl font-bold text-foreground mt-2">{order.type}</h1>
           <p className="text-xs text-muted-foreground">{order.client}</p>
         </div>
@@ -119,39 +118,63 @@ const OrderDetail = () => {
         {/* Order Info */}
         <motion.div {...fadeUp} className="card-surface p-4 space-y-3">
           <p className="text-xs text-muted-foreground">{order.description}</p>
+          <div className="card-glass p-3 rounded-xl">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Style Description</p>
+            <p className="text-xs text-foreground">{order.styleDesc}</p>
+          </div>
           <div className="flex gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs text-foreground">Due: {order.date}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <User className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs text-foreground">{order.client}</span>
-            </div>
+            <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">Due: {order.date}</span></div>
+            <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">{order.client}</span></div>
           </div>
           <div className="flex items-center gap-2">
             <Scissors className="w-3.5 h-3.5 text-muted-foreground" />
             <div className="flex flex-wrap gap-1">
-              {order.fabrics.map(f => (
-                <span key={f} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground">{f}</span>
-              ))}
+              {order.fabrics.map(f => <span key={f} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground">{f}</span>)}
             </div>
           </div>
         </motion.div>
 
-        {/* Progress Bar */}
+        {/* Payment Info */}
+        <motion.div {...fadeUp} transition={{ delay: 0.03 }} className="card-surface p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-foreground">Payment</span>
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{order.paymentPlan}</span>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center"><p className="text-xs text-muted-foreground">Total</p><p className="text-sm font-bold text-foreground">{order.price}</p></div>
+            <div className="text-center"><p className="text-xs text-muted-foreground">Paid</p><p className="text-sm font-bold text-status-completed">{order.amountPaid}</p></div>
+            <div className="text-center"><p className="text-xs text-muted-foreground">Balance</p><p className="text-sm font-bold text-primary">{order.balance}</p></div>
+          </div>
+        </motion.div>
+
+        {/* Production Stages */}
         <motion.div {...fadeUp} transition={{ delay: 0.05 }} className="card-surface p-4">
+          <span className="text-xs font-semibold text-foreground block mb-3">Production Stages</span>
+          <div className="flex items-center justify-between">
+            {productionStages.map((stage, i) => (
+              <div key={stage} className="flex flex-col items-center flex-1">
+                <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all",
+                  i <= order.currentStage ? "bg-primary border-primary text-primary-foreground" : "bg-secondary border-border text-muted-foreground")}>
+                  {i < order.currentStage ? "✓" : i + 1}
+                </div>
+                <span className={cn("text-[8px] mt-1 text-center leading-tight", i <= order.currentStage ? "text-primary" : "text-muted-foreground")}>{stage}</span>
+                {i < productionStages.length - 1 && (
+                  <div className={cn("absolute h-0.5 w-full", i < order.currentStage ? "bg-primary" : "bg-border")} style={{ display: "none" }} />
+                )}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Task Progress */}
+        <motion.div {...fadeUp} transition={{ delay: 0.07 }} className="card-surface p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-foreground">Task Progress</span>
             <span className="text-xs font-bold text-primary">{progress}%</span>
           </div>
           <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="h-full bg-primary rounded-full"
-            />
+            <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }} className="h-full bg-primary rounded-full" />
           </div>
           <p className="text-[10px] text-muted-foreground mt-2">{completedCount} of {tasks.length} tasks completed</p>
         </motion.div>
@@ -170,8 +193,7 @@ const OrderDetail = () => {
               const sc = statusCfg[task.status];
               return (
                 <motion.div key={task.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  className="card-surface p-3">
+                  transition={{ delay: i * 0.04 }} className="card-surface p-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-foreground">{task.title}</p>
@@ -194,15 +216,12 @@ const OrderDetail = () => {
                       <motion.button whileTap={{ scale: 0.95 }}
                         onClick={() => { setAssigningTaskId(task.id); setShowAssign(true); }}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
-                        <UserPlus className="w-4 h-4" />
-                        <span className="text-xs font-bold">Assign Worker</span>
+                        <UserPlus className="w-4 h-4" /><span className="text-xs font-bold">Assign Worker</span>
                       </motion.button>
                     )}
                     {task.assignee && (
                       <button onClick={() => { setAssigningTaskId(task.id); setShowAssign(true); }}
-                        className="text-[10px] text-muted-foreground">
-                        Reassign
-                      </button>
+                        className="text-[10px] text-muted-foreground">Reassign</button>
                     )}
                   </div>
                 </motion.div>
@@ -212,12 +231,9 @@ const OrderDetail = () => {
         </motion.div>
       </div>
 
-      {/* Assign Worker Dialog */}
       <Dialog open={showAssign} onOpenChange={setShowAssign}>
         <DialogContent className="max-w-sm mx-auto bg-card border-border">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Assign Worker</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="text-foreground">Assign Worker</DialogTitle></DialogHeader>
           <div className="space-y-2 mt-2">
             {availableWorkers.map(w => (
               <motion.button key={w.id} whileTap={{ scale: 0.97 }}
@@ -226,10 +242,7 @@ const OrderDetail = () => {
                 <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
                   <span className="text-xs font-bold text-foreground">{w.avatar}</span>
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-semibold text-foreground">{w.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{w.role}</p>
-                </div>
+                <div className="text-left"><p className="text-sm font-semibold text-foreground">{w.name}</p><p className="text-[10px] text-muted-foreground">{w.role}</p></div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
               </motion.button>
             ))}
@@ -237,29 +250,22 @@ const OrderDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Task Dialog */}
       <Dialog open={showAddTask} onOpenChange={setShowAddTask}>
         <DialogContent className="max-w-sm mx-auto bg-card border-border">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Add New Task</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="text-foreground">Add New Task</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Task Title</label>
-              <input value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)}
-                placeholder="e.g. Attach lace overlay"
+              <input value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} placeholder="e.g. Attach lace overlay"
                 className="w-full bg-secondary rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Deadline</label>
-              <input value={newTaskDeadline} onChange={e => setNewTaskDeadline(e.target.value)}
-                placeholder="e.g. Apr 10"
+              <input value={newTaskDeadline} onChange={e => setNewTaskDeadline(e.target.value)} placeholder="e.g. Apr 10"
                 className="w-full bg-secondary rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none" />
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={addTask}
-              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold">
-              Add Task
-            </motion.button>
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold">Add Task</motion.button>
           </div>
         </DialogContent>
       </Dialog>
