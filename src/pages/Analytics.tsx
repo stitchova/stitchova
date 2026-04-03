@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { cn } from "@/lib/utils";
 import FeatureGate from "@/components/FeatureGate";
 
@@ -20,6 +20,20 @@ const weeklyData = [
   { day: "Sun", amount: 1900 },
 ];
 
+const garmentProfitData = [
+  { name: "Bridal", value: 35, color: "hsl(45, 100%, 50%)" },
+  { name: "Suits", value: 25, color: "hsl(38, 100%, 45%)" },
+  { name: "Traditional", value: 22, color: "hsl(142, 71%, 45%)" },
+  { name: "Casual", value: 18, color: "hsl(240, 5%, 45%)" },
+];
+
+const workerProductivity = [
+  { name: "Tunde A.", tasks: 24, onTime: 92 },
+  { name: "Amina K.", tasks: 18, onTime: 96 },
+  { name: "Kwesi B.", tasks: 21, onTime: 85 },
+  { name: "Esi M.", tasks: 15, onTime: 98 },
+];
+
 const transactions = [
   { name: "Amina Johnson", type: "received", amount: 4500, method: "Bank Transfer", date: "Today, 2:30 PM" },
   { name: "Fabric Express", type: "sent", amount: 1200, method: "Mobile Money", date: "Today, 11:00 AM" },
@@ -32,12 +46,11 @@ const transactions = [
 const statCards = [
   { label: "Total Revenue", value: "₦142,900", change: "+12.5%", up: true },
   { label: "Pending", value: "₦23,400", change: "-3.2%", up: false },
-  { label: "Expenses", value: "₦38,200", change: "+8.1%", up: true },
+  { label: "Outstanding", value: "₦18,700", change: "+5.1%", up: true },
   { label: "Net Profit", value: "₦104,700", change: "+18.4%", up: true },
 ];
 
 const periods = ["Week", "Month", "Year"];
-
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -56,114 +69,151 @@ const Analytics = () => {
 
   return (
     <FeatureGate requiredPlan="pro" feature="Analytics dashboard">
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
-        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </motion.button>
-        <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
-      </div>
-
-      <div className="px-5 pt-4 space-y-5">
-        {/* Stat cards */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" className="grid grid-cols-2 gap-3">
-          {statCards.map((s) => (
-            <div key={s.label} className="card-surface p-3.5 space-y-1">
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className="text-lg font-bold text-foreground">{s.value}</p>
-              <span className={cn("text-[10px] font-medium flex items-center gap-0.5", s.up ? "text-status-completed" : "text-destructive")}>
-                {s.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {s.change}
-              </span>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Period toggle */}
-        <div className="flex gap-1 bg-card rounded-xl p-1">
-          {periods.map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={cn(
-                "flex-1 py-2 rounded-lg text-xs font-medium transition-all",
-                period === p ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              )}
-            >
-              {p}
-            </button>
-          ))}
+      <div className="min-h-screen bg-background pb-24">
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </motion.button>
+          <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
         </div>
 
-        {/* Revenue chart */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.1 }} className="card-surface p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Revenue Overview</h3>
-            <span className="text-xs text-status-completed font-medium">+18.4%</span>
-          </div>
-          <div className="h-44">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
-                <defs>
-                  <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(45, 100%, 50%)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="hsl(45, 100%, 50%)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 5%, 18%)" vertical={false} />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "hsl(240, 5%, 65%)", fontSize: 11 }} />
-                <YAxis hide />
-                <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="revenue" stroke="hsl(45, 100%, 50%)" strokeWidth={2} fill="url(#goldGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Weekly bar chart */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.2 }} className="card-surface p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-4">This Week</h3>
-          <div className="h-36">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyData}>
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "hsl(240, 5%, 65%)", fontSize: 11 }} />
-                <YAxis hide />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="amount" fill="hsl(45, 100%, 50%)" radius={[6, 6, 0, 0]} barSize={28} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Transaction history */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.3 }}>
-          <h3 className="text-sm font-semibold text-foreground mb-3">Recent Transactions</h3>
-          <div className="space-y-2">
-            {transactions.map((tx, i) => (
-              <motion.div key={i} whileTap={{ scale: 0.98 }} className="card-surface p-3.5 flex items-center gap-3">
-                <div className={cn(
-                  "w-9 h-9 rounded-full flex items-center justify-center",
-                  tx.type === "received" ? "bg-status-completed/15" : "bg-destructive/15"
-                )}>
-                  {tx.type === "received"
-                    ? <ArrowDownLeft className="w-4 h-4 text-status-completed" />
-                    : <ArrowUpRight className="w-4 h-4 text-destructive" />
-                  }
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{tx.name}</p>
-                  <p className="text-[11px] text-muted-foreground">{tx.method} · {tx.date}</p>
-                </div>
-                <span className={cn("text-sm font-semibold", tx.type === "received" ? "text-status-completed" : "text-foreground")}>
-                  {tx.type === "received" ? "+" : "-"}₦{tx.amount.toLocaleString()}
+        <div className="px-5 pt-4 space-y-5">
+          {/* Stat cards */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" className="grid grid-cols-2 gap-3">
+            {statCards.map((s) => (
+              <div key={s.label} className="card-surface p-3.5 space-y-1">
+                <p className="text-xs text-muted-foreground">{s.label}</p>
+                <p className="text-lg font-bold text-foreground">{s.value}</p>
+                <span className={cn("text-[10px] font-medium flex items-center gap-0.5", s.up ? "text-status-completed" : "text-destructive")}>
+                  {s.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}{s.change}
                 </span>
-              </motion.div>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* Period toggle */}
+          <div className="flex gap-1 bg-card rounded-xl p-1">
+            {periods.map((p) => (
+              <button key={p} onClick={() => setPeriod(p)}
+                className={cn("flex-1 py-2 rounded-lg text-xs font-medium transition-all",
+                  period === p ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>{p}</button>
             ))}
           </div>
-        </motion.div>
+
+          {/* Revenue chart */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.1 }} className="card-surface p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-semibold text-foreground">Revenue Overview</h3>
+              <span className="text-xs text-status-completed font-medium">+18.4%</span>
+            </div>
+            <div className="h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData}>
+                  <defs>
+                    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(45, 100%, 50%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(45, 100%, 50%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 5%, 18%)" vertical={false} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "hsl(240, 5%, 65%)", fontSize: 11 }} />
+                  <YAxis hide />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(45, 100%, 50%)" strokeWidth={2} fill="url(#goldGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Garment Profitability */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.15 }} className="card-surface p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-4">Most Profitable Garments</h3>
+            <div className="flex items-center gap-4">
+              <div className="w-28 h-28">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={garmentProfitData} cx="50%" cy="50%" innerRadius={30} outerRadius={50} paddingAngle={4} dataKey="value">
+                      {garmentProfitData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 space-y-2">
+                {garmentProfitData.map((g) => (
+                  <div key={g.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: g.color }} />
+                      <span className="text-xs text-foreground">{g.name}</span>
+                    </div>
+                    <span className="text-xs font-bold text-foreground">{g.value}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Worker Productivity */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.2 }} className="card-surface p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-3">Worker Productivity</h3>
+            <div className="space-y-2.5">
+              {workerProductivity.map((w) => (
+                <div key={w.name} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                    <span className="text-[10px] font-bold text-foreground">{w.name.split(" ").map(n => n[0]).join("")}</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-foreground font-medium">{w.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{w.tasks} tasks · {w.onTime}% on-time</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${w.onTime}%` }} transition={{ duration: 0.8 }}
+                        className="h-full bg-primary rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Weekly bar chart */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.25 }} className="card-surface p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-4">This Week</h3>
+            <div className="h-36">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyData}>
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "hsl(240, 5%, 65%)", fontSize: 11 }} />
+                  <YAxis hide />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="amount" fill="hsl(45, 100%, 50%)" radius={[6, 6, 0, 0]} barSize={28} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Transaction history */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.3 }}>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Recent Transactions</h3>
+            <div className="space-y-2">
+              {transactions.map((tx, i) => (
+                <motion.div key={i} whileTap={{ scale: 0.98 }} className="card-surface p-3.5 flex items-center gap-3">
+                  <div className={cn("w-9 h-9 rounded-full flex items-center justify-center",
+                    tx.type === "received" ? "bg-status-completed/15" : "bg-destructive/15")}>
+                    {tx.type === "received" ? <ArrowDownLeft className="w-4 h-4 text-status-completed" /> : <ArrowUpRight className="w-4 h-4 text-destructive" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{tx.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{tx.method} · {tx.date}</p>
+                  </div>
+                  <span className={cn("text-sm font-semibold", tx.type === "received" ? "text-status-completed" : "text-foreground")}>
+                    {tx.type === "received" ? "+" : "-"}₦{tx.amount.toLocaleString()}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
       </div>
-    </div>
     </FeatureGate>
   );
 };
