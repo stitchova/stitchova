@@ -34,6 +34,9 @@ import WorkerTasks from "./pages/WorkerTasks";
 import WorkerMeasurements from "./pages/WorkerMeasurements";
 import WorkerMaterials from "./pages/WorkerMaterials";
 import WorkerProfile from "./pages/WorkerProfile";
+import Materials from "./pages/Materials";
+import AIInsights from "./pages/AIInsights";
+import StyleLibrary from "./pages/StyleLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
