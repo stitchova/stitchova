@@ -1,15 +1,17 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Search, Heart, Bookmark, Grid3X3, LayoutList } from "lucide-react";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Search, Heart, Bookmark, Grid3X3, LayoutList, Plus, Upload, X, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
 import orderAgbada from "@/assets/order-agbada.jpg";
 
 const categories = ["All", "Bridal", "Traditional", "Formal", "Casual", "Children"];
 
-const styles = [
+const defaultStyles = [
   { id: "1", title: "Modern Bridal Gown", category: "Bridal", image: orderWedding, likes: 234, saved: false, designer: "FashionOS Studio" },
   { id: "2", title: "Classic 3-Piece Suit", category: "Formal", image: orderSuit, likes: 189, saved: true, designer: "Justice Ansah" },
   { id: "3", title: "Royal Agbada", category: "Traditional", image: orderAgbada, likes: 312, saved: false, designer: "Kente Masters" },
@@ -20,10 +22,16 @@ const styles = [
 
 const StyleLibrary = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [gridView, setGridView] = useState(true);
-  const [items, setItems] = useState(styles);
+  const [items, setItems] = useState(defaultStyles);
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [uploadCategory, setUploadCategory] = useState("Casual");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = items.filter((s) => {
     const matchSearch = s.title.toLowerCase().includes(search.toLowerCase());
@@ -33,6 +41,37 @@ const StyleLibrary = () => {
 
   const toggleSave = (id: string) => {
     setItems((prev) => prev.map((s) => s.id === id ? { ...s, saved: !s.saved } : s));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setUploadPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpload = () => {
+    if (!uploadPreview || !uploadTitle.trim()) {
+      toast({ title: "Missing info", description: "Please add a title and image", variant: "destructive" });
+      return;
+    }
+    const newStyle = {
+      id: Date.now().toString(),
+      title: uploadTitle,
+      category: uploadCategory,
+      image: uploadPreview,
+      likes: 0,
+      saved: false,
+      designer: "You",
+    };
+    setItems((prev) => [newStyle, ...prev]);
+    setShowUpload(false);
+    setUploadPreview(null);
+    setUploadTitle("");
+    setUploadCategory("Casual");
+    toast({ title: "Style uploaded!", description: "Your style has been added to the library" });
   };
 
   return (
@@ -45,6 +84,10 @@ const StyleLibrary = () => {
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => setGridView(!gridView)}
           className="w-9 h-9 rounded-full bg-card flex items-center justify-center">
           {gridView ? <LayoutList className="w-4 h-4 text-muted-foreground" /> : <Grid3X3 className="w-4 h-4 text-muted-foreground" />}
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowUpload(true)}
+          className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
+          <Plus className="w-4 h-4 text-primary-foreground" />
         </motion.button>
       </div>
 
@@ -95,6 +138,58 @@ const StyleLibrary = () => {
           </div>
         )}
       </div>
+
+      {/* Upload Dialog */}
+      <Dialog open={showUpload} onOpenChange={setShowUpload}>
+        <DialogContent className="max-w-sm mx-auto bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Upload Style</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileSelect} className="hidden" />
+            
+            {uploadPreview ? (
+              <div className="relative rounded-2xl overflow-hidden aspect-[3/4]">
+                <img src={uploadPreview} alt="Preview" className="w-full h-full object-cover" />
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setUploadPreview(null)}
+                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/70 backdrop-blur flex items-center justify-center">
+                  <X className="w-4 h-4 text-foreground" />
+                </motion.button>
+              </div>
+            ) : (
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => fileInputRef.current?.click()}
+                className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 bg-secondary/30 hover:bg-secondary/50 transition-colors">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-primary" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-foreground">Tap to upload</p>
+                  <p className="text-[11px] text-muted-foreground">JPG, PNG up to 10MB</p>
+                </div>
+              </motion.button>
+            )}
+
+            <input value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)}
+              placeholder="Style title..."
+              className="w-full bg-secondary/50 border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all" />
+            
+            <div className="flex gap-2 flex-wrap">
+              {categories.filter(c => c !== "All").map((c) => (
+                <button key={c} onClick={() => setUploadCategory(c)}
+                  className={cn("px-3 py-1.5 rounded-xl text-xs font-medium transition-colors",
+                    uploadCategory === c ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>
+                  {c}
+                </button>
+              ))}
+            </div>
+
+            <motion.button whileTap={{ scale: 0.97 }} onClick={handleUpload}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-lg shadow-primary/25">
+              Upload Style
+            </motion.button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

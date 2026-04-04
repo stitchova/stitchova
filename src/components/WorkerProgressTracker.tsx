@@ -34,9 +34,13 @@ const WorkerProgressTracker = () => {
             <Users className="w-4 h-4 text-primary" />
             <h2 className="text-sm font-semibold text-foreground">Worker Progress</h2>
           </div>
-          <button onClick={() => navigate("/workers")} className="text-xs text-muted-foreground flex items-center gap-1">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/workers")}
+            className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold flex items-center gap-1 hover:bg-primary/20 transition-colors"
+          >
             Manage <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
         </div>
         <div className="space-y-3">
           {workers.map((w) => {
