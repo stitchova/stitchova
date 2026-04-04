@@ -37,6 +37,7 @@ import WorkerProfile from "./pages/WorkerProfile";
 import Materials from "./pages/Materials";
 import AIInsights from "./pages/AIInsights";
 import StyleLibrary from "./pages/StyleLibrary";
+import ActivityLogs from "./pages/ActivityLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
