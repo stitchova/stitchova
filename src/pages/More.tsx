@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut } from "lucide-react";
+import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import FeatureGate from "@/components/FeatureGate";
 
@@ -13,6 +13,7 @@ const menuItems = [
   { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/add", requiresPlan: "pro" as const },
   { icon: CreditCard, label: "Payments", desc: "Track revenue and expenses", path: "/analytics" },
   { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
+  { icon: ClipboardList, label: "Activity Logs", desc: "Track all account actions", path: "/activity-logs" },
   { icon: HelpCircle, label: "Help & Support", desc: "Get help with any issue", path: "/profile" },
   { icon: Settings, label: "Settings", desc: "Customize the app", path: "/profile" },
 ];

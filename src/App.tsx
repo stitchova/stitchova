@@ -37,6 +37,7 @@ import WorkerProfile from "./pages/WorkerProfile";
 import Materials from "./pages/Materials";
 import AIInsights from "./pages/AIInsights";
 import StyleLibrary from "./pages/StyleLibrary";
+import ActivityLogs from "./pages/ActivityLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
                 <Route path="/materials" element={<Materials />} />
                 <Route path="/ai-insights" element={<AIInsights />} />
                 <Route path="/style-library" element={<StyleLibrary />} />
+                <Route path="/activity-logs" element={<ActivityLogs />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
