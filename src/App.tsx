@@ -72,6 +72,7 @@ const App = () => (
                 <Route path="/materials" element={<Materials />} />
                 <Route path="/ai-insights" element={<AIInsights />} />
                 <Route path="/style-library" element={<StyleLibrary />} />
+                <Route path="/activity-logs" element={<ActivityLogs />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
