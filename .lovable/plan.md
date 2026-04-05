@@ -1,113 +1,65 @@
 
 
-# FashionOS Platform Alignment with Project Documentation
+# Client Pages Premium Redesign
 
-## What the Document Covers
+## Overview
+Elevate every client-facing page with a modern, high-end visual treatment inspired by luxury fintech and fashion marketplace apps. Focus on richer layouts, micro-interactions, glassmorphism, parallax effects, and polished typography.
 
-Your documentation defines 12 core modules for FashionOS across 3 roles (Designer, Client, Worker). After comparing it against the current codebase, here is what exists, what is incomplete, and what is missing entirely.
+## Changes
 
-## Current Status vs. Documentation
+### 1. ClientHome.tsx -- Hero-Level Home Experience
+- **Greeting header**: Add a subtle gradient shimmer on the greeting text, animated time-of-day greeting ("Good morning/evening, Akua")
+- **Hero banner**: Add a full-width promotional/seasonal banner with parallax scroll effect (e.g., "Spring Collection is here") using a portfolio image as background with glassmorphism overlay
+- **Quick actions**: Redesign from flat cards to glassmorphism cards with animated icon backgrounds that pulse subtly on idle, glow on tap
+- **Active orders**: Add designer avatar next to each order, animated progress bar (spring animation on mount), and a circular progress ring instead of flat bar
+- **Recommended designers**: Larger cards (min-w-[220px]) with a hover/press 3D tilt effect using framer-motion's `rotateY`, verified badge with glow, and a "Book Now" micro-CTA button
+- **New section**: "Trending Styles" horizontal scroll with masonry-style image cards from the style library
+- **New section**: "Upcoming Appointments" compact card showing next appointment with countdown timer
 
-| Module | Doc Section | Status |
-|--------|------------|--------|
-| Client Management | Section 6 | Partial -- profile exists but missing DOB, gender, notes/preferences, address editing |
-| Body Measurement | Section 7 | Partial -- categories exist but missing gender (Male/Female), age groups (Child/Teen/Adult/Elder), measurement history tracking |
-| Fabric Management | Section 8 | Partial -- missing fabric type, source (client/designer), date received fields |
-| Materials & Accessories | Section 9 | Missing -- no dedicated module for threads, beads, buttons, zips, linings with cost tracking |
-| Orders & Dress Types | Section 10 | Partial -- missing style description, garment category hierarchy (Men/Women/Children with specific garment lists), production stage tracking |
-| Worker Accountability | Section 11 | Built -- comprehensive worker profiles and task tracking exist |
-| Payment & Revenue | Section 12 | Partial -- analytics page has revenue charts but missing payment plans (deposit/installment), remaining balance, payment method tracking per order |
-| Appointment Management | Section 13 | Partial -- scheduling exists but missing appointment types (Measurement, Fitting, Delivery, Consultation), reminders, calendar view |
-| Business Analytics | Section 14 | Partial -- revenue charts exist but missing most profitable garment types, worker productivity metrics |
-| AI Predictions | Section 15 | Missing -- no AI prediction UI (body measurement changes, client return likelihood, worker recommendations, production time estimates) |
-| Image & Style Library | Section 16 | Missing -- no style inspiration gallery for clients |
-| Security & Data Protection | Section 17 | Partial -- role-based access exists but no activity logs UI |
+### 2. ClientOrders.tsx -- Immersive Order Tracking
+- **Tab bar**: Replace plain buttons with an animated segmented control using `layoutId` for the sliding indicator
+- **Order cards**: Larger image thumbnails (w-28 h-28 rounded-xl), add designer avatar overlay on the image corner
+- **Progress visualization**: Replace flat progress bar with a multi-step stage indicator (dots connected by lines: Cutting → Sewing → Finishing → Ready) showing current stage highlighted
+- **Status badges**: Add subtle pulse animation on active statuses
+- **Empty state**: Illustrated empty state with a CTA to discover designers
 
-## Implementation Plan
+### 3. DiscoverDesigners.tsx -- Marketplace Polish
+- **Search bar**: Add animated focus state with border glow (ring-primary/30 on focus)
+- **Category pills**: Add icon emoji before each category label, animated underline indicator instead of bg change
+- **Designer cards**: Full-width image (single hero image, not split), with a gradient overlay and floating info bar at bottom using glassmorphism. Add "Starting from" price badge as a floating pill
+- **Verified badge**: Animated checkmark with a subtle shine/sweep effect
+- **New**: "Featured Designer" spotlight card at top with larger layout, gold border glow
 
-### Phase 1: Complete Existing Modules
+### 4. Messages.tsx -- Premium Chat Experience
+- **Header**: Add glassmorphism background, online status dot with pulse animation, and a tap-to-view-profile on the avatar (navigate to designer profile)
+- **Message bubbles**: Add read receipts (double checkmarks), subtle shadow on bubbles, typing indicator animation (three bouncing dots)
+- **Input area**: Add attachment button (image, voice note icons), glassmorphism input bar, send button with scale animation
+- **Timestamps**: Group messages by date with elegant divider ("Today", "Yesterday")
 
-**1. Enhance Client Management**
-- Add missing profile fields: gender, DOB, notes/preferences, full address
-- Add client history timeline (measurements, orders, payments, appointments in one view)
-- Make profile fields editable
+### 5. Profile.tsx -- Client Profile Glow-Up
+- **Avatar section**: Add gradient ring around avatar (gold shimmer), larger avatar (w-24 h-24), add stats row below name (e.g., "5 Orders | 3 Designers | Member since 2024")
+- **Menu items**: Add colored icon backgrounds (each item gets a unique subtle tint), right-side badges for notifications count
+- **New section**: "My Designers" -- horizontal scroll of saved/favorite designer avatars
+- **Logout button**: Red gradient background on hover/tap instead of just border
 
-**2. Upgrade Body Measurement Module**
-- Add gender selector (Male/Female) and age group selector (Child/Teen/Adult/Elder)
-- Add measurement history view per client showing changes over time
-- Expand measurement field presets per garment type as documented (Bust/Chest, Waist, Hips, Shoulder width, Sleeve length, etc.)
+### 6. Global Enhancements (index.css)
+- Add new utility: `.shimmer-text` for animated gradient text effect
+- Add `.glass-input` for glassmorphism input fields
+- Add `.progress-ring` CSS for circular progress indicators
+- Add `.card-3d` for subtle 3D perspective transforms on tap
 
-**3. Complete Fabric Management**
-- Add fields: fabric type dropdown (Lace, Ankara, Silk, Denim), brand, source (Client/Designer), date received
-- Display fabric details in order context
+## Technical Approach
+- All animations use framer-motion with the existing easing curve `[0.16, 1, 0.3, 1]`
+- Glassmorphism uses `backdrop-blur-xl` with `bg-card/60` and `border-white/5`
+- No new dependencies required
+- Consistent with dark theme + gold accent system
+- Mobile-first, all layouts tested at 375px width
 
-**4. Expand Orders Module**
-- Add garment category hierarchy: Men (Trousers, Shirt, Suit, Blazer, etc.), Women (Gown, Skirt, Blouse, Jumpsuit, Bridal, etc.), Children (Uniforms, Dresses, Shirts)
-- Add style description field, production stage tracking (Cutting, Sewing, Beading, Finishing, Quality Check)
-- Link orders to fabrics, materials, and worker assignments
-
-**5. Upgrade Payment Tracking**
-- Add payment plan types: Full Payment, Deposit, Installment
-- Add payment method: Cash, Transfer, POS, Mobile Money
-- Show remaining balance per order on client profile
-- Add outstanding balances section to Analytics
-
-**6. Enhance Appointments**
-- Add appointment type selection: Measurement, Style Consultation, Fitting, Delivery
-- Add notes field per appointment
-- Add reminder indicators
-
-### Phase 2: Build Missing Modules
-
-**7. Materials & Accessories Module (New)**
-- Create `/materials` page for designers
-- Track: Needles, Threads, Beads, Buttons, Zips, Linings, Elastic, Stiff
-- Per material: quantity used, unit cost, total cost, linked order
-- Add "Add Material" to the AddNew page
-
-**8. AI Insights Module (New)**
-- Create `/ai-insights` page for designers (Pro-gated)
-- UI sections for: body measurement predictions, client return likelihood, best worker recommendations, production time estimates, cost predictions
-- Display as insight cards with confidence scores
-
-**9. Image & Style Library (New)**
-- Create `/style-library` page
-- Grid of style inspiration images
-- Link to clients and orders
-- Before/after views for worker portfolios
-
-**10. Activity Logs & Security**
-- Add activity log section to designer dashboard or More page
-- Show: who did what, when, on which order
-- Worker action tracking display
-
-### Phase 3: Analytics Upgrades
-
-**11. Enhanced Analytics**
-- Add most profitable garment type breakdown chart
-- Add worker productivity comparison view
-- Add daily/monthly/yearly revenue toggles that actually filter
-- Add outstanding balances summary
-
-### Files to Create
-- `src/pages/Materials.tsx` -- Materials & Accessories management
-- `src/pages/AIInsights.tsx` -- AI predictions dashboard
-- `src/pages/StyleLibrary.tsx` -- Image & style gallery
-
-### Files to Modify
-- `src/pages/ClientProfile.tsx` -- Add missing fields, history timeline, edit mode
-- `src/pages/Measurements.tsx` -- Gender/age selectors, history view
-- `src/pages/Fabrics.tsx` -- Additional fields (type, source, date)
-- `src/pages/Orders.tsx` & `src/pages/OrderDetail.tsx` -- Garment hierarchy, production stages
-- `src/pages/Analytics.tsx` -- Payment plans, balances, garment profitability
-- `src/pages/Appointments.tsx` -- Appointment types, notes, reminders
-- `src/pages/AddNew.tsx` -- Add Materials entry
-- `src/App.tsx` -- Register new routes
-
-### Design Approach
-- Maintain existing dark theme with gold/warm accents
-- Use `card-surface` and `card-glass` patterns consistently
-- All new forms follow the multi-step animated wizard pattern (like Workers)
-- AI Insights gated behind Pro subscription using `FeatureGate`
-- All data remains local state (UI mockups) until backend is connected
+## Files Modified
+- `src/pages/ClientHome.tsx`
+- `src/pages/ClientOrders.tsx`
+- `src/pages/DiscoverDesigners.tsx`
+- `src/pages/Messages.tsx`
+- `src/pages/Profile.tsx`
+- `src/index.css`
 
