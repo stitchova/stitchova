@@ -2,8 +2,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
-const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } };
+const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
 const categories = [
   { id: "men", label: "Men", emoji: "👔" },
@@ -57,6 +58,11 @@ const WorkerMeasurements = () => {
     setValues(prev => { const c = { ...prev }; delete c[f]; return c; });
   };
 
+  const handleSave = () => {
+    toast.success("Measurement saved successfully! ✅");
+    navigate(-1);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border px-5 pt-14 pb-4">
@@ -74,7 +80,7 @@ const WorkerMeasurements = () => {
           <label className="text-xs font-semibold text-muted-foreground mb-2 block">Client Name</label>
           <input type="text" placeholder="Enter client name" value={clientName}
             onChange={e => setClientName(e.target.value)}
-            className="w-full bg-card border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            className="w-full glass-input py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow" />
         </motion.div>
 
         {/* Category */}
@@ -82,10 +88,11 @@ const WorkerMeasurements = () => {
           <label className="text-xs font-semibold text-muted-foreground mb-2 block">Category</label>
           <div className="grid grid-cols-3 gap-2">
             {categories.map(c => (
-              <button key={c.id} onClick={() => { setCategory(c.id); setGarment(""); }}
-                className={`py-3 rounded-xl text-sm font-medium transition-colors ${category === c.id ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground"}`}>
+              <motion.button key={c.id} whileTap={{ scale: 0.95 }}
+                onClick={() => { setCategory(c.id); setGarment(""); }}
+                className={`py-3 rounded-xl text-sm font-medium transition-all ${category === c.id ? "bg-primary text-primary-foreground glow-primary" : "card-glass text-foreground"}`}>
                 {c.emoji} {c.label}
-              </button>
+              </motion.button>
             ))}
           </div>
         </motion.div>
@@ -96,10 +103,11 @@ const WorkerMeasurements = () => {
             <label className="text-xs font-semibold text-muted-foreground mb-2 block">Garment Type</label>
             <div className="flex flex-wrap gap-2">
               {garmentTypes[category]?.map(g => (
-                <button key={g.label} onClick={() => { setGarment(g.label); setCustomFields([]); setValues({}); }}
-                  className={`px-3 py-2 rounded-xl text-xs font-medium transition-colors ${garment === g.label ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground"}`}>
+                <motion.button key={g.label} whileTap={{ scale: 0.95 }}
+                  onClick={() => { setGarment(g.label); setCustomFields([]); setValues({}); }}
+                  className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${garment === g.label ? "bg-primary text-primary-foreground glow-primary" : "card-glass text-foreground"}`}>
                   {g.emoji} {g.label}
-                </button>
+                </motion.button>
               ))}
             </div>
           </motion.div>
@@ -118,17 +126,18 @@ const WorkerMeasurements = () => {
             {showAddField && (
               <div className="flex gap-2">
                 <input type="text" placeholder="Field name" value={newField} onChange={e => setNewField(e.target.value)}
-                  className="flex-1 bg-card border border-border rounded-xl py-2.5 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  className="flex-1 glass-input py-2.5 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                 <button onClick={handleAddField} className="px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold">Add</button>
               </div>
             )}
 
-            {allFields.map(f => (
-              <div key={f} className="flex items-center gap-2">
+            {allFields.map((f, i) => (
+              <motion.div key={f} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.03 }} className="flex items-center gap-2">
                 <div className="flex-1 relative">
                   <input type="number" placeholder="0" value={values[f] || ""}
                     onChange={e => setValues({ ...values, [f]: e.target.value })}
-                    className="w-full bg-card border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    className="w-full glass-input py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow" />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{f}</span>
                 </div>
                 {!(defaultFields[garment] || []).includes(f) && (
@@ -136,13 +145,13 @@ const WorkerMeasurements = () => {
                     <Trash2 className="w-4 h-4 text-red-400" />
                   </button>
                 )}
-              </div>
+              </motion.div>
             ))}
 
-            <button onClick={() => navigate(-1)}
+            <motion.button whileTap={{ scale: 0.97 }} onClick={handleSave}
               className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm mt-4">
               Save Measurement
-            </button>
+            </motion.button>
           </motion.div>
         )}
       </div>
