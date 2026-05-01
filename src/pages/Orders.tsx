@@ -76,24 +76,24 @@ const Orders = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="px-5 pt-6 pb-2 flex items-center justify-between">
+      <div className="designer-hero px-5 pt-6 pb-5 rounded-b-3xl flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Orders</h1>
+          <h1 className="text-2xl font-bold shimmer-text">Orders</h1>
           <p className="text-xs text-muted-foreground mt-1">Manage all your fashion orders</p>
         </div>
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowNewOrder(true)}
-          className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
+          className="w-11 h-11 rounded-full bg-primary flex items-center justify-center glow-primary">
           <Plus className="w-4 h-4 text-primary-foreground" />
         </motion.button>
       </div>
 
-      <div className="px-5 py-3 flex gap-2">
-        <div className="flex items-center gap-3 bg-card rounded-xl px-4 py-3 flex-1">
+      <div className="px-5 py-3 mt-2 flex gap-2">
+        <div className="flex items-center gap-3 glass-input px-4 py-3 flex-1">
           <Search className="w-4 h-4 text-muted-foreground" />
           <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search orders..." className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground flex-1 outline-none" />
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 rounded-xl bg-card flex items-center justify-center">
+        <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 rounded-xl frost-card flex items-center justify-center">
           <Filter className="w-4 h-4 text-muted-foreground" />
         </motion.button>
       </div>
@@ -110,19 +110,25 @@ const Orders = () => {
 
       <div className="flex gap-2 px-5 mb-4 overflow-x-auto scrollbar-hide">
         {statusTabs.map((t) => (
-          <button key={t} onClick={() => setActiveTab(t)}
-            className={cn("px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors",
-              activeTab === t ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground")}>
-            {t}
-          </button>
+          <motion.button key={t} whileTap={{ scale: 0.95 }} onClick={() => setActiveTab(t)}
+            className={cn("relative px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors",
+              activeTab === t ? "text-primary-foreground" : "frost-card text-muted-foreground")}>
+            {activeTab === t && (
+              <motion.div layoutId="ordersStatusIndicator"
+                className="absolute inset-0 rounded-xl bg-primary glow-primary"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+            )}
+            <span className="relative z-10">{t}</span>
+          </motion.button>
         ))}
       </div>
 
       <div className="px-5 space-y-3">
         {filtered.map((o, i) => (
           <motion.div key={o.type + i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }} whileTap={{ scale: 0.98 }}
-            onClick={() => navigate(`/order/${o.clientId}`)} className="card-surface p-3 flex gap-3 cursor-pointer">
+            transition={{ delay: i * 0.05, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+            whileTap={{ scale: 0.98 }} whileHover={{ y: -1 }}
+            onClick={() => navigate(`/order/${o.clientId}`)} className="frost-card p-3 flex gap-3 cursor-pointer">
             <img src={o.img} alt={o.type} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
