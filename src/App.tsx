@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import BottomNav from "@/components/BottomNav";
+import PageTransition from "@/components/PageTransition";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Clients from "./pages/Clients";
@@ -38,20 +41,17 @@ import Materials from "./pages/Materials";
 import AIInsights from "./pages/AIInsights";
 import StyleLibrary from "./pages/StyleLibrary";
 import ActivityLogs from "./pages/ActivityLogs";
+import ThemePicker from "./pages/ThemePicker";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <RoleProvider>
-          <SubscriptionProvider>
-            <div className="max-w-md mx-auto min-h-screen relative">
-              <Routes>
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <PageTransition key={location.pathname}>
+        <Routes location={location}>
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/subscription" element={<Subscription />} />
@@ -73,6 +73,7 @@ const App = () => (
                 <Route path="/ai-insights" element={<AIInsights />} />
                 <Route path="/style-library" element={<StyleLibrary />} />
                 <Route path="/activity-logs" element={<ActivityLogs />} />
+                <Route path="/themes" element={<ThemePicker />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
@@ -88,11 +89,28 @@ const App = () => (
                 <Route path="/worker-materials" element={<WorkerMaterials />} />
                 <Route path="/worker-profile" element={<WorkerProfile />} />
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-              <BottomNav />
-            </div>
-          </SubscriptionProvider>
-        </RoleProvider>
+        </Routes>
+      </PageTransition>
+    </AnimatePresence>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <ThemeProvider>
+          <RoleProvider>
+            <SubscriptionProvider>
+              <div className="max-w-md mx-auto min-h-screen relative">
+                <AnimatedRoutes />
+                <BottomNav />
+              </div>
+            </SubscriptionProvider>
+          </RoleProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

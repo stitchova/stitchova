@@ -24,14 +24,14 @@ const Clients = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="px-5 pt-6 pb-2">
+      <div className="designer-hero px-5 pt-6 pb-5 rounded-b-3xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Clients</h1>
+            <h1 className="text-2xl font-bold shimmer-text">Clients</h1>
             <p className="text-xs text-muted-foreground mt-1">{clients.length} total clients</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-card flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl frost-card flex items-center justify-center">
               <Users className="w-4 h-4 text-muted-foreground" />
             </div>
           </div>
@@ -39,8 +39,8 @@ const Clients = () => {
       </div>
 
       {/* Search */}
-      <div className="px-5 py-3 flex gap-2">
-        <div className="flex items-center gap-3 bg-card rounded-xl px-4 py-3 flex-1">
+      <div className="px-5 py-3 mt-2 flex gap-2">
+        <div className="flex items-center gap-3 glass-input px-4 py-3 flex-1">
           <Search className="w-4 h-4 text-muted-foreground" />
           <input
             type="text"
@@ -50,7 +50,7 @@ const Clients = () => {
             className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground flex-1 outline-none"
           />
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 rounded-xl bg-card flex items-center justify-center">
+        <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 rounded-xl frost-card flex items-center justify-center">
           <Filter className="w-4 h-4 text-muted-foreground" />
         </motion.button>
       </div>
@@ -58,15 +58,21 @@ const Clients = () => {
       {/* Tabs */}
       <div className="flex gap-2 px-5 mb-4">
         {tabs.map((t) => (
-          <button
+          <motion.button
             key={t}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab(t)}
-            className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
-              activeTab === t ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground"
+            className={`relative px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
+              activeTab === t ? "text-primary-foreground" : "frost-card text-muted-foreground"
             }`}
           >
-            {t}
-          </button>
+            {activeTab === t && (
+              <motion.div layoutId="clientsTabIndicator"
+                className="absolute inset-0 rounded-xl bg-primary glow-primary"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+            )}
+            <span className="relative z-10">{t}</span>
+          </motion.button>
         ))}
       </div>
 
@@ -77,13 +83,17 @@ const Clients = () => {
             key={c.name}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
+            transition={{ delay: i * 0.05, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
             whileTap={{ scale: 0.98 }}
+            whileHover={{ y: -1 }}
             onClick={() => navigate(`/client/${c.name.toLowerCase().replace(/\s+/g, "-")}`)}
-            className="card-surface p-4 flex items-center gap-4 cursor-pointer"
+            className="frost-card p-4 flex items-center gap-4 cursor-pointer"
           >
-            <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-primary">{c.initials}</span>
+            <div className="w-11 h-11 rounded-full p-[2px] flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
+              <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
+                <span className="text-xs font-bold text-primary">{c.initials}</span>
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground">{c.name}</p>

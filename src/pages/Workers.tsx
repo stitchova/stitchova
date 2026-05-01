@@ -481,15 +481,15 @@ const Workers = () => {
   // ── MAIN LIST + FORM VIEW ──
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
+      <div className="sticky top-0 z-10 bg-background/70 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </motion.button>
-        <h1 className="text-lg font-semibold text-foreground flex-1">Workers</h1>
+        <h1 className="text-lg font-bold shimmer-text flex-1">Workers</h1>
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => { setShowForm(!showForm); setCurrentStep(0); }}
-          className="w-9 h-9 rounded-full bg-primary flex items-center justify-center"
+          className="w-9 h-9 rounded-full bg-primary flex items-center justify-center glow-primary"
         >
           {showForm ? <X className="w-4 h-4 text-primary-foreground" /> : <Plus className="w-4 h-4 text-primary-foreground" />}
         </motion.button>

@@ -54,27 +54,32 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="px-5 pt-6 pb-4 flex items-center justify-between">
+      {/* Hero Header */}
+      <div className="designer-hero px-5 pt-6 pb-6 flex items-center justify-between rounded-b-3xl">
         <div className="flex items-center gap-3">
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-            <span className="text-sm font-semibold text-foreground">JA</span>
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate("/profile")}
+            className="w-11 h-11 rounded-full p-[2px]"
+            style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
+            <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
+              <span className="text-sm font-semibold text-foreground">JA</span>
+            </div>
           </motion.button>
           <div>
             <div className="flex items-center gap-1">
-              <span className="text-sm font-semibold text-foreground">Hey, Justice!</span>
+              <span className="text-sm font-semibold shimmer-text">Hey, Justice!</span>
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
             <span className="text-xs text-muted-foreground">053 698 7839</span>
           </div>
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/designer-messages")} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center relative">
+        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/designer-messages")}
+          className="w-10 h-10 rounded-full frost-card flex items-center justify-center relative">
           <Bell className="w-5 h-5 text-foreground" />
-          <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+          <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary pulse-glow" />
         </motion.button>
       </div>
 
-      <motion.div variants={stagger} initial="hidden" animate="show" className="px-5 space-y-6">
+      <motion.div variants={stagger} initial="hidden" animate="show" className="px-5 space-y-6 mt-4">
         {/* Subscription Banner */}
         {plan === "basic" && (
           <motion.div variants={fadeUp}>
@@ -109,7 +114,7 @@ const Index = () => {
                 key={s.label}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate(s.path)}
-                className="card-surface p-4 space-y-2 text-left backdrop-blur-sm"
+                className="frost-card p-4 space-y-2 text-left"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{s.label}</span>
@@ -118,7 +123,7 @@ const Index = () => {
                     <span className="text-[10px] text-status-completed font-medium">{s.trend}</span>
                   </div>
                 </div>
-                <p className="text-xl font-bold text-foreground">{s.value}</p>
+                <p className="text-xl font-bold text-gradient-gold">{s.value}</p>
                 <span className="text-[10px] text-muted-foreground">{s.sub}</span>
               </motion.button>
             ))}
@@ -132,11 +137,13 @@ const Index = () => {
             {quickActions.map((a) => (
               <motion.button
                 key={a.label}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.92 }}
+                whileHover={{ y: -2 }}
                 onClick={() => navigate(a.path)}
-                className="card-surface p-3 flex flex-col items-center gap-2"
+                className="frost-card p-3 flex flex-col items-center gap-2"
               >
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.18), hsl(var(--accent) / 0.12))" }}>
                   <a.icon className="w-5 h-5 text-primary" />
                 </div>
                 <span className="text-[10px] font-medium text-muted-foreground">{a.label}</span>
