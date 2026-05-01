@@ -76,8 +76,15 @@
   }
 
   .card-surface {
-    @apply bg-card rounded-2xl border border-border/10;
-    box-shadow: 0 2px 16px -4px rgba(0, 0, 0, 0.3);
+    background: hsl(var(--card) / 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    @apply rounded-2xl border border-border/40;
+    box-shadow: 0 4px 18px -8px hsl(var(--foreground) / 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-surface:hover {
+    box-shadow: 0 8px 24px -10px hsl(var(--foreground) / 0.22);
   }
 
   .card-glass {
