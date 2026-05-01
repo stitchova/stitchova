@@ -21,10 +21,10 @@ const weeklyData = [
 ];
 
 const garmentProfitData = [
-  { name: "Bridal", value: 35, color: "hsl(45, 100%, 50%)" },
-  { name: "Suits", value: 25, color: "hsl(38, 100%, 45%)" },
-  { name: "Traditional", value: 22, color: "hsl(142, 71%, 45%)" },
-  { name: "Casual", value: 18, color: "hsl(240, 5%, 45%)" },
+  { name: "Bridal", value: 35, color: "hsl(var(--primary))" },
+  { name: "Suits", value: 25, color: "hsl(var(--accent))" },
+  { name: "Traditional", value: 22, color: "hsl(var(--status-completed))" },
+  { name: "Casual", value: 18, color: "hsl(var(--muted-foreground))" },
 ];
 
 const workerProductivity = [
@@ -70,18 +70,18 @@ const Analytics = () => {
   return (
     <FeatureGate requiredPlan="pro" feature="Analytics dashboard">
       <div className="min-h-screen bg-background pb-24">
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
+        <div className="sticky top-0 z-10 bg-background/70 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
           <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </motion.button>
-          <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
+          <h1 className="text-lg font-bold shimmer-text">Analytics</h1>
         </div>
 
         <div className="px-5 pt-4 space-y-5">
           {/* Stat cards */}
           <motion.div variants={fadeUp} initial="hidden" animate="visible" className="grid grid-cols-2 gap-3">
             {statCards.map((s) => (
-              <div key={s.label} className="card-surface p-3.5 space-y-1">
+              <div key={s.label} className="frost-card p-3.5 space-y-1">
                 <p className="text-xs text-muted-foreground">{s.label}</p>
                 <p className="text-lg font-bold text-foreground">{s.value}</p>
                 <span className={cn("text-[10px] font-medium flex items-center gap-0.5", s.up ? "text-status-completed" : "text-destructive")}>
@@ -92,16 +92,23 @@ const Analytics = () => {
           </motion.div>
 
           {/* Period toggle */}
-          <div className="flex gap-1 bg-card rounded-xl p-1">
+          <div className="flex gap-1 frost-card rounded-xl p-1 relative">
             {periods.map((p) => (
-              <button key={p} onClick={() => setPeriod(p)}
-                className={cn("flex-1 py-2 rounded-lg text-xs font-medium transition-all",
-                  period === p ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>{p}</button>
+              <motion.button key={p} whileTap={{ scale: 0.96 }} onClick={() => setPeriod(p)}
+                className={cn("relative flex-1 py-2 rounded-lg text-xs font-medium transition-colors",
+                  period === p ? "text-primary-foreground" : "text-muted-foreground")}>
+                {period === p && (
+                  <motion.div layoutId="periodIndicator"
+                    className="absolute inset-0 rounded-lg bg-primary glow-primary"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+                )}
+                <span className="relative z-10">{p}</span>
+              </motion.button>
             ))}
           </div>
 
           {/* Revenue chart */}
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.1 }} className="card-surface p-4">
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.1 }} className="frost-card p-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-sm font-semibold text-foreground">Revenue Overview</h3>
               <span className="text-xs text-status-completed font-medium">+18.4%</span>
@@ -111,15 +118,15 @@ const Analytics = () => {
                 <AreaChart data={revenueData}>
                   <defs>
                     <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(45, 100%, 50%)" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="hsl(45, 100%, 50%)" stopOpacity={0} />
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 5%, 18%)" vertical={false} />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "hsl(240, 5%, 65%)", fontSize: 11 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
                   <YAxis hide />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="revenue" stroke="hsl(45, 100%, 50%)" strokeWidth={2} fill="url(#goldGrad)" />
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#goldGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
