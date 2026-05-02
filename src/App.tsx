@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -49,9 +48,8 @@ const queryClient = new QueryClient();
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <PageTransition key={location.pathname}>
-        <Routes location={location}>
+    <PageTransition key={location.pathname}>
+      <Routes location={location}>
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/subscription" element={<Subscription />} />
@@ -89,9 +87,8 @@ const AnimatedRoutes = () => {
                 <Route path="/worker-materials" element={<WorkerMaterials />} />
                 <Route path="/worker-profile" element={<WorkerProfile />} />
                 <Route path="*" element={<NotFound />} />
-        </Routes>
-      </PageTransition>
-    </AnimatePresence>
+      </Routes>
+    </PageTransition>
   );
 };
 
