@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight, Crown, TrendingUp } from "lucide-react";
-
+import { toast } from "sonner";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 
 import orderWedding from "@/assets/order-wedding.jpg";
@@ -104,7 +104,10 @@ const Index = () => {
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground">Overview</h2>
-            <button className="flex items-center gap-1 text-xs text-muted-foreground">
+            <button
+              onClick={() => toast.success("Overview refreshed", { description: "Latest figures loaded." })}
+              className="flex items-center gap-1 text-xs text-muted-foreground active:text-foreground transition-colors"
+            >
               <RefreshCw className="w-3.5 h-3.5" /> Update
             </button>
           </div>

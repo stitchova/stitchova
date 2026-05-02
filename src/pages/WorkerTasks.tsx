@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, CheckCircle2, PlayCircle, Camera, X, ImagePlus } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle2, PlayCircle, Camera, X, ImagePlus, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
+import EmptyState from "@/components/EmptyState";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
@@ -50,6 +51,8 @@ const WorkerTasks = () => {
 
   const updateStatus = (id: number, newStatus: TaskStatus) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus, stage: newStatus === "completed" ? 3 : newStatus === "in_progress" ? Math.max(t.stage, 1) : t.stage } : t));
+    const labels: Record<TaskStatus, string> = { not_started: "Not Started", in_progress: "In Progress", completed: "Completed 🎉" };
+    toast.success(`Task marked as ${labels[newStatus]}`);
   };
 
   const nextStatus: Record<TaskStatus, TaskStatus | null> = {
@@ -87,6 +90,7 @@ const WorkerTasks = () => {
     setTasks(prev => prev.map(t =>
       t.id === taskId ? { ...t, images: t.images.filter((_, i) => i !== idx) } : t
     ));
+    toast("Photo removed");
   };
 
   return (
@@ -221,6 +225,13 @@ const WorkerTasks = () => {
             );
           })}
         </AnimatePresence>
+        {filtered.length === 0 && (
+          <EmptyState
+            icon={ClipboardList}
+            title="No tasks here"
+            description={activeFilter === "all" ? "You have no tasks assigned yet." : `No ${filterLabels[activeFilter].toLowerCase()} tasks right now.`}
+          />
+        )}
       </div>
     </div>
   );
