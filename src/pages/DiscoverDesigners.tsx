@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, Star, MapPin, X, BadgeCheck, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -50,6 +51,8 @@ const DiscoverDesigners = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
+  const [activePrice, setActivePrice] = useState<string | null>(null);
+  const [activeRating, setActiveRating] = useState<string | null>(null);
 
   const filtered = designers.filter((d) => {
     const matchesSearch = d.name.toLowerCase().includes(search.toLowerCase()) || d.specialty.toLowerCase().includes(search.toLowerCase());
@@ -114,7 +117,13 @@ const DiscoverDesigners = () => {
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Price Range</p>
                 <div className="flex gap-2">
                   {["Under GHS 1K", "GHS 1K–3K", "GHS 3K+"].map((p) => (
-                    <button key={p} className="text-[10px] px-3 py-1.5 rounded-full glass-card text-muted-foreground hover:text-foreground transition-colors">{p}</button>
+                    <button
+                      key={p}
+                      onClick={() => { setActivePrice(activePrice === p ? null : p); toast(`Price: ${p}`); }}
+                      className={`text-[10px] px-3 py-1.5 rounded-full transition-colors ${activePrice === p ? "bg-primary text-primary-foreground" : "glass-card text-muted-foreground hover:text-foreground"}`}
+                    >
+                      {p}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -122,8 +131,12 @@ const DiscoverDesigners = () => {
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Rating</p>
                 <div className="flex gap-2">
                   {["4.5+", "4.0+", "3.5+"].map((r) => (
-                    <button key={r} className="text-[10px] px-3 py-1.5 rounded-full glass-card text-muted-foreground flex items-center gap-1 hover:text-foreground transition-colors">
-                      <Star className="w-3 h-3 text-primary fill-primary" /> {r}
+                    <button
+                      key={r}
+                      onClick={() => { setActiveRating(activeRating === r ? null : r); toast(`Rating: ${r} ★`); }}
+                      className={`text-[10px] px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors ${activeRating === r ? "bg-primary text-primary-foreground" : "glass-card text-muted-foreground hover:text-foreground"}`}
+                    >
+                      <Star className={`w-3 h-3 ${activeRating === r ? "fill-primary-foreground text-primary-foreground" : "text-primary fill-primary"}`} /> {r}
                     </button>
                   ))}
                 </div>
