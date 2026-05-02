@@ -11,12 +11,12 @@ const menuItems = [
   { icon: User, label: "My Account", desc: "View profile and settings", path: "/profile" },
   { icon: Crown, label: "Subscription", desc: "Manage your plan", path: "/subscription" },
   { icon: Palette, label: "Themes", desc: "Choose your color palette", path: "/themes" },
-  { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/add", requiresPlan: "pro" as const },
+  { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/workers", requiresPlan: "pro" as const },
   { icon: CreditCard, label: "Payments", desc: "Track revenue and expenses", path: "/analytics" },
   { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
   { icon: ClipboardList, label: "Activity Logs", desc: "Track all account actions", path: "/activity-logs" },
-  { icon: HelpCircle, label: "Help & Support", desc: "Get help with any issue", path: "/profile" },
-  { icon: Settings, label: "Settings", desc: "Customize the app", path: "/profile" },
+  { icon: HelpCircle, label: "Help & Support", desc: "Get help with any issue", path: "/help" },
+  { icon: Settings, label: "Settings", desc: "Customize the app", path: "/settings" },
 ];
 
 const More = () => {

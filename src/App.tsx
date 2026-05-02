@@ -41,6 +41,8 @@ import AIInsights from "./pages/AIInsights";
 import StyleLibrary from "./pages/StyleLibrary";
 import ActivityLogs from "./pages/ActivityLogs";
 import ThemePicker from "./pages/ThemePicker";
+import Settings from "./pages/Settings";
+import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +74,8 @@ const AnimatedRoutes = () => {
                 <Route path="/style-library" element={<StyleLibrary />} />
                 <Route path="/activity-logs" element={<ActivityLogs />} />
                 <Route path="/themes" element={<ThemePicker />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/help" element={<Help />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
