@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Plus, Phone, Star, X, Save, Trash2, ChevronRight,
+  ArrowLeft, Plus, Phone, Star, X, Save, Trash2, ChevronRight, Loader2,
   User, Shield, Briefcase, Scissors, Clock, DollarSign, BarChart3,
   Camera, MapPin, Mail, Calendar, AlertCircle, Heart, CheckCircle2,
   Eye, Edit2
@@ -128,6 +128,8 @@ const Workers = () => {
   };
 
   const [form, setForm] = useState(emptyForm);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
 
   const toggleSpecialization = (s: string) => {
     setForm((prev) => ({
@@ -147,11 +149,14 @@ const Workers = () => {
     }));
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
+    if (registering) return;
     if (!form.fullName.trim() || !form.phone.trim() || !form.role) {
       toast({ title: "Missing required fields", description: "Name, phone and role are required.", variant: "destructive" });
       return;
     }
+    setRegistering(true);
+    await new Promise((r) => setTimeout(r, 500));
     const newWorker: Worker = {
       ...form,
       id: Date.now().toString(),
@@ -162,11 +167,17 @@ const Workers = () => {
     setShowForm(false);
     setCurrentStep(0);
     toast({ title: "Worker registered ✅", description: `${newWorker.fullName} has been added to your team.` });
+    setRegistering(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    if (deletingId) return;
+    setDeletingId(id);
+    await new Promise((r) => setTimeout(r, 350));
     setWorkers((prev) => prev.filter((w) => w.id !== id));
     toast({ title: "Worker removed" });
+    setDeletingId(null);
+    if (viewingWorker?.id === id) setViewingWorker(null);
   };
 
   const canProceed = () => {
@@ -215,8 +226,9 @@ const Workers = () => {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </motion.button>
           <h1 className="text-lg font-semibold text-foreground flex-1">Worker Profile</h1>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleDelete(w.id)} className="text-muted-foreground">
-            <Trash2 className="w-4 h-4" />
+          <motion.button whileTap={{ scale: 0.9 }} disabled={deletingId === w.id}
+            onClick={() => handleDelete(w.id)} className="text-muted-foreground disabled:opacity-60">
+            {deletingId === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
           </motion.button>
         </div>
 
@@ -667,9 +679,12 @@ const Workers = () => {
                       )}
                     >Next <ChevronRight className="w-4 h-4" /></motion.button>
                   ) : (
-                    <motion.button whileTap={{ scale: 0.97 }} onClick={handleAdd}
-                      className="flex-1 py-2.5 rounded-xl font-semibold text-sm bg-primary text-primary-foreground flex items-center justify-center gap-2"
-                    ><Save className="w-4 h-4" /> Register Worker</motion.button>
+                    <motion.button whileTap={{ scale: 0.97 }} onClick={handleAdd} disabled={registering}
+                      className="flex-1 py-2.5 rounded-xl font-semibold text-sm bg-primary text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {registering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {registering ? "Registering..." : "Register Worker"}
+                    </motion.button>
                   )}
                 </div>
               </div>
