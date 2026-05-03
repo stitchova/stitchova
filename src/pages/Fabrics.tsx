@@ -163,10 +163,11 @@ const Fabrics = () => {
                     className="w-full bg-background border border-border rounded-xl py-3 px-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all" />
                 </div>
 
-                <motion.button whileTap={{ scale: 0.97 }} onClick={handleAdd} disabled={!form.name.trim()}
-                  className={cn("w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg",
-                    form.name.trim() ? "bg-primary text-primary-foreground shadow-primary/25" : "bg-muted text-muted-foreground shadow-none")}>
-                  <Save className="w-4 h-4" /> Add Fabric
+                <motion.button whileTap={{ scale: 0.97 }} onClick={handleAdd} disabled={!form.name.trim() || adding}
+                  className={cn("w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg disabled:cursor-not-allowed",
+                    form.name.trim() && !adding ? "bg-primary text-primary-foreground shadow-primary/25" : "bg-muted text-muted-foreground shadow-none")}>
+                  {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {adding ? "Adding..." : "Add Fabric"}
                 </motion.button>
               </div>
             </motion.div>
