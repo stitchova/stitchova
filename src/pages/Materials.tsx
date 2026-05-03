@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, Search, X, Save, Trash2, Package } from "lucide-react";
+import { ArrowLeft, Plus, Search, X, Save, Trash2, Package, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ const defaultMaterials: Material[] = [
 const Materials = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [materials, setMaterials] = useState<Material[]>(defaultMaterials);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -57,9 +58,13 @@ const Materials = () => {
     toast({ title: "Material added ✨", description: `${newMaterial.name} added to inventory.` });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    if (deletingId) return;
+    setDeletingId(id);
+    await new Promise((r) => setTimeout(r, 350));
     setMaterials((prev) => prev.filter((m) => m.id !== id));
     toast({ title: "Material removed" });
+    setDeletingId(null);
   };
 
   const categoryEmojis: Record<string, string> = {
@@ -142,7 +147,7 @@ const Materials = () => {
         <div className="space-y-3">
           {filtered.map((m, i) => (
             <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-              className="card-glass p-3.5 flex items-center gap-3 group">
+              className={cn("card-glass p-3.5 flex items-center gap-3 group transition-opacity", deletingId === m.id && "opacity-50 pointer-events-none")}>
               <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
                 <span className="text-lg">{categoryEmojis[m.category] || "📦"}</span>
               </div>
@@ -155,9 +160,14 @@ const Materials = () => {
                 <p className="text-sm font-bold text-foreground">{m.totalCost}</p>
                 <p className="text-[10px] text-muted-foreground">{m.unitCost}/unit</p>
               </div>
-              <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }}
-                className="opacity-50 group-hover:opacity-100 transition-opacity">
-                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors" />
+              <motion.button whileTap={{ scale: 0.9 }} disabled={deletingId === m.id}
+                onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }}
+                className="opacity-50 group-hover:opacity-100 transition-opacity disabled:opacity-100">
+                {deletingId === m.id ? (
+                  <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors" />
+                )}
               </motion.button>
             </motion.div>
           ))}
