@@ -29,6 +29,7 @@ const Materials = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const [materials, setMaterials] = useState<Material[]>(defaultMaterials);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -41,8 +42,10 @@ const Materials = () => {
     return matchSearch && matchCategory;
   });
 
-  const handleAdd = () => {
-    if (!form.name.trim()) return;
+  const handleAdd = async () => {
+    if (!form.name.trim() || adding) return;
+    setAdding(true);
+    await new Promise((r) => setTimeout(r, 400));
     const newMaterial: Material = {
       id: Date.now().toString(),
       name: form.name,
@@ -56,6 +59,7 @@ const Materials = () => {
     setForm({ name: "", category: "Threads", qty: "", unitCost: "", totalCost: "", linkedOrder: "" });
     setShowForm(false);
     toast({ title: "Material added ✨", description: `${newMaterial.name} added to inventory.` });
+    setAdding(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -118,10 +122,11 @@ const Materials = () => {
                     placeholder={input.placeholder}
                     className="w-full bg-background border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-all" />
                 ))}
-                <motion.button whileTap={{ scale: 0.97 }} onClick={handleAdd} disabled={!form.name.trim()}
-                  className={cn("w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg",
-                    form.name.trim() ? "bg-primary text-primary-foreground shadow-primary/25" : "bg-muted text-muted-foreground shadow-none")}>
-                  <Save className="w-4 h-4" /> Add Material
+                <motion.button whileTap={{ scale: 0.97 }} onClick={handleAdd} disabled={!form.name.trim() || adding}
+                  className={cn("w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg disabled:cursor-not-allowed",
+                    form.name.trim() && !adding ? "bg-primary text-primary-foreground shadow-primary/25" : "bg-muted text-muted-foreground shadow-none")}>
+                  {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {adding ? "Adding..." : "Add Material"}
                 </motion.button>
               </div>
             </motion.div>
