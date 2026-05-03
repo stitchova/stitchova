@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, CheckCircle2, PlayCircle, Camera, X, ImagePlus, ClipboardList } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle2, PlayCircle, Camera, X, ImagePlus, ClipboardList, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import EmptyState from "@/components/EmptyState";
 
@@ -46,13 +46,20 @@ const WorkerTasks = () => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingTaskId, setUploadingTaskId] = useState<number | null>(null);
+  const [pendingStatusId, setPendingStatusId] = useState<number | null>(null);
+  const [pendingRemoveKey, setPendingRemoveKey] = useState<string | null>(null);
+  const [filterPending, setFilterPending] = useState(false);
 
   const filtered = activeFilter === "all" ? tasks : tasks.filter(t => t.status === activeFilter);
 
-  const updateStatus = (id: number, newStatus: TaskStatus) => {
+  const updateStatus = async (id: number, newStatus: TaskStatus) => {
+    if (pendingStatusId === id) return;
+    setPendingStatusId(id);
+    await new Promise((r) => setTimeout(r, 450));
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus, stage: newStatus === "completed" ? 3 : newStatus === "in_progress" ? Math.max(t.stage, 1) : t.stage } : t));
     const labels: Record<TaskStatus, string> = { not_started: "Not Started", in_progress: "In Progress", completed: "Completed 🎉" };
     toast.success(`Task marked as ${labels[newStatus]}`);
+    setPendingStatusId(null);
   };
 
   const nextStatus: Record<TaskStatus, TaskStatus | null> = {
@@ -86,11 +93,23 @@ const WorkerTasks = () => {
     e.target.value = "";
   };
 
-  const removeImage = (taskId: number, idx: number) => {
+  const removeImage = async (taskId: number, idx: number) => {
+    const key = `${taskId}-${idx}`;
+    if (pendingRemoveKey === key) return;
+    setPendingRemoveKey(key);
+    await new Promise((r) => setTimeout(r, 300));
     setTasks(prev => prev.map(t =>
       t.id === taskId ? { ...t, images: t.images.filter((_, i) => i !== idx) } : t
     ));
     toast("Photo removed");
+    setPendingRemoveKey(null);
+  };
+
+  const handleFilterTap = (f: TaskStatus | "all") => {
+    if (filterPending || activeFilter === f) return;
+    setFilterPending(true);
+    setActiveFilter(f);
+    setTimeout(() => setFilterPending(false), 250);
   };
 
   return (
@@ -111,8 +130,8 @@ const WorkerTasks = () => {
           {filterKeys.map(f => {
             const count = f === "all" ? tasks.length : tasks.filter(t => t.status === f).length;
             return (
-              <button key={f} onClick={() => setActiveFilter(f)}
-                className="relative flex-1 py-2 rounded-xl text-[10px] font-medium z-10 transition-colors"
+              <button key={f} onClick={() => handleFilterTap(f)} disabled={filterPending}
+                className="relative flex-1 py-2 rounded-xl text-[10px] font-medium z-10 transition-colors disabled:cursor-not-allowed"
                 style={{ color: activeFilter === f ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))" }}>
                 {filterLabels[f]} ({count})
                 {activeFilter === f && (
@@ -191,15 +210,18 @@ const WorkerTasks = () => {
                           <span className="text-[9px] text-muted-foreground">{task.images.length}/4</span>
                         </div>
                         <div className="grid grid-cols-4 gap-2">
-                          {task.images.map((img, idx) => (
-                            <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-border/20">
-                              <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
-                              <button onClick={() => removeImage(task.id, idx)}
-                                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/80 flex items-center justify-center">
-                                <X className="w-3 h-3 text-foreground" />
-                              </button>
-                            </div>
-                          ))}
+                          {task.images.map((img, idx) => {
+                            const removing = pendingRemoveKey === `${task.id}-${idx}`;
+                            return (
+                              <div key={idx} className={`relative aspect-square rounded-xl overflow-hidden border border-border/20 transition-opacity ${removing ? "opacity-40" : ""}`}>
+                                <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
+                                <button onClick={() => removeImage(task.id, idx)} disabled={removing}
+                                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/80 flex items-center justify-center disabled:opacity-60">
+                                  {removing ? <Loader2 className="w-3 h-3 text-foreground animate-spin" /> : <X className="w-3 h-3 text-foreground" />}
+                                </button>
+                              </div>
+                            );
+                          })}
                           {task.images.length < 4 && (
                             <motion.button whileTap={{ scale: 0.95 }}
                               onClick={() => handleImageUpload(task.id)}
@@ -214,8 +236,10 @@ const WorkerTasks = () => {
                       {next && (
                         <motion.button whileTap={{ scale: 0.97 }}
                           onClick={() => updateStatus(task.id, next)}
-                          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold">
-                          Mark as {statusConfig[next].label}
+                          disabled={pendingStatusId === task.id}
+                          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                          {pendingStatusId === task.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                          {pendingStatusId === task.id ? "Updating..." : `Mark as ${statusConfig[next].label}`}
                         </motion.button>
                       )}
                     </motion.div>
