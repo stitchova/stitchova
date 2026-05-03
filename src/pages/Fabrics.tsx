@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, Search, X, Save, Trash2, ImagePlus, Camera } from "lucide-react";
+import { ArrowLeft, Plus, Search, X, Save, Trash2, ImagePlus, Camera, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
