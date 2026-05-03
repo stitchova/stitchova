@@ -52,6 +52,15 @@ const Index = () => {
   const navigate = useNavigate();
   
   const { plan } = useSubscription();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    await new Promise((r) => setTimeout(r, 700));
+    toast.success("Overview refreshed", { description: "Latest figures loaded." });
+    setRefreshing(false);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -106,10 +115,16 @@ const Index = () => {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground">Overview</h2>
             <button
-              onClick={() => toast.success("Overview refreshed", { description: "Latest figures loaded." })}
-              className="flex items-center gap-1 text-xs text-muted-foreground active:text-foreground transition-colors"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-1 text-xs text-muted-foreground active:text-foreground transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <RefreshCw className="w-3.5 h-3.5" /> Update
+              {refreshing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3.5 h-3.5" />
+              )}
+              {refreshing ? "Updating..." : "Update"}
             </button>
           </div>
           <div className="grid grid-cols-2 gap-3">
