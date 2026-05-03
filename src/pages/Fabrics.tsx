@@ -38,6 +38,8 @@ const Fabrics = () => {
   const [form, setForm] = useState({ name: "", brand: "", color: "", qty: "", price: "", fabricType: "Ankara", source: "Designer", dateReceived: "" });
   const [formImage, setFormImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const filtered = fabrics.filter((f) =>
     `${f.name} ${f.brand} ${f.color} ${f.fabricType}`.toLowerCase().includes(search.toLowerCase())
@@ -51,8 +53,10 @@ const Fabrics = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleAdd = () => {
-    if (!form.name.trim()) return;
+  const handleAdd = async () => {
+    if (!form.name.trim() || adding) return;
+    setAdding(true);
+    await new Promise((r) => setTimeout(r, 400));
     const newFabric: Fabric = {
       id: Date.now().toString(), name: form.name, brand: form.brand || "—", color: form.color || "—",
       qty: form.qty || "—", price: form.price || "—", image: formImage, fabricType: form.fabricType,
@@ -63,11 +67,16 @@ const Fabrics = () => {
     setFormImage(null);
     setShowForm(false);
     toast({ title: "Fabric added ✨", description: `${newFabric.name} added to your collection.` });
+    setAdding(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    if (deletingId) return;
+    setDeletingId(id);
+    await new Promise((r) => setTimeout(r, 350));
     setFabrics((prev) => prev.filter((f) => f.id !== id));
     toast({ title: "Fabric removed" });
+    setDeletingId(null);
   };
 
   return (
@@ -173,7 +182,7 @@ const Fabrics = () => {
         <div className="space-y-3">
           {filtered.map((f, i) => (
             <motion.div key={f.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-              className="card-glass p-3 flex items-center gap-4 group">
+              className={cn("card-glass p-3 flex items-center gap-4 group transition-opacity", deletingId === f.id && "opacity-50 pointer-events-none")}>
               <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-secondary">
                 {f.image ? (
                   <img src={f.image} alt={f.name} className="w-full h-full object-cover" />
@@ -193,9 +202,14 @@ const Fabrics = () => {
                 <p className="text-sm font-bold text-foreground">{f.price}</p>
                 <p className="text-[10px] text-muted-foreground">{f.qty}</p>
               </div>
-              <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); handleDelete(f.id); }}
-                className="opacity-50 group-hover:opacity-100 transition-opacity">
-                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors" />
+              <motion.button whileTap={{ scale: 0.9 }} disabled={deletingId === f.id}
+                onClick={(e) => { e.stopPropagation(); handleDelete(f.id); }}
+                className="opacity-50 group-hover:opacity-100 transition-opacity disabled:opacity-100">
+                {deletingId === f.id ? (
+                  <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors" />
+                )}
               </motion.button>
             </motion.div>
           ))}
