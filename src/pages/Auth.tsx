@@ -186,10 +186,12 @@ const Auth = () => {
                   </div>
                   {mode === "signin" && (
                     <button
-                      onClick={() => toast.success("Reset link sent", { description: "Check your email for instructions." })}
-                      className="text-xs text-primary font-medium self-end block ml-auto"
+                      onClick={() => triggerProvider("forgot")}
+                      disabled={pendingProvider === "forgot"}
+                      className="text-xs text-primary font-medium self-end ml-auto inline-flex items-center gap-1 disabled:opacity-60"
                     >
-                      Forgot password?
+                      {pendingProvider === "forgot" && <Loader2 className="w-3 h-3 animate-spin" />}
+                      {pendingProvider === "forgot" ? "Sending..." : "Forgot password?"}
                     </button>
                   )}
                 </>
