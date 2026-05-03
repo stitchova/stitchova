@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Scissors, ArrowRight, Wrench, Phone } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Scissors, ArrowRight, Wrench, Phone, Loader2 } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { toast } from "sonner";
 
@@ -16,6 +16,8 @@ const Auth = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", otp: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [pendingProvider, setPendingProvider] = useState<"forgot" | "google" | "apple" | null>(null);
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
@@ -27,12 +29,25 @@ const Auth = () => {
     }
   };
 
-  const handleSubmit = () => {
-    if (!selectedRole) return;
+  const handleSubmit = async () => {
+    if (!selectedRole || submitting) return;
+    setSubmitting(true);
+    await new Promise((r) => setTimeout(r, 600));
     setRole(selectedRole);
     if (selectedRole === "designer") navigate("/");
     else if (selectedRole === "client") navigate("/client-home");
     else navigate("/worker-dashboard");
+    setSubmitting(false);
+  };
+
+  const triggerProvider = async (provider: "forgot" | "google" | "apple") => {
+    if (pendingProvider) return;
+    setPendingProvider(provider);
+    await new Promise((r) => setTimeout(r, 500));
+    if (provider === "forgot") toast.success("Reset link sent", { description: "Check your email for instructions." });
+    if (provider === "google") toast("Google sign-in coming soon");
+    if (provider === "apple") toast("Apple sign-in coming soon");
+    setPendingProvider(null);
   };
 
   const roleCards = [
