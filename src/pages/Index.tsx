@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight, Crown, TrendingUp } from "lucide-react";
+import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight, Crown, TrendingUp, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 
