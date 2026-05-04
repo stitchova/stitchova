@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette } from "lucide-react";
+import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import FeatureGate from "@/components/FeatureGate";
 
@@ -12,6 +12,7 @@ const menuItems = [
   { icon: Crown, label: "Subscription", desc: "Manage your plan", path: "/subscription" },
   { icon: Palette, label: "Themes", desc: "Choose your color palette", path: "/themes" },
   { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/workers", requiresPlan: "pro" as const },
+  { icon: MessagesSquare, label: "Workshop Chat", desc: "Group, DMs & announcements", path: "/workshop-chat" },
   { icon: CreditCard, label: "Payments", desc: "Track revenue and expenses", path: "/analytics" },
   { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
   { icon: ClipboardList, label: "Activity Logs", desc: "Track all account actions", path: "/activity-logs" },
