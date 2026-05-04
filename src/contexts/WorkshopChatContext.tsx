@@ -50,7 +50,7 @@ const defaultDesigner: WorkshopMember = {
 const defaultWorkers: WorkshopMember[] = [
   { id: "w-kwame", name: "Kwame Asante", role: "Tailor", initials: "KA" },
   { id: "w-esi",   name: "Esi Darkwa",   role: "Beader", initials: "ED" },
-  { id: "w-tunde", name: "Tunde A.",     name_alt: undefined as unknown as string, role: "Tailor", initials: "TA" } as WorkshopMember,
+  { id: "w-tunde", name: "Tunde A.",     role: "Tailor", initials: "TA" },
 ];
 
 const seedMessages = (): WorkshopMessage[] => {
