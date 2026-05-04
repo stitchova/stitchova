@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { WorkshopChatProvider } from "@/contexts/WorkshopChatContext";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
 import Index from "./pages/Index";
@@ -43,6 +44,8 @@ import ActivityLogs from "./pages/ActivityLogs";
 import ThemePicker from "./pages/ThemePicker";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
+import WorkshopChat from "./pages/WorkshopChat";
+import WorkshopConversation from "./pages/WorkshopConversation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,6 +79,8 @@ const AnimatedRoutes = () => {
                 <Route path="/themes" element={<ThemePicker />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/help" element={<Help />} />
+                <Route path="/workshop-chat" element={<WorkshopChat />} />
+                <Route path="/workshop-chat/:chatId" element={<WorkshopConversation />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
@@ -105,10 +110,12 @@ const App = () => (
         <ThemeProvider>
           <RoleProvider>
             <SubscriptionProvider>
-              <div className="max-w-md mx-auto min-h-screen relative">
-                <AnimatedRoutes />
-                <BottomNav />
-              </div>
+              <WorkshopChatProvider>
+                <div className="max-w-md mx-auto min-h-screen relative">
+                  <AnimatedRoutes />
+                  <BottomNav />
+                </div>
+              </WorkshopChatProvider>
             </SubscriptionProvider>
           </RoleProvider>
         </ThemeProvider>

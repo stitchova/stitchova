@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, Ruler, Package, Clock, CheckCircle2, AlertTriangle, Camera, ChevronRight } from "lucide-react";
+import { ClipboardList, Ruler, Package, Clock, CheckCircle2, AlertTriangle, Camera, ChevronRight, MessagesSquare } from "lucide-react";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
@@ -99,6 +99,22 @@ const WorkerDashboard = () => {
 
       {/* Today's Tasks */}
       <div className="px-5 mb-6">
+        <motion.button
+          {...fadeUp}
+          transition={{ delay: 0.12 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate("/workshop-chat")}
+          className="w-full card-glass p-4 mb-4 flex items-center gap-3 text-left"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <MessagesSquare className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-foreground">Workshop Chat</p>
+            <p className="text-[11px] text-muted-foreground">Group, DMs & announcements</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </motion.button>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-foreground">Today's Tasks</h2>
           <button onClick={() => navigate("/worker-tasks")} className="text-xs text-primary font-medium flex items-center gap-0.5">
