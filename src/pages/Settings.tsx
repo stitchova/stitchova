@@ -38,7 +38,7 @@ const Settings = () => {
       title: "Security",
       items: [
         { icon: KeyRound, label: hasPasscode ? "Change Passcode" : "Set Passcode", desc: "4-digit app lock", action: () => navigate("/set-passcode") },
-        { icon: Smartphone, label: "Biometric Login", desc: "Use Face ID / fingerprint", toggle: { value: biometricEnabled, onChange: (v: boolean) => { setBiometricEnabled(v); toast.success(v ? "Biometric enabled" : "Biometric disabled"); } } },
+        { icon: Smartphone, label: "Biometric Login", desc: "Use Face ID / fingerprint", toggle: { value: biometricEnabled, onChange: setBiometricEnabled } },
         { icon: LockKeyhole, label: "Lock Now", desc: hasPasscode ? "Lock the app immediately" : "Set a passcode first", action: () => { if (!hasPasscode) { toast("Set a passcode first"); navigate("/set-passcode"); return; } lockNow(); } },
         { icon: Lock, label: "Change Password", desc: "Update your credentials", action: () => toast("Password reset link sent") },
         { icon: Shield, label: "Privacy Policy", desc: "How we protect your data", action: () => toast("Opening privacy policy…") },
