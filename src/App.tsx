@@ -7,8 +7,10 @@ import { RoleProvider } from "@/contexts/RoleContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { WorkshopChatProvider } from "@/contexts/WorkshopChatContext";
+import { LockProvider } from "@/contexts/LockContext";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
+import LockGate from "@/components/LockGate";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Clients from "./pages/Clients";
@@ -46,6 +48,7 @@ import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import WorkshopChat from "./pages/WorkshopChat";
 import WorkshopConversation from "./pages/WorkshopConversation";
+import SetPasscode from "./pages/SetPasscode";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +84,7 @@ const AnimatedRoutes = () => {
                 <Route path="/help" element={<Help />} />
                 <Route path="/workshop-chat" element={<WorkshopChat />} />
                 <Route path="/workshop-chat/:chatId" element={<WorkshopConversation />} />
+                <Route path="/set-passcode" element={<SetPasscode />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
@@ -111,10 +115,14 @@ const App = () => (
           <RoleProvider>
             <SubscriptionProvider>
               <WorkshopChatProvider>
-                <div className="max-w-md mx-auto min-h-screen relative">
-                  <AnimatedRoutes />
-                  <BottomNav />
-                </div>
+                <LockProvider>
+                  <LockGate>
+                    <div className="max-w-md mx-auto min-h-screen relative">
+                      <AnimatedRoutes />
+                      <BottomNav />
+                    </div>
+                  </LockGate>
+                </LockProvider>
               </WorkshopChatProvider>
             </SubscriptionProvider>
           </RoleProvider>
