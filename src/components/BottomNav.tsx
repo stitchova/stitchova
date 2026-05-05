@@ -49,7 +49,7 @@ const BottomNav = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
-      <div className="bg-card/90 backdrop-blur-2xl border-t border-border/30">
+      <div className="glass-nav">
         <div className="flex items-center justify-around px-2 py-2 max-w-md mx-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -60,7 +60,7 @@ const BottomNav = () => {
                   key={item.path}
                   whileTap={{ scale: 0.85 }}
                   onClick={() => navigate(item.path)}
-                  className="relative -mt-7 flex items-center justify-center w-14 h-14 rounded-2xl bg-primary shadow-lg shadow-primary/40 glow-primary"
+                  className="relative -mt-7 flex items-center justify-center w-14 h-14 rounded-2xl glass-fab glow-primary"
                 >
                   <Plus className="w-6 h-6 text-primary-foreground" />
                 </motion.button>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, Scissors, ArrowRight, Wrench, Phone, Loader2 } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
+import { useLock } from "@/contexts/LockContext";
 import { toast } from "sonner";
 
 type AuthMode = "signin" | "signup";
@@ -11,6 +12,7 @@ type Step = "role" | "form";
 const Auth = () => {
   const navigate = useNavigate();
   const { setRole } = useRole();
+  const { hasPasscode } = useLock();
   const [mode, setMode] = useState<AuthMode>("signin");
   const [step, setStep] = useState<Step>("role");
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
@@ -34,9 +36,13 @@ const Auth = () => {
     setSubmitting(true);
     await new Promise((r) => setTimeout(r, 600));
     setRole(selectedRole);
-    if (selectedRole === "designer") navigate("/");
-    else if (selectedRole === "client") navigate("/client-home");
-    else navigate("/worker-dashboard");
+    const home =
+      selectedRole === "designer" ? "/" : selectedRole === "client" ? "/client-home" : "/worker-dashboard";
+    if (!hasPasscode) {
+      navigate("/set-passcode", { state: { next: home } });
+    } else {
+      navigate(home);
+    }
     setSubmitting(false);
   };
 

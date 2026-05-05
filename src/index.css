@@ -190,4 +190,79 @@
   }
   .typing-dot:nth-child(2) { animation-delay: 0.2s; }
   .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  /* ============================================================
+   * Glassmorphism utilities (selective use only)
+   * ============================================================ */
+  .glass {
+    background: hsl(var(--card) / 0.45);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid hsl(var(--foreground) / 0.08);
+    box-shadow:
+      0 8px 32px -12px hsl(var(--foreground) / 0.18),
+      inset 0 1px 0 0 hsl(var(--foreground) / 0.06);
+    @apply rounded-2xl;
+  }
+
+  .glass-strong {
+    background: hsl(var(--card) / 0.65);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    border: 1px solid hsl(var(--foreground) / 0.1);
+    box-shadow:
+      0 12px 40px -10px hsl(var(--foreground) / 0.22),
+      inset 0 1px 0 0 hsl(var(--foreground) / 0.08);
+    @apply rounded-2xl;
+  }
+
+  .glass-nav {
+    background: hsl(var(--background) / 0.55);
+    backdrop-filter: blur(24px) saturate(1.6);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    border-top: 1px solid hsl(var(--foreground) / 0.08);
+    box-shadow: 0 -8px 32px -12px hsl(var(--foreground) / 0.18);
+  }
+
+  .glass-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 15% 0%, hsl(var(--primary) / 0.22) 0%, transparent 55%),
+      radial-gradient(circle at 85% 20%, hsl(var(--accent) / 0.18) 0%, transparent 55%),
+      hsl(var(--card) / 0.5);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid hsl(var(--foreground) / 0.08);
+    box-shadow: 0 12px 40px -16px hsl(var(--foreground) / 0.22);
+    @apply rounded-3xl;
+  }
+
+  .glass-fab {
+    background: hsl(var(--primary) / 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--primary-foreground) / 0.2);
+    box-shadow:
+      0 12px 32px -8px hsl(var(--primary) / 0.5),
+      inset 0 1px 0 0 hsl(var(--primary-foreground) / 0.25);
+  }
+
+  /* Lockscreen ambient backdrop */
+  .lock-backdrop {
+    background:
+      radial-gradient(circle at 20% 10%, hsl(var(--primary) / 0.35) 0%, transparent 50%),
+      radial-gradient(circle at 80% 90%, hsl(var(--accent) / 0.3) 0%, transparent 55%),
+      radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.12) 0%, transparent 60%),
+      hsl(var(--background));
+  }
+
+  @keyframes shake-x {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+  .shake-x { animation: shake-x 0.4s ease-in-out; }
 }
