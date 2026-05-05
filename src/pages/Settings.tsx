@@ -1,14 +1,15 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Globe, Moon, Lock, Smartphone, Palette, Shield } from "lucide-react";
+import { ArrowLeft, Bell, Globe, Moon, Lock, Smartphone, Palette, Shield, KeyRound, LockKeyhole } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLock } from "@/contexts/LockContext";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { hasPasscode, biometricEnabled, setBiometricEnabled, lockNow } = useLock();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
-  const [biometric, setBiometric] = useState(false);
 
   const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
     <button
@@ -36,8 +37,10 @@ const Settings = () => {
     {
       title: "Security",
       items: [
+        { icon: KeyRound, label: hasPasscode ? "Change Passcode" : "Set Passcode", desc: "4-digit app lock", action: () => navigate("/set-passcode") },
+        { icon: Smartphone, label: "Biometric Login", desc: "Use Face ID / fingerprint", toggle: { value: biometricEnabled, onChange: (v: boolean) => { setBiometricEnabled(v); toast.success(v ? "Biometric enabled" : "Biometric disabled"); } } },
+        { icon: LockKeyhole, label: "Lock Now", desc: hasPasscode ? "Lock the app immediately" : "Set a passcode first", action: () => { if (!hasPasscode) { toast("Set a passcode first"); navigate("/set-passcode"); return; } lockNow(); } },
         { icon: Lock, label: "Change Password", desc: "Update your credentials", action: () => toast("Password reset link sent") },
-        { icon: Smartphone, label: "Biometric Login", desc: "Use Face ID / fingerprint", toggle: { value: biometric, onChange: setBiometric } },
         { icon: Shield, label: "Privacy Policy", desc: "How we protect your data", action: () => toast("Opening privacy policy…") },
       ],
     },
