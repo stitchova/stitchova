@@ -45,6 +45,7 @@ const BottomNav = () => {
   if (hiddenPaths.includes(location.pathname)) return null;
   if (location.pathname.startsWith("/designer/")) return null;
   if (location.pathname.startsWith("/workshop-chat/")) return null;
+  if (location.pathname === "/showcase/new") return null;
 
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
 
