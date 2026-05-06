@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Send, Image, Mic, CheckCheck, Paperclip } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -20,6 +20,8 @@ const Messages = () => {
   const designerId = searchParams.get("designer") || "nana-ama";
   const designerName = searchParams.get("name") || "Nana Ama Couture";
   const avatar = designerAvatars[designerId] || designerAvatar1;
+  const prefill = searchParams.get("prefill") || "";
+  const postThumb = searchParams.get("postThumb") || "";
 
   const initialMessages = [
     { id: 1, from: "designer", text: "Hello! Thank you for your interest. How can I help you today?", time: "10:30 AM", read: true },
@@ -29,6 +31,7 @@ const Messages = () => {
 
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
+  useEffect(() => { if (prefill) setInput(prefill); }, [prefill]);
   const [showTyping, setShowTyping] = useState(false);
   const [showAttach, setShowAttach] = useState(false);
 
@@ -88,6 +91,16 @@ const Messages = () => {
           </div>
         </motion.button>
       </motion.div>
+
+      {postThumb && (
+        <div className="mx-5 mt-3 card-glass p-3 flex items-center gap-3">
+          <img src={postThumb} alt="" className="w-12 h-12 rounded-lg object-cover" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-muted-foreground">Replying about a Showcase post by</p>
+            <p className="text-xs font-semibold text-foreground truncate">{designerName}</p>
+          </div>
+        </div>
+      )}
 
       {/* Date Divider */}
       <div className="flex items-center justify-center py-4">

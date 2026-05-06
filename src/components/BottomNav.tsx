@@ -1,4 +1,4 @@
-import { Home, Users, ShoppingBag, BarChart3, MoreHorizontal, Plus, Compass, CalendarDays, User, MessageCircle, ClipboardList, Ruler, Package, UserCircle } from "lucide-react";
+import { Home, Users, ShoppingBag, BarChart3, MoreHorizontal, Plus, Compass, CalendarDays, User, MessageCircle, ClipboardList, Ruler, Package, UserCircle, Clapperboard } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useRole } from "@/contexts/RoleContext";
@@ -13,6 +13,7 @@ interface NavItem {
 const designerNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/" },
   { icon: Users, label: "Clients", path: "/clients" },
+  { icon: Clapperboard, label: "Showcase", path: "/showcase" },
   { icon: Plus, label: "Add", path: "/add", isCenter: true },
   { icon: MessageCircle, label: "Messages", path: "/designer-messages" },
   { icon: MoreHorizontal, label: "More", path: "/more" },
@@ -21,8 +22,8 @@ const designerNav: NavItem[] = [
 const clientNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/client-home" },
   { icon: Compass, label: "Discover", path: "/discover" },
+  { icon: Clapperboard, label: "Showcase", path: "/showcase" },
   { icon: ShoppingBag, label: "Orders", path: "/client-orders" },
-  { icon: CalendarDays, label: "Bookings", path: "/appointments" },
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
@@ -44,6 +45,7 @@ const BottomNav = () => {
   if (hiddenPaths.includes(location.pathname)) return null;
   if (location.pathname.startsWith("/designer/")) return null;
   if (location.pathname.startsWith("/workshop-chat/")) return null;
+  if (location.pathname === "/showcase/new") return null;
 
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
 

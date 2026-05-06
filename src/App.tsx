@@ -8,6 +8,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { WorkshopChatProvider } from "@/contexts/WorkshopChatContext";
 import { LockProvider } from "@/contexts/LockContext";
+import { ShowcaseProvider } from "@/contexts/ShowcaseContext";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
 import LockGate from "@/components/LockGate";
@@ -49,6 +50,8 @@ import Help from "./pages/Help";
 import WorkshopChat from "./pages/WorkshopChat";
 import WorkshopConversation from "./pages/WorkshopConversation";
 import SetPasscode from "./pages/SetPasscode";
+import Showcase from "./pages/Showcase";
+import ShowcaseCreate from "./pages/ShowcaseCreate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +88,8 @@ const AnimatedRoutes = () => {
                 <Route path="/workshop-chat" element={<WorkshopChat />} />
                 <Route path="/workshop-chat/:chatId" element={<WorkshopConversation />} />
                 <Route path="/set-passcode" element={<SetPasscode />} />
+                <Route path="/showcase" element={<Showcase />} />
+                <Route path="/showcase/new" element={<ShowcaseCreate />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
@@ -115,6 +120,7 @@ const App = () => (
           <RoleProvider>
             <SubscriptionProvider>
               <WorkshopChatProvider>
+                <ShowcaseProvider>
                 <LockProvider>
                   <LockGate>
                     <div className="max-w-md mx-auto min-h-screen relative">
@@ -123,6 +129,7 @@ const App = () => (
                     </div>
                   </LockGate>
                 </LockProvider>
+                </ShowcaseProvider>
               </WorkshopChatProvider>
             </SubscriptionProvider>
           </RoleProvider>

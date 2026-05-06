@@ -1,7 +1,9 @@
-import { motion } from "framer-motion";
-import { ArrowLeft, Camera, ChevronRight, LogOut, Bell, Shield, HelpCircle, Settings, CreditCard, ShoppingBag, Users, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Camera, ChevronRight, LogOut, Bell, Shield, HelpCircle, Settings, CreditCard, ShoppingBag, Users, Sparkles, Bookmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
+import { useShowcase } from "@/contexts/ShowcaseContext";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -17,7 +19,9 @@ const myDesigners = [
 const Profile = () => {
   const navigate = useNavigate();
   const { role } = useRole();
+  const { savedPosts } = useShowcase();
   const isDesigner = role === "designer";
+  const [tab, setTab] = useState<"menu" | "saved">("menu");
 
   const menuItems = [
     { icon: Bell, label: "Notifications", desc: "Manage your alerts", path: "/designer-messages", badge: 3, tint: "bg-primary/10 text-primary" },
@@ -108,6 +112,51 @@ const Profile = () => {
           </motion.div>
         )}
 
+        {/* Tabs (client only) */}
+        {!isDesigner && (
+          <div className="flex gap-1 mb-4 bg-secondary rounded-xl p-1">
+            {(["menu", "saved"] as const).map((t) => (
+              <button key={t} onClick={() => setTab(t)}
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg capitalize transition ${
+                  tab === t ? "bg-card text-foreground" : "text-muted-foreground"
+                }`}>
+                {t === "menu" ? "Account" : `Saved (${savedPosts.length})`}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Saved tab */}
+        {!isDesigner && tab === "saved" && (
+          <div>
+            {savedPosts.length === 0 ? (
+              <div className="flex flex-col items-center py-12 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-3">
+                  <Bookmark className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">No saved posts yet</p>
+                <p className="text-xs text-muted-foreground mt-1">Tap the bookmark icon on any showcase post to save it.</p>
+                <button onClick={() => navigate("/showcase")} className="mt-4 px-4 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                  Browse Showcase
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {savedPosts.map((p) => (
+                  <button key={p.id} onClick={() => navigate("/showcase")}
+                    className="aspect-square rounded-xl overflow-hidden relative">
+                    <img src={p.media[0]} alt="" className="w-full h-full object-cover" />
+                    {p.available && (
+                      <span className="absolute top-2 left-2 text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">Available</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {(isDesigner || tab === "menu") && <>
         {/* Menu */}
         <div className="space-y-2">
           {menuItems.map((item, i) => (
@@ -149,6 +198,7 @@ const Profile = () => {
           <LogOut className="w-4 h-4 text-destructive" />
           <span className="text-sm font-bold text-destructive">Log Out</span>
         </motion.button>
+        </>}
       </div>
     </div>
   );
