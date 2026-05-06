@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useShowcase } from "@/contexts/ShowcaseContext";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -81,6 +82,8 @@ const DesignerProfilePage = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState<Tab>("Portfolio");
   const [saved, setSaved] = useState(false);
+  const { postsByDesigner } = useShowcase();
+  const showcasePosts = postsByDesigner(id || "nana-ama");
 
   const designer = designerData[id || "nana-ama"] || designerData["nana-ama"];
 
@@ -180,14 +183,18 @@ const DesignerProfilePage = () => {
             className="mt-4"
           >
             {activeTab === "Portfolio" && (
-              <div className="grid grid-cols-3 gap-1.5">
-                {designer.portfolio.map((img: string, idx: number) => (
+              <div className="grid grid-cols-2 gap-2">
+                {(showcasePosts.length > 0
+                  ? showcasePosts.map((p) => p.media[0])
+                  : designer.portfolio
+                ).map((img: string, idx: number) => (
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.06 }}
-                    className="aspect-square rounded-xl overflow-hidden"
+                    className="aspect-square rounded-xl overflow-hidden cursor-pointer"
+                    onClick={() => navigate("/showcase")}
                   >
                     <img src={img} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover" />
                   </motion.div>
