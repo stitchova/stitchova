@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, Scissors, ArrowRight, Wrench, Phone, Loader2 } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useLock } from "@/contexts/LockContext";
+import Logo from "@/components/Logo";
 import { toast } from "sonner";
 
 type AuthMode = "signin" | "signup";
@@ -64,17 +65,16 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 pt-12 pb-8">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center mb-8">
-        <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-extrabold text-xs tracking-widest">FOS</span>
-        </div>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center gap-2 mb-8">
+        <Logo size={64} />
+        <span className="text-base font-bold tracking-[0.18em] text-foreground">STITCHOVA</span>
       </motion.div>
 
       <AnimatePresence mode="wait">
         {step === "role" ? (
           <motion.div key="role" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }} className="flex-1 flex flex-col">
             <h1 className="text-2xl font-bold text-foreground text-center mb-1">
-              {mode === "signin" ? "Welcome Back" : "Join FashionOS"}
+              {mode === "signin" ? "Welcome Back" : "Join Stitchova"}
             </h1>
             <p className="text-sm text-muted-foreground text-center mb-8">
               {mode === "signin" ? "Sign in to continue" : "Create your account"}

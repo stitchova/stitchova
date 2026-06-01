@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Delete, Fingerprint, ScanFace, Lock } from "lucide-react";
 import { useLock, isApplePlatform } from "@/contexts/LockContext";
 import { useRole } from "@/contexts/RoleContext";
+import Logo from "@/components/Logo";
 import { toast } from "sonner";
 
 const LENGTH = 4;
@@ -59,11 +60,9 @@ const Lockscreen = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center gap-3"
       >
-        <div className="w-16 h-16 rounded-2xl glass-strong flex items-center justify-center">
-          <Lock className="w-7 h-7 text-foreground" />
-        </div>
+        <Logo size={64} />
         <div className="text-center">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">FashionOS</p>
+          <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Stitchova</p>
           <h1 className="text-xl font-bold text-foreground mt-1">{greeting}</h1>
           <p className="text-xs text-muted-foreground mt-1">Enter your passcode to continue</p>
         </div>

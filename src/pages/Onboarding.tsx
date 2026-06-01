@@ -5,6 +5,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import heroImage from "@/assets/onboarding-hero.jpg";
 import slide2Image from "@/assets/onboarding-slide2.jpg";
 import slide3Image from "@/assets/onboarding-slide3.jpg";
+import Logo from "@/components/Logo";
 
 const slides = [
   {
@@ -86,9 +87,7 @@ const Onboarding = () => {
           transition={{ duration: 0.5 }}
           className="flex justify-center mb-5"
         >
-          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-lg">
-            <span className="text-primary-foreground font-extrabold text-sm tracking-widest">FOS</span>
-          </div>
+          <Logo size={72} />
         </motion.div>
 
         {/* Headline — animates on slide change */}

@@ -47,7 +47,7 @@ const PreviewFrame = ({
       {/* Status bar */}
       <div className="flex items-center justify-between mb-2 text-[9px] opacity-60">
         <span>9:41</span>
-        <span>FashionOS</span>
+        <span>Stitchova</span>
       </div>
 
       <AnimatePresence mode="wait">
