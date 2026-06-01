@@ -12,10 +12,10 @@ import orderAgbada from "@/assets/order-agbada.jpg";
 const categories = ["All", "Bridal", "Traditional", "Formal", "Casual", "Children"];
 
 const defaultStyles = [
-  { id: "1", title: "Modern Bridal Gown", category: "Bridal", image: orderWedding, likes: 234, saved: false, designer: "FashionOS Studio" },
+  { id: "1", title: "Modern Bridal Gown", category: "Bridal", image: orderWedding, likes: 234, saved: false, designer: "Stitchova Studio" },
   { id: "2", title: "Classic 3-Piece Suit", category: "Formal", image: orderSuit, likes: 189, saved: true, designer: "Justice Ansah" },
   { id: "3", title: "Royal Agbada", category: "Traditional", image: orderAgbada, likes: 312, saved: false, designer: "Kente Masters" },
-  { id: "4", title: "Evening Cocktail Dress", category: "Formal", image: orderWedding, likes: 156, saved: true, designer: "FashionOS Studio" },
+  { id: "4", title: "Evening Cocktail Dress", category: "Formal", image: orderWedding, likes: 156, saved: true, designer: "Stitchova Studio" },
   { id: "5", title: "Ankara Two-Piece", category: "Casual", image: orderAgbada, likes: 278, saved: false, designer: "Ankara Hub" },
   { id: "6", title: "Senator Style", category: "Traditional", image: orderSuit, likes: 201, saved: false, designer: "Justice Ansah" },
 ];

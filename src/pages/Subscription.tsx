@@ -116,7 +116,7 @@ const Subscription = () => {
         </motion.button>
         <div>
           <h1 className="text-lg font-bold text-foreground">Choose Your Plan</h1>
-          <p className="text-xs text-muted-foreground">Unlock the full power of FashionOS</p>
+          <p className="text-xs text-muted-foreground">Unlock the full power of Stitchova</p>
         </div>
       </div>
 
