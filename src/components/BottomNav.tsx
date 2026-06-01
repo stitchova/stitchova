@@ -52,7 +52,7 @@ const BottomNav = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
       <div className="glass-nav">
-        <div className="flex items-center justify-around px-2 py-2 max-w-md mx-auto">
+        <div className="flex items-end justify-around px-3 pt-2 pb-3 max-w-md mx-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
 
@@ -60,11 +60,11 @@ const BottomNav = () => {
               return (
                 <motion.button
                   key={item.path}
-                  whileTap={{ scale: 0.85 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => navigate(item.path)}
-                  className="relative -mt-7 flex items-center justify-center w-14 h-14 rounded-2xl glass-fab glow-primary"
+                  className="relative -mt-10 flex items-center justify-center w-16 h-16 rounded-full bg-primary shadow-[0_8px_24px_-4px_hsl(var(--primary)/0.6)] ring-8 ring-background"
                 >
-                  <Plus className="w-6 h-6 text-primary-foreground" />
+                  <Plus className="w-7 h-7 text-primary-foreground" strokeWidth={2.5} />
                 </motion.button>
               );
             }
@@ -74,23 +74,20 @@ const BottomNav = () => {
                 key={item.path}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => navigate(item.path)}
-                className="relative flex flex-col items-center gap-0.5 py-1 px-3"
+                className="relative flex flex-col items-center gap-1 py-1 px-3 min-w-[56px]"
               >
-                {isActive && (
-                  <motion.div
-                    layoutId="navIndicator"
-                    className="absolute -top-2 w-5 h-0.5 rounded-full bg-primary"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
                 <item.icon
-                  className={`w-5 h-5 transition-colors duration-200 ${
-                    isActive ? "text-primary" : "text-muted-foreground/70"
+                  className={`w-6 h-6 transition-colors duration-200 ${
+                    isActive ? "text-foreground" : "text-muted-foreground/60"
                   }`}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  fill={isActive ? "currentColor" : "none"}
                 />
                 <span
-                  className={`text-[10px] font-medium transition-colors duration-200 ${
-                    isActive ? "text-primary" : "text-muted-foreground/70"
+                  className={`text-[11px] transition-colors duration-200 ${
+                    isActive
+                      ? "text-foreground font-bold"
+                      : "text-muted-foreground/60 font-medium"
                   }`}
                 >
                   {item.label}
