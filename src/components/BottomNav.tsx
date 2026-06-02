@@ -2,13 +2,9 @@ import { Home, Users, ShoppingBag, BarChart3, MoreHorizontal, Plus, Compass, Cal
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useRole } from "@/contexts/RoleContext";
+import { useBottomNavLayout, type BottomNavItem } from "@/hooks/useBottomNavLayout";
 
-interface NavItem {
-  icon: typeof Home;
-  label: string;
-  path: string;
-  isCenter?: boolean;
-}
+type NavItem = BottomNavItem;
 
 const designerNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/" },
@@ -47,17 +43,15 @@ const BottomNav = () => {
   if (location.pathname === "/showcase/new") return null;
 
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
-  const centerItem = navItems.find((i) => i.isCenter);
-  const sideItems = navItems.filter((i) => !i.isCenter);
-  // Enforce symmetric 2 + [center] + 2 layout for every role so the FAB
-  // stays perfectly centered. If a role nav drifts from this shape, we
-  // pad/trim defensively rather than letting the split go uneven.
-  const balanced = [...sideItems];
-  while (balanced.length < 4) balanced.push({ icon: Plus, label: "", path: "#", } as NavItem);
-  if (balanced.length > 4) balanced.length = 4;
-  const leftItems = balanced.slice(0, 2);
-  const rightItems = balanced.slice(2, 4);
-  const CenterIcon = centerItem?.icon ?? Plus;
+  const {
+    leftItems,
+    rightItems,
+    centerItem,
+    CenterIcon,
+    containerStyle,
+    gridStyle,
+    fabStyle,
+  } = useBottomNavLayout(navItems);
 
   const renderItem = (item: NavItem) => {
     const isActive = location.pathname === item.path;
@@ -86,7 +80,10 @@ const BottomNav = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom pointer-events-none">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none"
+      style={containerStyle}
+    >
       {/* Outer wrapper is centered on every viewport so the FAB's left-1/2
           always lines up with the notch in .nav-curved (mask centered at 50%). */}
       <div className="relative w-full max-w-md mx-auto">
@@ -94,7 +91,7 @@ const BottomNav = () => {
         <div className="nav-curved pointer-events-auto h-[78px] flex items-end overflow-hidden">
           {/* Grid: equal left + fixed notch + equal right = guaranteed symmetry,
               independent of role, item count, or font-metric jitter. */}
-          <div className="grid w-full items-end pb-3 px-2 [grid-template-columns:1fr_84px_1fr]">
+          <div className="grid w-full items-end pb-3 px-2" style={gridStyle}>
             <div className="flex items-end justify-around min-w-0">
               {leftItems.map(renderItem)}
             </div>
@@ -115,8 +112,8 @@ const BottomNav = () => {
             whileHover={{ scale: 1.04 }}
             onClick={() => navigate(centerItem.path)}
             aria-label={centerItem.label}
-            style={{ left: "50%", transform: "translateX(-50%)" }}
-            className="pointer-events-auto absolute -top-7 z-10 flex items-center justify-center w-[72px] h-[72px] rounded-full bg-primary shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.55),0_4px_10px_-2px_hsl(0_0%_0%/0.35),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.25)] transition-shadow"
+            style={fabStyle}
+            className="pointer-events-auto absolute z-10 flex items-center justify-center rounded-full bg-primary shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.55),0_4px_10px_-2px_hsl(0_0%_0%/0.35),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.25)] transition-shadow"
           >
             <CenterIcon className="w-8 h-8 text-primary-foreground" strokeWidth={2.4} />
           </motion.button>
