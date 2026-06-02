@@ -1,82 +1,36 @@
-# Glassmorphism Pass + Lockscreen with Biometric
+## Problem
 
-## Part 1 — Where to apply Glassmorphism (selective, not everywhere)
+The floating center button uses `left-1/2 -translate-x-1/2`, so it is mathematically centered. It only *looks* shifted for the **Designer** role because that nav has an uneven split:
 
-Glass works best on **floating / overlay / hero** surfaces, not on dense list rows or forms (where it hurts readability). Recommended targets:
+- Designer side items: Home, Clients, Showcase, Messages, More = **5** → split 3 left / 2 right (visually pushes the FAB right).
+- Client side items: 4 → 2 / 2 (balanced).
+- Worker side items: 4 → 2 / 2 (balanced).
 
-1. **Bottom Navigation** (`BottomNav.tsx`) — upgrade from current `bg-card/90 backdrop-blur` to a true frosted bar with inner highlight, subtle gradient, and ring. High visibility, always-on.
-2. **Top App Headers / Greeting cards** on dashboards (`Index.tsx` designer hero, `ClientHome.tsx` greeting, `WorkerDashboard.tsx` welcome card) — frosted hero with soft gradient blob behind.
-3. **Stat / KPI cards** on `Index.tsx` and `Analytics.tsx` (the horizontal scroll metric tiles only) — glass tiles over a soft ambient gradient.
-4. **Floating Action Button** (the center `+` in BottomNav) — glass ring + glow.
-5. **Modals / Sheets / Drawers** (shadcn `dialog`, `sheet`, `drawer`) — frosted backdrop + glass panel.
-6. **Workshop Chat announcement / pinned message bubble** — frosted highlight to make it stand out.
-7. **Theme Picker preview cards** — glass tiles to showcase palettes.
-8. **Lockscreen** (new, see Part 2) — full glass over wallpaper.
+So the FAB is fine; the **side items are unbalanced** for designers. Fix: enforce a symmetric 2 + [center] + 2 layout for every role, and tighten the layout math so the curved notch, spacer, and FAB always align.
 
-Explicitly **NOT** glassed (keep solid for legibility):
-- Long lists (Clients, Orders, Workers list rows)
-- Forms (Auth, AddNew, Measurements inputs)
-- Dense tables and chat message lists
+## Changes (single file: `src/components/BottomNav.tsx`)
 
-### Implementation
-Add reusable utility classes in `src/index.css`:
+1. **Rebalance designer nav to 4 side items + 1 center** (matches client/worker):
+   - Home, Clients, **[Add — center]**, Messages, More
+   - Drop "Showcase" from designer's bottom bar (still reachable from More / Home). This keeps the bar symmetric.
+   - *Alternative if you'd rather keep Showcase visible:* swap "More" out instead and move More into the Home header.
 
-```text
-.glass        → bg-card/40 backdrop-blur-xl border border-white/10
-                shadow-[0_8px_32px_rgba(0,0,0,0.12)]
-.glass-strong → bg-card/60 backdrop-blur-2xl + inner top highlight
-.glass-nav    → bg-background/55 backdrop-blur-2xl border-t border-white/10
-.glass-hero   → gradient + radial blob behind a glass panel
-```
+2. **Force symmetric split** regardless of role:
+   - Replace the `Math.ceil` split with an assertion that `sideItems.length === 4`, then `leftItems = sideItems.slice(0,2)`, `rightItems = sideItems.slice(2)`. This guarantees 2/2.
 
-Then swap class names on the targeted components above. No structural changes — purely visual.
+3. **Lock the FAB to the geometric center of the bar**:
+   - Keep `absolute left-1/2 -translate-x-1/2` on the FAB.
+   - Keep the spacer width (`w-[84px]`) equal to the notch diameter used by the `.nav-curved` mask so the FAB sits exactly over the notch.
+   - Use `justify-around` on both left/right groups so spacing mirrors around the center.
 
----
+4. **No changes to** `index.css` (`.nav-curved` mask already centers at `50% 0`), routing, or the three role contexts. The fix automatically reflects for Designer, Client, and Worker because they all flow through the same `BottomNav` component.
 
-## Part 2 — Passcode Lockscreen (all 3 roles)
+## Question before I build
 
-A single shared lockscreen that gates the app after launch / inactivity, with biometric (Face ID / Fingerprint) shortcut.
+Designer currently has 5 side tabs. To make the bar symmetric I need to drop one. Which do you prefer?
 
-### UX flow
-1. On first app load, if a passcode is set → show Lockscreen before any route renders.
-2. After **2 minutes** of inactivity OR on tab re-focus after >30s → re-lock.
-3. User can: enter 4-digit passcode, OR tap biometric button to unlock instantly (mocked WebAuthn / simulated success).
-4. First-time setup: prompt to "Set a 4-digit passcode" after login (skippable).
-5. Settings page already has a "Biometric Login" toggle — wire it to this system. Add a new "Change Passcode" entry.
+- **A.** Remove "Showcase" from designer bottom nav (reachable from More / Home shortcut).
+- **B.** Remove "More" from designer bottom nav (move its links into the Home header / Profile).
+- **C.** Remove "Clients" from designer bottom nav (reachable from Home).
 
-### Visual design
-- Full-screen glass panel over a soft animated gradient (role-tinted: ash for designer, warm for client, neutral for worker).
-- Avatar + greeting ("Welcome back, Lola") at top.
-- 4 dot indicators that fill as digits are entered, with shake animation on wrong code.
-- Custom numeric keypad (0–9, biometric icon, backspace) — large tappable circles, glass style.
-- Bottom: "Forgot passcode?" → toast (mock reset).
-
-### Files to add
-- `src/contexts/LockContext.tsx` — passcode (hashed in localStorage), biometric flag, `isLocked`, `unlock()`, `lock()`, inactivity timer, setPasscode().
-- `src/components/Lockscreen.tsx` — the UI (keypad, dots, biometric button, shake animation).
-- `src/components/LockGate.tsx` — wraps app; renders Lockscreen when locked, children when unlocked. Bypasses for `/auth` and `/onboarding`.
-- `src/pages/SetPasscode.tsx` — onboarding flow to set/change a passcode (enter + confirm).
-
-### Files to edit
-- `src/App.tsx` — add `LockProvider` + wrap `AnimatedRoutes` in `<LockGate>`. Add `/set-passcode` route.
-- `src/pages/Settings.tsx` — wire biometric toggle to `LockContext`; add "Change Passcode" item linking to `/set-passcode`; add "Lock Now" action.
-- `src/pages/Auth.tsx` — after successful sign-in, if no passcode set, redirect to `/set-passcode` (skippable).
-- `src/index.css` — add the glass utility classes.
-
-### Biometric (mocked but real-feeling)
-- Try `navigator.credentials.get()` (WebAuthn) when available; on failure or unsupported, fall back to a simulated 600ms success toast ("Authenticated with Face ID").
-- Detect platform: show "Face ID" label on iOS/macOS, "Fingerprint" elsewhere via `navigator.userAgent`.
-
-### Persistence
-- Passcode stored as a SHA-256 hash in `localStorage` under `fashionos-passcode`.
-- Biometric preference under `fashionos-biometric`.
-- Last-active timestamp under `fashionos-last-active` for inactivity check.
-
----
-
-## Out of scope
-- Real WebAuthn server registration (mocked).
-- Server-side session invalidation.
-- Recovery via email/SMS (toast placeholder only).
-
-After approval I'll implement Part 1 (glass utilities + targeted swaps) and Part 2 (LockContext, Lockscreen UI, SetPasscode page, wiring) in one pass.
+If you don't pick, I'll go with **A** (drop Showcase) since it was the most recent addition and is still surfaced elsewhere.

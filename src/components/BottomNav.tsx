@@ -13,7 +13,6 @@ interface NavItem {
 const designerNav: NavItem[] = [
   { icon: Home, label: "Home", path: "/" },
   { icon: Users, label: "Clients", path: "/clients" },
-  { icon: Clapperboard, label: "Showcase", path: "/showcase" },
   { icon: Plus, label: "Add", path: "/add", isCenter: true },
   { icon: MessageCircle, label: "Messages", path: "/designer-messages" },
   { icon: MoreHorizontal, label: "More", path: "/more" },
@@ -50,9 +49,9 @@ const BottomNav = () => {
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
   const centerItem = navItems.find((i) => i.isCenter);
   const sideItems = navItems.filter((i) => !i.isCenter);
-  const mid = Math.ceil(sideItems.length / 2);
-  const leftItems = sideItems.slice(0, mid);
-  const rightItems = sideItems.slice(mid);
+  const half = sideItems.length / 2;
+  const leftItems = sideItems.slice(0, half);
+  const rightItems = sideItems.slice(half);
   const CenterIcon = centerItem?.icon ?? Plus;
 
   const renderItem = (item: NavItem) => {
