@@ -49,9 +49,14 @@ const BottomNav = () => {
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
   const centerItem = navItems.find((i) => i.isCenter);
   const sideItems = navItems.filter((i) => !i.isCenter);
-  const half = sideItems.length / 2;
-  const leftItems = sideItems.slice(0, half);
-  const rightItems = sideItems.slice(half);
+  // Enforce symmetric 2 + [center] + 2 layout for every role so the FAB
+  // stays perfectly centered. If a role nav drifts from this shape, we
+  // pad/trim defensively rather than letting the split go uneven.
+  const balanced = [...sideItems];
+  while (balanced.length < 4) balanced.push({ icon: Plus, label: "", path: "#", } as NavItem);
+  if (balanced.length > 4) balanced.length = 4;
+  const leftItems = balanced.slice(0, 2);
+  const rightItems = balanced.slice(2, 4);
   const CenterIcon = centerItem?.icon ?? Plus;
 
   const renderItem = (item: NavItem) => {
@@ -82,29 +87,36 @@ const BottomNav = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom pointer-events-none">
-      <div className="relative max-w-md mx-auto">
+      {/* Outer wrapper is centered on every viewport so the FAB's left-1/2
+          always lines up with the notch in .nav-curved (mask centered at 50%). */}
+      <div className="relative w-full max-w-md mx-auto">
         {/* Curved/notched bar */}
-        <div className="nav-curved pointer-events-auto h-[78px] flex items-end">
-          <div className="flex w-full items-end pb-3 px-2">
-            <div className="flex flex-1 items-end justify-around">
+        <div className="nav-curved pointer-events-auto h-[78px] flex items-end overflow-hidden">
+          {/* Grid: equal left + fixed notch + equal right = guaranteed symmetry,
+              independent of role, item count, or font-metric jitter. */}
+          <div className="grid w-full items-end pb-3 px-2 [grid-template-columns:1fr_84px_1fr]">
+            <div className="flex items-end justify-around min-w-0">
               {leftItems.map(renderItem)}
             </div>
-            {/* Spacer reserving notch area */}
-            <div className="w-[84px] shrink-0" aria-hidden="true" />
-            <div className="flex flex-1 items-end justify-around">
+            {/* Spacer reserving the notch area — must match the 84px column
+                and the radial mask radius (42px) in .nav-curved. */}
+            <div aria-hidden="true" />
+            <div className="flex items-end justify-around min-w-0">
               {rightItems.map(renderItem)}
             </div>
           </div>
         </div>
 
-        {/* Floating center brand button */}
+        {/* Floating center brand button — pinned to the geometric center of
+            the same relative wrapper that hosts the notch mask. */}
         {centerItem && (
           <motion.button
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.04 }}
             onClick={() => navigate(centerItem.path)}
             aria-label={centerItem.label}
-            className="pointer-events-auto absolute left-1/2 -translate-x-1/2 -top-7 z-10 flex items-center justify-center w-[72px] h-[72px] rounded-full bg-primary shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.55),0_4px_10px_-2px_hsl(0_0%_0%/0.35),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.25)] transition-shadow"
+            style={{ left: "50%", transform: "translateX(-50%)" }}
+            className="pointer-events-auto absolute -top-7 z-10 flex items-center justify-center w-[72px] h-[72px] rounded-full bg-primary shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.55),0_4px_10px_-2px_hsl(0_0%_0%/0.35),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.25)] transition-shadow"
           >
             <CenterIcon className="w-8 h-8 text-primary-foreground" strokeWidth={2.4} />
           </motion.button>
