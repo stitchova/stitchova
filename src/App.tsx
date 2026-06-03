@@ -123,7 +123,7 @@ const App = () => (
                 <ShowcaseProvider>
                 <LockProvider>
                   <LockGate>
-                    <div className="max-w-md mx-auto min-h-screen relative">
+                    <div className="app-shell mx-auto min-h-screen max-w-md relative w-full">
                       <AnimatedRoutes />
                       <BottomNav />
                     </div>
