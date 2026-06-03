@@ -1,4 +1,4 @@
-import { Home, Users, ShoppingBag, BarChart3, MoreHorizontal, Plus, Compass, CalendarDays, User, MessageCircle, ClipboardList, Ruler, Package, UserCircle, Clapperboard } from "lucide-react";
+import { Home, Users, ShoppingBag, MoreHorizontal, Plus, Compass, User, MessageCircle, ClipboardList, Ruler, Package, UserCircle, Clapperboard } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useRole } from "@/contexts/RoleContext";
@@ -44,11 +44,12 @@ const BottomNav = () => {
 
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
   const {
-    leftItems,
-    rightItems,
+    leftSlots,
+    rightSlots,
     centerItem,
     CenterIcon,
     containerStyle,
+    navStyle,
     gridStyle,
     fabStyle,
   } = useBottomNavLayout(navItems);
@@ -79,33 +80,32 @@ const BottomNav = () => {
     );
   };
 
+  const renderSlot = (item: NavItem | null, key: string) => {
+    if (!item) {
+      return <div key={key} aria-hidden="true" className="h-[52px]" />;
+    }
+
+    return renderItem(item);
+  };
+
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none"
+      className="pointer-events-none fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2"
       style={containerStyle}
     >
-      {/* Outer wrapper is centered on every viewport so the FAB's left-1/2
-          always lines up with the notch in .nav-curved (mask centered at 50%). */}
-      <div className="relative w-full max-w-md mx-auto">
-        {/* Curved/notched bar */}
-        <div className="nav-curved pointer-events-auto h-[78px] flex items-end overflow-hidden">
-          {/* Grid: equal left + fixed notch + equal right = guaranteed symmetry,
-              independent of role, item count, or font-metric jitter. */}
-          <div className="grid w-full items-end pb-3 px-2" style={gridStyle}>
-            <div className="flex items-end justify-around min-w-0">
-              {leftItems.map(renderItem)}
+      <div className="relative w-full" style={navStyle}>
+        <div className="nav-curved pointer-events-auto flex h-[var(--bottom-nav-bar-height)] items-end overflow-hidden">
+          <div className="grid w-full items-end px-2 pb-3" style={gridStyle}>
+            <div className="grid min-w-0 grid-cols-2 items-end gap-1">
+              {leftSlots.map((item, index) => renderSlot(item, `left-${index}`))}
             </div>
-            {/* Spacer reserving the notch area — must match the 84px column
-                and the radial mask radius (42px) in .nav-curved. */}
             <div aria-hidden="true" />
-            <div className="flex items-end justify-around min-w-0">
-              {rightItems.map(renderItem)}
+            <div className="grid min-w-0 grid-cols-2 items-end gap-1">
+              {rightSlots.map((item, index) => renderSlot(item, `right-${index}`))}
             </div>
           </div>
         </div>
 
-        {/* Floating center brand button — pinned to the geometric center of
-            the same relative wrapper that hosts the notch mask. */}
         {centerItem && (
           <motion.button
             whileTap={{ scale: 0.92 }}
