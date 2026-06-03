@@ -1,36 +1,42 @@
-## Problem
+## Goal
+Make the floating center button stay perfectly centered above the notch on all supported mobile sizes and safe-area inset combinations, with the exact same behavior for Client, Designer, and Worker.
 
-The floating center button uses `left-1/2 -translate-x-1/2`, so it is mathematically centered. It only *looks* shifted for the **Designer** role because that nav has an uneven split:
+## Plan
+1. **Unify the nav geometry with the app shell**
+   - Anchor the BottomNav to the same centered app-width container used by the page content instead of mixing a full-width fixed wrapper with an inner `max-w-md` shell.
+   - Remove the layout mismatch that makes the FAB appear offset relative to the visible bar/notch.
 
-- Designer side items: Home, Clients, Showcase, Messages, More = **5** → split 3 left / 2 right (visually pushes the FAB right).
-- Client side items: 4 → 2 / 2 (balanced).
-- Worker side items: 4 → 2 / 2 (balanced).
+2. **Refactor the layout hook into a single source of truth**
+   - Keep one reusable hook for all roles.
+   - Make it return stable geometry values for:
+     - bar width context
+     - notch width/radius
+     - FAB size
+     - FAB vertical offset
+     - safe-area-aware bottom padding
+     - left/right slot distribution
+   - Ensure the split logic always resolves to a strict `2 + center + 2` layout without placeholder behavior affecting visual spacing.
 
-So the FAB is fine; the **side items are unbalanced** for designers. Fix: enforce a symmetric 2 + [center] + 2 layout for every role, and tighten the layout math so the curved notch, spacer, and FAB always align.
+3. **Align the notch mask and FAB from the same measurements**
+   - Replace duplicated hardcoded numbers across CSS and component markup with shared values.
+   - Make the notch cutout, grid spacer, and FAB position derive from the same dimensions so they cannot drift apart.
 
-## Changes (single file: `src/components/BottomNav.tsx`)
+4. **Make safe-area handling symmetrical**
+   - Apply bottom/left/right inset handling in a way that preserves visual centering instead of shifting the nav’s internal content box.
+   - Keep the FAB centered relative to the visible bar, not the viewport edge or padded wrapper.
 
-1. **Rebalance designer nav to 4 side items + 1 center** (matches client/worker):
-   - Home, Clients, **[Add — center]**, Messages, More
-   - Drop "Showcase" from designer's bottom bar (still reachable from More / Home). This keeps the bar symmetric.
-   - *Alternative if you'd rather keep Showcase visible:* swap "More" out instead and move More into the Home header.
+5. **Verify across all role flows**
+   - Check the Designer, Client, and Worker bottom nav variants using the same BottomNav component path.
+   - Validate on common mobile widths and inset scenarios so the center button remains centered and the side items stay balanced.
 
-2. **Force symmetric split** regardless of role:
-   - Replace the `Math.ceil` split with an assertion that `sideItems.length === 4`, then `leftItems = sideItems.slice(0,2)`, `rightItems = sideItems.slice(2)`. This guarantees 2/2.
+## Technical details
+- Update `src/components/BottomNav.tsx` to use one consistent positioning context for the bar and FAB.
+- Update `src/hooks/useBottomNavLayout.ts` so it computes geometry once and returns only layout-safe values used by every role.
+- Update the curved-bar styling in `src/index.css` so the notch mask uses the same dimensions as the hook/component.
+- Validate at multiple mobile viewports (e.g. 320, 375, 390, 414 widths) and confirm the center button stays centered visually and structurally.
 
-3. **Lock the FAB to the geometric center of the bar**:
-   - Keep `absolute left-1/2 -translate-x-1/2` on the FAB.
-   - Keep the spacer width (`w-[84px]`) equal to the notch diameter used by the `.nav-curved` mask so the FAB sits exactly over the notch.
-   - Use `justify-around` on both left/right groups so spacing mirrors around the center.
-
-4. **No changes to** `index.css` (`.nav-curved` mask already centers at `50% 0`), routing, or the three role contexts. The fix automatically reflects for Designer, Client, and Worker because they all flow through the same `BottomNav` component.
-
-## Question before I build
-
-Designer currently has 5 side tabs. To make the bar symmetric I need to drop one. Which do you prefer?
-
-- **A.** Remove "Showcase" from designer bottom nav (reachable from More / Home shortcut).
-- **B.** Remove "More" from designer bottom nav (move its links into the Home header / Profile).
-- **C.** Remove "Clients" from designer bottom nav (reachable from Home).
-
-If you don't pick, I'll go with **A** (drop Showcase) since it was the most recent addition and is still surfaced elsewhere.
+## Expected result
+- No right drift.
+- FAB sits directly above the notch.
+- Same centered behavior for Client, Designer, and Worker.
+- Safe-area insets do not break centering.
