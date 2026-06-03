@@ -222,6 +222,11 @@
     box-shadow: 0 -8px 24px -10px hsl(0 0% 0% / 0.35);
   }
 
+  .app-shell {
+    padding-left: max(0px, env(safe-area-inset-left, 0px));
+    padding-right: max(0px, env(safe-area-inset-right, 0px));
+  }
+
   /* Curved notched nav bar — radial mask cuts a circular dip from the top edge */
   .nav-curved {
     background: hsl(var(--background));
@@ -230,8 +235,8 @@
     box-shadow:
       0 -10px 30px -12px hsl(0 0% 0% / 0.45),
       inset 0 1px 0 0 hsl(var(--foreground) / 0.04);
-    -webkit-mask: radial-gradient(circle 42px at 50% 0, transparent 42px, #000 43px);
-            mask: radial-gradient(circle 42px at 50% 0, transparent 42px, #000 43px);
+    -webkit-mask: radial-gradient(circle var(--bottom-nav-notch-radius, 42px) at 50% 0, transparent var(--bottom-nav-notch-radius, 42px), #000 calc(var(--bottom-nav-notch-radius, 42px) + 1px));
+            mask: radial-gradient(circle var(--bottom-nav-notch-radius, 42px) at 50% 0, transparent var(--bottom-nav-notch-radius, 42px), #000 calc(var(--bottom-nav-notch-radius, 42px) + 1px));
   }
 
   .glass-hero {
