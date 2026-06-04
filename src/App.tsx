@@ -52,6 +52,7 @@ import WorkshopConversation from "./pages/WorkshopConversation";
 import SetPasscode from "./pages/SetPasscode";
 import Showcase from "./pages/Showcase";
 import ShowcaseCreate from "./pages/ShowcaseCreate";
+import Referrals from "./pages/Referrals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,6 +91,7 @@ const AnimatedRoutes = () => {
                 <Route path="/set-passcode" element={<SetPasscode />} />
                 <Route path="/showcase" element={<Showcase />} />
                 <Route path="/showcase/new" element={<ShowcaseCreate />} />
+                <Route path="/referrals" element={<Referrals />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
