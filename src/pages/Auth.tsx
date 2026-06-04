@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Scissors, ArrowRight, Wrench, Phone, Loader2 } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Eye, EyeOff, Mail, Lock, User, Scissors, ArrowRight, Wrench, Phone, Loader2, Gift } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useLock } from "@/contexts/LockContext";
 import Logo from "@/components/Logo";
@@ -12,15 +12,25 @@ type Step = "role" | "form";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setRole } = useRole();
   const { hasPasscode } = useLock();
   const [mode, setMode] = useState<AuthMode>("signin");
   const [step, setStep] = useState<Step>("role");
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", otp: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", otp: "", referral: "" });
   const [submitting, setSubmitting] = useState(false);
   const [pendingProvider, setPendingProvider] = useState<"forgot" | "google" | "apple" | null>(null);
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      setForm((f) => ({ ...f, referral: ref }));
+      setMode("signup");
+      setSelectedRole("client");
+    }
+  }, [searchParams]);
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
@@ -36,6 +46,20 @@ const Auth = () => {
     if (!selectedRole || submitting) return;
     setSubmitting(true);
     await new Promise((r) => setTimeout(r, 600));
+
+    if (mode === "signup" && selectedRole === "client" && form.referral.trim()) {
+      const raw = localStorage.getItem("fashionos-referrals");
+      const list = raw ? JSON.parse(raw) : [];
+      list.push({
+        name: form.name || "New Client",
+        email: form.email,
+        code: form.referral.trim().toUpperCase(),
+        joinedAt: new Date().toISOString(),
+      });
+      localStorage.setItem("fashionos-referrals", JSON.stringify(list));
+      toast.success("Referral applied", { description: `You joined via ${form.referral.trim().toUpperCase()}` });
+    }
+
     setRole(selectedRole);
     const home =
       selectedRole === "designer" ? "/" : selectedRole === "client" ? "/client-home" : "/worker-dashboard";
@@ -199,6 +223,18 @@ const Auth = () => {
                       {pendingProvider === "forgot" && <Loader2 className="w-3 h-3 animate-spin" />}
                       {pendingProvider === "forgot" ? "Sending..." : "Forgot password?"}
                     </button>
+                  )}
+                  {mode === "signup" && selectedRole === "client" && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="relative">
+                      <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                      <input
+                        type="text"
+                        placeholder="Referral code (optional)"
+                        value={form.referral}
+                        onChange={(e) => setForm({ ...form, referral: e.target.value.toUpperCase() })}
+                        className="w-full bg-card border border-border rounded-xl py-3.5 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all uppercase tracking-wider"
+                      />
+                    </motion.div>
                   )}
                 </>
               )}
