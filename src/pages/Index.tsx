@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight, Crown, TrendingUp, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -53,6 +53,12 @@ const Index = () => {
   
   const { plan } = useSubscription();
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("fashionos-onboarded")) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [navigate]);
 
   const handleRefresh = async () => {
     if (refreshing) return;
