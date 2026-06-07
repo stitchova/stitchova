@@ -1,42 +1,38 @@
-## Goal
-Make the floating center button stay perfectly centered above the notch on all supported mobile sizes and safe-area inset combinations, with the exact same behavior for Client, Designer, and Worker.
+# Premium Stitchova Logo Redesign
 
-## Plan
-1. **Unify the nav geometry with the app shell**
-   - Anchor the BottomNav to the same centered app-width container used by the page content instead of mixing a full-width fixed wrapper with an inner `max-w-md` shell.
-   - Remove the layout mismatch that makes the FAB appear offset relative to the visible bar/notch.
+## Concept
+A custom-drawn **"S" monogram formed by a needle pulling thread**. The S curve is the thread; a slim needle crosses it on the upper-right, with a tiny eye and a soft highlight. Rendered in the brand gold gradient on a dark rounded-square plaque (or transparent when used over imagery).
 
-2. **Refactor the layout hook into a single source of truth**
-   - Keep one reusable hook for all roles.
-   - Make it return stable geometry values for:
-     - bar width context
-     - notch width/radius
-     - FAB size
-     - FAB vertical offset
-     - safe-area-aware bottom padding
-     - left/right slot distribution
-   - Ensure the split logic always resolves to a strict `2 + center + 2` layout without placeholder behavior affecting visual spacing.
+## Deliverable
+- New scalable React SVG component `src/components/Logo.tsx` (replaces the current `<img>`-based Logo).
+- Uses theme tokens (`hsl(var(--primary))`, `hsl(var(--accent))`) so it adapts to both dark and light themes.
+- Props preserved: `size`, `className`, `showWordmark`, `wordmarkClassName` — no caller changes needed.
+- Optional `variant`: `"plaque"` (default, rounded-square background) and `"mark"` (transparent, icon only).
+- Optional `animated` prop: on mount, the thread draws itself in (stroke-dashoffset) and a subtle gold shimmer sweeps across the gradient. Respects `prefers-reduced-motion`.
 
-3. **Align the notch mask and FAB from the same measurements**
-   - Replace duplicated hardcoded numbers across CSS and component markup with shared values.
-   - Make the notch cutout, grid spacer, and FAB position derive from the same dimensions so they cannot drift apart.
+## Wordmark
+Custom letter-spacing + a tiny stitch dot replacing the dot pattern. Uses Inter 700 with `tracking-[0.18em]` and `uppercase` for an editorial, premium feel. A hairline gold underline appears under the wordmark on the splash/auth surfaces (`showWordmark`).
 
-4. **Make safe-area handling symmetrical**
-   - Apply bottom/left/right inset handling in a way that preserves visual centering instead of shifting the nav’s internal content box.
-   - Keep the FAB centered relative to the visible bar, not the viewport edge or padded wrapper.
+## Where it appears (no API changes — drop-in)
+`Logo` is already imported by:
+- `Lockscreen.tsx`, `Onboarding.tsx`, `Auth.tsx`, `SetPasscode.tsx`, splash/loading surfaces, and headers.
 
-5. **Verify across all role flows**
-   - Check the Designer, Client, and Worker bottom nav variants using the same BottomNav component path.
-   - Validate on common mobile widths and inset scenarios so the center button remains centered and the side items stay balanced.
+All existing call sites continue working.
 
-## Technical details
-- Update `src/components/BottomNav.tsx` to use one consistent positioning context for the bar and FAB.
-- Update `src/hooks/useBottomNavLayout.ts` so it computes geometry once and returns only layout-safe values used by every role.
-- Update the curved-bar styling in `src/index.css` so the notch mask uses the same dimensions as the hook/component.
-- Validate at multiple mobile viewports (e.g. 320, 375, 390, 414 widths) and confirm the center button stays centered visually and structurally.
+## Favicon + meta
+- Export a static optimized SVG to `public/stitchova-mark.svg`.
+- Update `index.html` `<link rel="icon">` to the new SVG and add a PNG fallback (`public/stitchova-mark.png`, 512×512) generated once from the same mark for social/share previews.
+- Update `<meta property="og:image">` to the new PNG.
 
-## Expected result
-- No right drift.
-- FAB sits directly above the notch.
-- Same centered behavior for Client, Designer, and Worker.
-- Safe-area insets do not break centering.
+## Cleanup
+- Remove `src/assets/stitchova-logo.png` import; keep the file for one release in case of external references, then delete.
+
+## Animation details (technical)
+- Thread path: `stroke-dasharray` = path length, animate `stroke-dashoffset` from full → 0 over 900ms `cubic-bezier(.2,.7,.2,1)`.
+- Needle: fades + slides in 200ms after thread starts.
+- Shimmer: animated `<linearGradient>` with `<animate>` on `x1/x2`, 3s loop, paused when `prefers-reduced-motion: reduce`.
+- Plaque: subtle inner highlight + soft gold glow via `filter: drop-shadow(0 6px 18px hsl(var(--primary)/0.35))`.
+
+## Out of scope
+- No changes to other components, routes, or business logic.
+- No new dependencies.
