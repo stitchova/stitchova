@@ -105,20 +105,34 @@ const BottomNav = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {centerItem && (
+      {centerItem && (
+        <div
+          aria-hidden={false}
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: `calc(var(--bottom-nav-fab-protrusion) * -1)`,
+            width: "var(--bottom-nav-fab-size)",
+            height: "var(--bottom-nav-fab-size)",
+            transform: "translate3d(-50%, 0, 0)",
+            willChange: "transform",
+          }}
+          className="pointer-events-none z-10"
+        >
           <motion.button
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.04 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
             onClick={() => navigate(centerItem.path)}
             aria-label={centerItem.label}
-            style={fabStyle}
-            className="pointer-events-auto absolute z-10 flex items-center justify-center rounded-full bg-primary shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.55),0_4px_10px_-2px_hsl(0_0%_0%/0.35),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.25)] transition-shadow"
+            className="pointer-events-auto flex h-full w-full items-center justify-center rounded-full bg-primary shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.55),0_4px_10px_-2px_hsl(0_0%_0%/0.35),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.25)] transition-shadow"
           >
             <CenterIcon className="w-8 h-8 text-primary-foreground" strokeWidth={2.4} />
           </motion.button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
