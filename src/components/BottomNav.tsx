@@ -117,7 +117,10 @@ const BottomNav = () => {
             width: "var(--bottom-nav-fab-size)",
             height: "var(--bottom-nav-fab-size)",
             transform: "translate3d(-50%, 0, 0)",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
             willChange: "transform",
+            contain: "layout paint",
           }}
           className="pointer-events-none z-10"
         >
@@ -127,6 +130,7 @@ const BottomNav = () => {
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
             onClick={() => navigate(centerItem.path)}
             aria-label={centerItem.label}
+            style={{ transformOrigin: "center center" }}
             className="pointer-events-auto flex h-full w-full items-center justify-center rounded-full bg-primary shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.55),0_4px_10px_-2px_hsl(0_0%_0%/0.35),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.25)] transition-shadow"
           >
             <CenterIcon className="w-8 h-8 text-primary-foreground" strokeWidth={2.4} />
