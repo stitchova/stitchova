@@ -37,14 +37,16 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const { role } = useRole();
 
-  if (hiddenPaths.includes(location.pathname)) return null;
-  if (location.pathname.startsWith("/designer/")) return null;
-  if (location.pathname.startsWith("/workshop-chat/")) return null;
-  if (location.pathname === "/showcase/new") return null;
-
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
+  const isHidden =
+    hiddenPaths.includes(location.pathname) ||
+    location.pathname.startsWith("/designer/") ||
+    location.pathname.startsWith("/workshop-chat/") ||
+    location.pathname === "/showcase/new";
   const { leftSlots, rightSlots, centerItem, CenterIcon, containerStyle, navStyle, gridStyle, fabStyle } =
     useBottomNavLayout(navItems);
+
+  if (isHidden) return null;
 
   const renderItem = (item: NavItem) => {
     const isActive = location.pathname === item.path;
