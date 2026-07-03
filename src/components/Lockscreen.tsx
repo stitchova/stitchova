@@ -54,41 +54,48 @@ const Lockscreen = () => {
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "bio", "0", "back"];
 
   return (
-    <div className="fixed inset-0 z-[100] lock-backdrop flex flex-col items-center justify-between px-6 pt-16 pb-10">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center gap-3"
-      >
-        <Logo size={64} />
-        <div className="text-center">
-          <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Stitchova</p>
-          <h1 className="text-xl font-bold text-foreground mt-1">{greeting}</h1>
-          <p className="text-xs text-muted-foreground mt-1">Enter your passcode to continue</p>
-        </div>
+    <div className="fixed inset-0 z-[100] lock-backdrop bg-background/95 backdrop-blur-xl flex flex-col items-center px-6 py-10 overflow-y-auto">
+      <div className="w-full max-w-[320px] mx-auto flex-1 flex flex-col items-center justify-center gap-10 py-4">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center gap-5"
+        >
+          <Logo size={56} />
+          <div className="text-center space-y-1.5">
+            <h1 className="text-[22px] leading-tight font-semibold text-foreground tracking-tight">
+              {greeting}
+            </h1>
+            <p className="text-[13px] text-muted-foreground">
+              Enter your passcode to continue
+            </p>
+          </div>
 
-        <div className={`flex items-center gap-4 mt-4 ${shake ? "shake-x" : ""}`}>
-          {Array.from({ length: LENGTH }).map((_, i) => (
-            <motion.div
-              key={i}
-              animate={{ scale: code.length === i + 1 ? [1, 1.4, 1] : 1 }}
-              transition={{ duration: 0.2 }}
-              className={`w-3.5 h-3.5 rounded-full border ${
-                i < code.length
-                  ? "bg-primary border-primary"
-                  : "bg-transparent border-foreground/30"
-              }`}
-            />
-          ))}
-        </div>
-      </motion.div>
+          <div className={`flex items-center gap-5 pt-2 ${shake ? "shake-x" : ""}`}>
+            {Array.from({ length: LENGTH }).map((_, i) => {
+              const filled = i < code.length;
+              return (
+                <motion.div
+                  key={i}
+                  animate={{ scale: code.length === i + 1 ? [1, 1.35, 1] : 1 }}
+                  transition={{ duration: 0.2 }}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    filled
+                      ? "bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.6)]"
+                      : "bg-foreground/15"
+                  }`}
+                />
+              );
+            })}
+          </div>
+        </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="w-full max-w-xs grid grid-cols-3 gap-3"
-      >
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="w-full grid grid-cols-3 gap-x-6 gap-y-4"
+        >
         {keys.map((k) => {
           if (k === "bio") {
             return (
@@ -96,13 +103,13 @@ const Lockscreen = () => {
                 key="bio"
                 onClick={tryBio}
                 disabled={busy}
-                className="aspect-square rounded-2xl glass flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+                className="h-16 w-16 mx-auto rounded-full flex items-center justify-center active:scale-95 transition-transform disabled:opacity-40 text-primary"
                 aria-label="Biometric unlock"
               >
                 {apple ? (
-                  <ScanFace className="w-7 h-7 text-primary" />
+                  <ScanFace className="w-7 h-7" />
                 ) : (
-                  <Fingerprint className="w-7 h-7 text-primary" />
+                  <Fingerprint className="w-7 h-7" />
                 )}
               </button>
             );
@@ -113,10 +120,10 @@ const Lockscreen = () => {
                 key="back"
                 onClick={back}
                 disabled={busy || code.length === 0}
-                className="aspect-square rounded-2xl flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
+                className="h-16 w-16 mx-auto rounded-full flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30 text-foreground/80"
                 aria-label="Backspace"
               >
-                <Delete className="w-6 h-6 text-foreground" />
+                <Delete className="w-6 h-6" />
               </button>
             );
           }
@@ -126,20 +133,21 @@ const Lockscreen = () => {
               whileTap={{ scale: 0.92 }}
               onClick={() => press(k)}
               disabled={busy}
-              className="aspect-square rounded-2xl glass flex items-center justify-center text-2xl font-semibold text-foreground active:bg-primary/10"
+              className="h-16 w-16 mx-auto rounded-full glass flex items-center justify-center text-[28px] font-light text-foreground active:bg-primary/15 border border-foreground/5"
             >
               {k}
             </motion.button>
           );
         })}
-      </motion.div>
+        </motion.div>
 
-      <button
-        onClick={() => toast("Recovery link sent to your email")}
-        className="text-xs text-muted-foreground"
-      >
-        Forgot passcode?
-      </button>
+        <button
+          onClick={() => toast("Recovery link sent to your email")}
+          className="text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Forgot passcode?
+        </button>
+      </div>
     </div>
   );
 };
