@@ -37,22 +37,16 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const { role } = useRole();
 
-  if (hiddenPaths.includes(location.pathname)) return null;
-  if (location.pathname.startsWith("/designer/")) return null;
-  if (location.pathname.startsWith("/workshop-chat/")) return null;
-  if (location.pathname === "/showcase/new") return null;
-
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
-  const {
-    leftSlots,
-    rightSlots,
-    centerItem,
-    CenterIcon,
-    containerStyle,
-    navStyle,
-    gridStyle,
-    fabStyle,
-  } = useBottomNavLayout(navItems);
+  const isHidden =
+    hiddenPaths.includes(location.pathname) ||
+    location.pathname.startsWith("/designer/") ||
+    location.pathname.startsWith("/workshop-chat/") ||
+    location.pathname === "/showcase/new";
+  const { leftSlots, rightSlots, centerItem, CenterIcon, containerStyle, navStyle, gridStyle, fabStyle } =
+    useBottomNavLayout(navItems);
+
+  if (isHidden) return null;
 
   const renderItem = (item: NavItem) => {
     const isActive = location.pathname === item.path;
@@ -91,9 +85,9 @@ const BottomNav = () => {
   return (
     <div
       className="pointer-events-none fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2"
-      style={containerStyle}
+      style={{ ...containerStyle, ...navStyle }}
     >
-      <div className="relative w-full" style={navStyle}>
+      <div className="relative w-full">
         <div className="nav-curved pointer-events-auto flex h-[var(--bottom-nav-bar-height)] items-end overflow-hidden">
           <div className="grid w-full items-end px-2 pb-3" style={gridStyle}>
             <div className="grid min-w-0 grid-cols-2 items-end gap-1">
@@ -112,10 +106,7 @@ const BottomNav = () => {
           aria-hidden={false}
           style={{
             position: "absolute",
-            left: "50%",
-            top: `calc(var(--bottom-nav-fab-protrusion) * -1)`,
-            width: "var(--bottom-nav-fab-size)",
-            height: "var(--bottom-nav-fab-size)",
+            ...fabStyle,
             transform: "translate3d(-50%, 0, 0)",
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
@@ -124,6 +115,7 @@ const BottomNav = () => {
           }}
           className="pointer-events-none z-10"
         >
+          <div className="absolute inset-[-8px] rounded-full border border-primary/25 bg-primary/10 blur-[1px]" aria-hidden="true" />
           <motion.button
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.04 }}
@@ -131,7 +123,7 @@ const BottomNav = () => {
             onClick={() => navigate(centerItem.path)}
             aria-label={centerItem.label}
             style={{ transformOrigin: "center center" }}
-            className="pointer-events-auto flex h-full w-full items-center justify-center rounded-full bg-primary shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.55),0_4px_10px_-2px_hsl(0_0%_0%/0.35),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.25)] transition-shadow"
+            className="pointer-events-auto relative flex h-full w-full items-center justify-center rounded-full bg-primary shadow-[0_16px_34px_-8px_hsl(var(--primary)/0.58),0_6px_14px_-4px_hsl(0_0%_0%/0.38),inset_0_1px_0_0_hsl(var(--primary-foreground)/0.28)] ring-1 ring-primary-foreground/20 transition-shadow"
           >
             <CenterIcon className="w-8 h-8 text-primary-foreground" strokeWidth={2.4} />
           </motion.button>
