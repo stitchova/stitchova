@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift } from "lucide-react";
+import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift, FileText } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import FeatureGate from "@/components/FeatureGate";
 
@@ -14,6 +14,7 @@ const menuItems = [
   { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/workers", requiresPlan: "pro" as const },
   { icon: Gift, label: "Referrals", desc: "Invite clients & earn rewards", path: "/referrals" },
   { icon: MessagesSquare, label: "Workshop Chat", desc: "Group, DMs & announcements", path: "/workshop-chat" },
+  { icon: FileText, label: "Invoices & Receipts", desc: "Branded billing documents", path: "/invoices" },
   { icon: CreditCard, label: "Payments", desc: "Track revenue and expenses", path: "/analytics" },
   { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
   { icon: ClipboardList, label: "Activity Logs", desc: "Track all account actions", path: "/activity-logs" },

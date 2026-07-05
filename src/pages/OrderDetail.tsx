@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package } from "lucide-react";
+import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt } from "lucide-react";
+import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import orderWedding from "@/assets/order-wedding.jpg";
@@ -67,6 +68,8 @@ const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
   const order = ordersData[clientId || ""] || ordersData["ama-serwaa"];
+  const { getByOrder, brand } = useBrandInvoice();
+  const orderInvoices = getByOrder(clientId || "");
 
   const [tasks, setTasks] = useState<OrderTask[]>([
     { id: 1, title: "Cut fabric pieces", assignee: "Amina K.", assigneeAvatar: "AK", status: "completed", deadline: "Mar 20" },
@@ -145,6 +148,47 @@ const OrderDetail = () => {
             <div className="text-center"><p className="text-xs text-muted-foreground">Paid</p><p className="text-sm font-bold text-status-completed">{order.amountPaid}</p></div>
             <div className="text-center"><p className="text-xs text-muted-foreground">Balance</p><p className="text-sm font-bold text-primary">{order.balance}</p></div>
           </div>
+        </motion.div>
+
+        {/* Billing */}
+        <motion.div {...fadeUp} transition={{ delay: 0.04 }} className="card-surface p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-foreground">Billing Documents</span>
+            <button onClick={() => navigate("/settings/brand")} className="text-[10px] text-muted-foreground underline">Brand settings</button>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <motion.button whileTap={{ scale: 0.97 }}
+              onClick={() => navigate(`/order/${clientId}/invoice/new?type=invoice`)}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-lg shadow-primary/25">
+              <FileText className="w-3.5 h-3.5" /> Create Invoice
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.97 }}
+              onClick={() => navigate(`/order/${clientId}/invoice/new?type=receipt`)}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary text-foreground text-xs font-bold border border-primary/30">
+              <Receipt className="w-3.5 h-3.5" /> Issue Receipt
+            </motion.button>
+          </div>
+          {orderInvoices.length > 0 && (
+            <div className="space-y-1.5">
+              {orderInvoices.slice(0, 3).map((inv) => {
+                const t = computeTotals(inv);
+                return (
+                  <button key={inv.id} onClick={() => navigate(`/invoice/${inv.id}`)}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-secondary/40 hover:bg-secondary/60 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      {inv.type === "receipt" ? <Receipt className="w-4 h-4 text-primary" /> : <FileText className="w-4 h-4 text-primary" />}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-[11px] font-semibold text-foreground font-mono">#{inv.number}</p>
+                      <p className="text-[9px] text-muted-foreground uppercase">{inv.type} · {inv.status}</p>
+                    </div>
+                    <span className="text-xs font-bold text-foreground font-mono">{money(t.total, brand.currency)}</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </motion.div>
 
         {/* Production Stages */}

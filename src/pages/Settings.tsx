@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Globe, Moon, Lock, Smartphone, Palette, Shield, KeyRound, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Bell, Globe, Moon, Lock, Smartphone, Palette, Shield, KeyRound, LockKeyhole, FileText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLock } from "@/contexts/LockContext";
@@ -25,6 +25,12 @@ const Settings = () => {
   );
 
   const sections = [
+    {
+      title: "Business",
+      items: [
+        { icon: FileText, label: "Brand & Billing", desc: "Logo, contact & invoice branding", action: () => navigate("/settings/brand") },
+      ],
+    },
     {
       title: "Preferences",
       items: [

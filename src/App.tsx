@@ -54,6 +54,11 @@ import Showcase from "./pages/Showcase";
 import ShowcaseCreate from "./pages/ShowcaseCreate";
 import Referrals from "./pages/Referrals";
 import NotFound from "./pages/NotFound";
+import BrandSettings from "./pages/BrandSettings";
+import InvoiceEditor from "./pages/InvoiceEditor";
+import InvoicePreview from "./pages/InvoicePreview";
+import Invoices from "./pages/Invoices";
+import { BrandInvoiceProvider } from "@/contexts/BrandInvoiceContext";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +97,10 @@ const AnimatedRoutes = () => {
                 <Route path="/showcase" element={<Showcase />} />
                 <Route path="/showcase/new" element={<ShowcaseCreate />} />
                 <Route path="/referrals" element={<Referrals />} />
+                <Route path="/settings/brand" element={<BrandSettings />} />
+                <Route path="/invoices" element={<Invoices />} />
+                <Route path="/order/:clientId/invoice/new" element={<InvoiceEditor />} />
+                <Route path="/invoice/:invoiceId" element={<InvoicePreview />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
@@ -123,6 +132,7 @@ const App = () => (
             <SubscriptionProvider>
               <WorkshopChatProvider>
                 <ShowcaseProvider>
+                <BrandInvoiceProvider>
                 <LockProvider>
                   <LockGate>
                     <div className="app-shell mx-auto min-h-screen max-w-md relative w-full">
@@ -131,6 +141,7 @@ const App = () => (
                     </div>
                   </LockGate>
                 </LockProvider>
+                </BrandInvoiceProvider>
                 </ShowcaseProvider>
               </WorkshopChatProvider>
             </SubscriptionProvider>
