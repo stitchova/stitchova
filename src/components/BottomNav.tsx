@@ -111,11 +111,10 @@ const BottomNav = () => {
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
             willChange: "transform",
-            contain: "layout paint",
           }}
-          className="pointer-events-none z-10"
+          className="pointer-events-none z-10 rounded-full"
         >
-          <div className="absolute inset-[-8px] rounded-full border border-primary/25 bg-primary/10 blur-[1px]" aria-hidden="true" />
+          <div className="pointer-events-none absolute inset-[-10px] rounded-full border border-primary/25 bg-primary/10 blur-[2px]" aria-hidden="true" />
           <motion.button
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.04 }}
