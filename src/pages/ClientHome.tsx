@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Search, ChevronRight, Star, MapPin, ShoppingBag, CalendarDays, Compass, Clock, Sparkles } from "lucide-react";
 
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
@@ -55,6 +56,18 @@ const quickActions = [
 
 const ClientHome = () => {
   const navigate = useNavigate();
+  const heroSlides = [
+    { img: portfolio1, tag: "New Season", title: "Spring Collection", subtitle: "is Here" },
+    { img: portfolio3, tag: "Trending", title: "Modern Agbada", subtitle: "Reimagined" },
+    { img: portfolio4, tag: "Editor's Pick", title: "Evening Glam", subtitle: "For Every Occasion" },
+    { img: portfolio2, tag: "Bespoke", title: "Corporate Chic", subtitle: "Tailored For You" },
+  ];
+  const [slide, setSlide] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setSlide((s) => (s + 1) % heroSlides.length), 4000);
+    return () => clearInterval(id);
+  }, [heroSlides.length]);
+  const current = heroSlides[slide];
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -87,17 +100,49 @@ const ClientHome = () => {
             onClick={() => navigate("/discover")}
             className="relative h-40 rounded-2xl overflow-hidden cursor-pointer"
           >
-            <img src={portfolio1} alt="Spring Collection" className="w-full h-full object-cover" />
+            <AnimatePresence mode="sync">
+              <motion.img
+                key={`img-${slide}`}
+                src={current.img}
+                alt={current.title}
+                initial={{ opacity: 0, scale: 1.08 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 1.2, ease }}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            </AnimatePresence>
             <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-transparent" />
             <div className="absolute inset-0 flex flex-col justify-center px-5">
-              <p className="text-[10px] uppercase tracking-widest text-primary font-semibold">New Season</p>
-              <h2 className="text-lg font-bold text-foreground mt-1">Spring Collection<br />is Here</h2>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`txt-${slide}`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.5, ease }}
+                >
+                  <p className="text-[10px] uppercase tracking-widest text-primary font-semibold">{current.tag}</p>
+                  <h2 className="text-lg font-bold text-foreground mt-1">{current.title}<br />{current.subtitle}</h2>
+                </motion.div>
+              </AnimatePresence>
               <motion.div
                 className="mt-3 flex items-center gap-2 text-xs font-semibold text-primary"
                 whileHover={{ x: 4 }}
               >
                 <Sparkles className="w-3.5 h-3.5" /> Explore Now <ChevronRight className="w-3.5 h-3.5" />
               </motion.div>
+            </div>
+            {/* Slide indicators */}
+            <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5">
+              {heroSlides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setSlide(i); }}
+                  className={`h-1 rounded-full transition-all duration-300 ${i === slide ? "w-5 bg-primary" : "w-1.5 bg-foreground/30"}`}
+                  aria-label={`Slide ${i + 1}`}
+                />
+              ))}
             </div>
           </motion.div>
         </motion.div>
