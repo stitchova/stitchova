@@ -1,38 +1,69 @@
-# Premium Stitchova Logo Redesign
+# Branded Invoice & Receipt Generation
 
-## Concept
-A custom-drawn **"S" monogram formed by a needle pulling thread**. The S curve is the thread; a slim needle crosses it on the upper-right, with a tiny eye and a soft highlight. Rendered in the brand gold gradient on a dark rounded-square plaque (or transparent when used over imagery).
+Give Designers the ability to generate, preview, share, and download a beautifully branded invoice or receipt for any client order — with their brand name, logo, contact info, and order details neatly laid out.
 
-## Deliverable
-- New scalable React SVG component `src/components/Logo.tsx` (replaces the current `<img>`-based Logo).
-- Uses theme tokens (`hsl(var(--primary))`, `hsl(var(--accent))`) so it adapts to both dark and light themes.
-- Props preserved: `size`, `className`, `showWordmark`, `wordmarkClassName` — no caller changes needed.
-- Optional `variant`: `"plaque"` (default, rounded-square background) and `"mark"` (transparent, icon only).
-- Optional `animated` prop: on mount, the thread draws itself in (stroke-dashoffset) and a subtle gold shimmer sweeps across the gradient. Respects `prefers-reduced-motion`.
+## What the Designer will get
 
-## Wordmark
-Custom letter-spacing + a tiny stitch dot replacing the dot pattern. Uses Inter 700 with `tracking-[0.18em]` and `uppercase` for an editorial, premium feel. A hairline gold underline appears under the wordmark on the splash/auth surfaces (`showWordmark`).
+1. **Brand Profile setup** (Settings → "Brand & Billing")
+   - Business name, tagline, logo upload (local, persisted in localStorage per mockup scope)
+   - Contact: phone, email, address, city
+   - Optional: Momo/Bank details, TIN, website, IG handle
+   - Currency (default GHS) and accent color (defaults to the gold theme token)
+   - Invoice number prefix + auto-increment counter
+   - Footer/Thank-you note
 
-## Where it appears (no API changes — drop-in)
-`Logo` is already imported by:
-- `Lockscreen.tsx`, `Onboarding.tsx`, `Auth.tsx`, `SetPasscode.tsx`, splash/loading surfaces, and headers.
+2. **Generate from an Order** (`/order/:clientId`)
+   - New "Invoice" section with two actions: **Create Invoice** and **Issue Receipt**
+   - Invoice = uses order price/balance, marks as "Unpaid / Partially Paid / Paid"
+   - Receipt = only shows what has been paid so far, marked "PAID"
+   - Line items auto-filled from the order (Garment, Fabric add-ons, Deposit paid) with editable quantity/price + ability to add custom line items, discount, tax
+   - Auto-computed subtotal, discount, tax, total, amount paid, balance due
 
-All existing call sites continue working.
+3. **Preview page** (`/invoice/:orderId?type=invoice|receipt`)
+   - Full A4/receipt-style branded preview inside the mobile shell (scrollable)
+   - Header: logo + brand name + gold accent bar + document type badge ("INVOICE" / "RECEIPT")
+   - Meta block: Invoice #, Issue date, Due date, Status pill
+   - Bill To: client name + phone + delivery address
+   - Itemized table with rows, subtotal, tax, discount, total, amount paid, balance
+   - Payment instructions (Momo/Bank) + Thank-you footer + brand tagline
+   - Watermark "PAID" stamp on receipts
 
-## Favicon + meta
-- Export a static optimized SVG to `public/stitchova-mark.svg`.
-- Update `index.html` `<link rel="icon">` to the new SVG and add a PNG fallback (`public/stitchova-mark.png`, 512×512) generated once from the same mark for social/share previews.
-- Update `<meta property="og:image">` to the new PNG.
+4. **Actions on the preview**
+   - **Download PDF** — client-side via `html2canvas` + `jspdf` (added deps)
+   - **Share** — Web Share API with the generated PDF (fallback: copy shareable link)
+   - **Send via WhatsApp** — deep link with pre-filled message + note that PDF is downloaded
+   - **Print** — window.print with print-optimized CSS
 
-## Cleanup
-- Remove `src/assets/stitchova-logo.png` import; keep the file for one release in case of external references, then delete.
+5. **History**
+   - "Invoices" tab inside Order Detail listing every invoice/receipt generated for that order (localStorage-backed)
+   - Optional: new `/invoices` route in the More menu listing all invoices across orders with filter (Paid / Unpaid / Overdue)
 
-## Animation details (technical)
-- Thread path: `stroke-dasharray` = path length, animate `stroke-dashoffset` from full → 0 over 900ms `cubic-bezier(.2,.7,.2,1)`.
-- Needle: fades + slides in 200ms after thread starts.
-- Shimmer: animated `<linearGradient>` with `<animate>` on `x1/x2`, 3s loop, paused when `prefers-reduced-motion: reduce`.
-- Plaque: subtle inner highlight + soft gold glow via `filter: drop-shadow(0 6px 18px hsl(var(--primary)/0.35))`.
+## Design language
 
-## Out of scope
-- No changes to other components, routes, or business logic.
-- No new dependencies.
+- Match the existing dark premium theme + gold accent (never blue)
+- Use the Stitchova `Logo` component if the designer has not uploaded a brand logo
+- Glassmorphic card wrapper on the app screen; the invoice document itself uses a **light ivory paper background** so the exported PDF looks like a real printable document, with the designer's accent color as the header band
+- Typography: existing display font for brand name, monospace for invoice numbers and amounts
+
+## Technical details
+
+- New dependencies: `jspdf`, `html2canvas` (both client-side, no backend needed)
+- New files:
+  - `src/contexts/BrandContext.tsx` — brand profile + invoice counter, persisted to localStorage
+  - `src/contexts/InvoiceContext.tsx` — CRUD for invoice records keyed by order
+  - `src/pages/BrandSettings.tsx` — designer brand & billing setup form
+  - `src/pages/InvoiceEditor.tsx` — line items + totals + type toggle
+  - `src/pages/InvoicePreview.tsx` — final branded document + download/share/print
+  - `src/pages/Invoices.tsx` — list view (optional, wired from More)
+  - `src/components/invoice/InvoiceDocument.tsx` — the printable/exportable layout, reused by preview and PDF export
+- Routing added in `src/App.tsx`:
+  - `/settings/brand` , `/order/:clientId/invoice/new`, `/invoice/:invoiceId`, `/invoices`
+- OrderDetail: add "Billing" card with Create Invoice / Issue Receipt buttons + list of past documents for that order
+- Settings and More pages: entry points to Brand settings and Invoices list
+- Stays within the mockup-backend rule: all data local-only, no Cloud calls
+
+## Out of scope (unless you say otherwise)
+
+- Real email delivery, payment collection, or Stripe/Momo integration
+- Multi-currency conversion
+- Client-side invoice viewing (this iteration is Designer-only; a shared link view can come next)
