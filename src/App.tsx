@@ -59,6 +59,9 @@ import InvoiceEditor from "./pages/InvoiceEditor";
 import InvoicePreview from "./pages/InvoicePreview";
 import Invoices from "./pages/Invoices";
 import { BrandInvoiceProvider } from "@/contexts/BrandInvoiceContext";
+import { ReviewsProvider } from "@/contexts/ReviewsContext";
+import { NotificationsProvider } from "@/contexts/NotificationsContext";
+import ClientCommunications from "./pages/ClientCommunications";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +104,7 @@ const AnimatedRoutes = () => {
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/order/:clientId/invoice/new" element={<InvoiceEditor />} />
                 <Route path="/invoice/:invoiceId" element={<InvoicePreview />} />
+                <Route path="/client-comms" element={<ClientCommunications />} />
                 {/* Client routes */}
                 <Route path="/client-home" element={<ClientHome />} />
                 <Route path="/discover" element={<DiscoverDesigners />} />
@@ -133,6 +137,8 @@ const App = () => (
               <WorkshopChatProvider>
                 <ShowcaseProvider>
                 <BrandInvoiceProvider>
+                <NotificationsProvider>
+                <ReviewsProvider>
                 <LockProvider>
                   <LockGate>
                     <div className="app-shell mx-auto min-h-screen max-w-md relative w-full">
@@ -141,6 +147,8 @@ const App = () => (
                     </div>
                   </LockGate>
                 </LockProvider>
+                </ReviewsProvider>
+                </NotificationsProvider>
                 </BrandInvoiceProvider>
                 </ShowcaseProvider>
               </WorkshopChatProvider>

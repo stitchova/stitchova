@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShowcase } from "@/contexts/ShowcaseContext";
+import { useReviews, relativeTime } from "@/contexts/ReviewsContext";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -86,6 +87,16 @@ const DesignerProfilePage = () => {
   const showcasePosts = postsByDesigner(id || "nana-ama");
 
   const designer = designerData[id || "nana-ama"] || designerData["nana-ama"];
+  const { byDesigner } = useReviews();
+  const clientReviews = byDesigner(id || "nana-ama").map(r => ({
+    name: r.clientName, rating: r.rating, text: r.text, date: relativeTime(r.createdAt), _fromClient: true as const,
+  }));
+  const allReviews = [...clientReviews, ...designer.reviews_list];
+  const totalCount = designer.reviews + clientReviews.length;
+  const avgRating =
+    clientReviews.length === 0
+      ? designer.rating
+      : Number(((designer.rating * designer.reviews + clientReviews.reduce((s, r) => s + r.rating, 0)) / totalCount).toFixed(1));
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -206,18 +217,18 @@ const DesignerProfilePage = () => {
               <div className="space-y-3">
                 <div className="card-surface p-4 flex items-center gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-foreground">{designer.rating}</p>
+                    <p className="text-2xl font-bold text-foreground">{avgRating}</p>
                     <div className="flex gap-0.5 mt-1">
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className={`w-3 h-3 ${s <= Math.floor(designer.rating) ? "text-primary fill-primary" : "text-secondary"}`} />
+                        <Star key={s} className={`w-3 h-3 ${s <= Math.floor(avgRating) ? "text-primary fill-primary" : "text-secondary"}`} />
                       ))}
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-1">{designer.reviews} reviews</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">{totalCount} reviews</p>
                   </div>
                   <div className="flex-1 space-y-1.5">
                     {[5, 4, 3, 2, 1].map((star) => {
-                      const count = designer.reviews_list.filter((r: any) => r.rating === star).length;
-                      const pct = (count / designer.reviews_list.length) * 100;
+                      const count = allReviews.filter((r: any) => r.rating === star).length;
+                      const pct = allReviews.length ? (count / allReviews.length) * 100 : 0;
                       return (
                         <div key={star} className="flex items-center gap-2">
                           <span className="text-[9px] text-muted-foreground w-2">{star}</span>
@@ -230,7 +241,7 @@ const DesignerProfilePage = () => {
                   </div>
                 </div>
 
-                {designer.reviews_list.map((r: any, idx: number) => (
+                {allReviews.map((r: any, idx: number) => (
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, y: 8 }}
@@ -244,7 +255,10 @@ const DesignerProfilePage = () => {
                           <span className="text-[10px] font-semibold text-foreground">{r.name.split(" ").map((n: string) => n[0]).join("")}</span>
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-foreground">{r.name}</p>
+                          <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                            {r.name}
+                            {r._fromClient && <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">NEW</span>}
+                          </p>
                           <div className="flex gap-0.5">
                             {[1, 2, 3, 4, 5].map((s) => (
                               <Star key={s} className={`w-2.5 h-2.5 ${s <= r.rating ? "text-primary fill-primary" : "text-secondary"}`} />
