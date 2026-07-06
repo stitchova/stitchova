@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt } from "lucide-react";
+import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt, Send, Sparkles, PackageCheck } from "lucide-react";
 import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceContext";
+import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import orderWedding from "@/assets/order-wedding.jpg";
@@ -67,9 +70,15 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const order = ordersData[clientId || ""] || ordersData["ama-serwaa"];
+  const orderInitial = ordersData[clientId || ""] || ordersData["ama-serwaa"];
+  const [currentStage, setCurrentStage] = useState(orderInitial.currentStage);
+  const [received, setReceived] = useState(false);
+  const order = { ...orderInitial, currentStage };
   const { getByOrder, brand } = useBrandInvoice();
   const orderInvoices = getByOrder(clientId || "");
+  const { send } = useNotifications();
+  const { plan } = useSubscription();
+  const commsUnlocked = plan === "premium_plus";
 
   const [tasks, setTasks] = useState<OrderTask[]>([
     { id: 1, title: "Cut fabric pieces", assignee: "Amina K.", assigneeAvatar: "AK", status: "completed", deadline: "Mar 20" },
@@ -97,6 +106,47 @@ const OrderDetail = () => {
 
   const completedCount = tasks.filter(t => t.status === "completed").length;
   const progress = Math.round((completedCount / tasks.length) * 100);
+
+  const notifyStage = (stageIdx: number) => {
+    if (stageIdx < 0 || stageIdx >= productionStages.length) return;
+    setCurrentStage(stageIdx);
+    const isComplete = stageIdx === productionStages.length - 1;
+    const key: NotifTriggerKey = isComplete ? "completed" : STAGE_TRIGGER_KEYS[stageIdx];
+    if (!commsUnlocked) {
+      toast("Stage updated. Upgrade to Premium+ to auto-notify clients.");
+      return;
+    }
+    const recs = send({
+      key,
+      clientName: order.client,
+      clientContact: order.client.split(" ")[0].toLowerCase() + "@client.local",
+      brandName: brand.businessName,
+      tokens: {
+        garment: order.garment.toLowerCase(),
+        stage: productionStages[stageIdx],
+        balance: order.balance,
+      },
+      orderRef: clientId,
+    });
+    if (recs.length) toast.success(`Notified ${order.client} via ${recs.map(r => r.channel).join(" + ")} as ${brand.businessName}`);
+  };
+
+  const markReceived = () => {
+    setReceived(true);
+    if (!commsUnlocked) {
+      toast("Marked as received. Upgrade to Premium+ to send thank-you automatically.");
+      return;
+    }
+    const recs = send({
+      key: "received",
+      clientName: order.client,
+      clientContact: order.client.split(" ")[0].toLowerCase() + "@client.local",
+      brandName: brand.businessName,
+      tokens: { garment: order.garment.toLowerCase() },
+      orderRef: clientId,
+    });
+    if (recs.length) toast.success(`Thank-you sent as ${brand.businessName}`);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -193,10 +243,21 @@ const OrderDetail = () => {
 
         {/* Production Stages */}
         <motion.div {...fadeUp} transition={{ delay: 0.05 }} className="card-surface p-4">
-          <span className="text-xs font-semibold text-foreground block mb-3">Production Stages</span>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-foreground">Production Stages</span>
+            {commsUnlocked ? (
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5" /> Auto-notify ON
+              </span>
+            ) : (
+              <button onClick={() => navigate("/subscription")} className="text-[9px] font-semibold text-primary underline">
+                Enable auto-notify
+              </button>
+            )}
+          </div>
           <div className="flex items-center justify-between">
             {productionStages.map((stage, i) => (
-              <div key={stage} className="flex flex-col items-center flex-1">
+              <button key={stage} onClick={() => notifyStage(i)} className="flex flex-col items-center flex-1 focus:outline-none">
                 <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all",
                   i <= order.currentStage ? "bg-primary border-primary text-primary-foreground" : "bg-secondary border-border text-muted-foreground")}>
                   {i < order.currentStage ? "✓" : i + 1}
@@ -205,8 +266,19 @@ const OrderDetail = () => {
                 {i < productionStages.length - 1 && (
                   <div className={cn("absolute h-0.5 w-full", i < order.currentStage ? "bg-primary" : "bg-border")} style={{ display: "none" }} />
                 )}
-              </div>
+              </button>
             ))}
+          </div>
+          <p className="text-[9px] text-muted-foreground mt-3 text-center">Tap a stage to advance & auto-notify the client as <span className="text-primary font-semibold">{brand.businessName}</span>.</p>
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <button onClick={() => notifyStage(productionStages.length - 1)}
+              className="py-2.5 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center gap-1.5">
+              <Send className="w-3.5 h-3.5" /> Mark Completed
+            </button>
+            <button onClick={markReceived} disabled={received}
+              className={`py-2.5 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 ${received ? "bg-status-completed/20 text-status-completed" : "bg-secondary text-foreground border border-primary/30"}`}>
+              <PackageCheck className="w-3.5 h-3.5" /> {received ? "Received ✓" : "Mark Received"}
+            </button>
           </div>
         </motion.div>
 
