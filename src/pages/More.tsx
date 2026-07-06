@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift, FileText } from "lucide-react";
+import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift, FileText, Send } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import FeatureGate from "@/components/FeatureGate";
 
-const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium" };
-const planColors = { basic: "text-muted-foreground", pro: "text-primary", premium: "text-primary" };
+const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium", premium_plus: "Premium+" };
+const planColors = { basic: "text-muted-foreground", pro: "text-primary", premium: "text-primary", premium_plus: "text-primary" };
 
 const menuItems = [
   { icon: User, label: "My Account", desc: "View profile and settings", path: "/profile" },
@@ -15,6 +15,7 @@ const menuItems = [
   { icon: Gift, label: "Referrals", desc: "Invite clients & earn rewards", path: "/referrals" },
   { icon: MessagesSquare, label: "Workshop Chat", desc: "Group, DMs & announcements", path: "/workshop-chat" },
   { icon: FileText, label: "Invoices & Receipts", desc: "Branded billing documents", path: "/invoices" },
+  { icon: Send, label: "Client Communications", desc: "Automated SMS & email in your brand", path: "/client-comms", requiresPlan: "premium_plus" as const },
   { icon: CreditCard, label: "Payments", desc: "Track revenue and expenses", path: "/analytics" },
   { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
   { icon: ClipboardList, label: "Activity Logs", desc: "Track all account actions", path: "/activity-logs" },

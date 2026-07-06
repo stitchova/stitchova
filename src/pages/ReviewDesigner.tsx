@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Star, Send, Camera, CheckCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useReviews } from "@/contexts/ReviewsContext";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -24,6 +25,7 @@ const categories = [
 const ReviewDesigner = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { addReview } = useReviews();
   const designer = designerInfo[id || "nana-ama"] || designerInfo["nana-ama"];
 
   const [overallRating, setOverallRating] = useState(0);
@@ -38,6 +40,13 @@ const ReviewDesigner = () => {
   const canSubmit = overallRating > 0 && review.trim().length > 10;
 
   const handleSubmit = () => {
+    addReview({
+      designerId: id || "nana-ama",
+      clientName: "You",
+      rating: overallRating,
+      categories: categoryRatings,
+      text: review.trim(),
+    });
     setSubmitted(true);
     setTimeout(() => navigate(-1), 2500);
   };
