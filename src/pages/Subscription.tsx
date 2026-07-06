@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Crown, Zap, Star, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Crown, Zap, Star, Sparkles, Rocket } from "lucide-react";
 import { useSubscription, PlanTier } from "@/contexts/SubscriptionContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -75,6 +75,29 @@ const plans: {
       "Higher client reach",
       "Dedicated account manager",
       "Custom integrations",
+    ],
+    limits: [
+      "No automated client SMS / email",
+      "No scheduled notifications",
+    ],
+  },
+  {
+    tier: "premium_plus",
+    name: "Premium+",
+    icon: Rocket,
+    monthlyPrice: 179,
+    yearlyPrice: 1720,
+    popular: false,
+    color: "text-primary",
+    features: [
+      "Everything in Premium",
+      "Automated SMS + email to clients",
+      "Scheduled & recurring notifications",
+      "Sent in your brand name (not platform)",
+      "Auto stage updates (cutting → ready)",
+      "Order completed & received alerts",
+      "Appointment & payment reminders",
+      "Downloadable message previews",
     ],
     limits: [],
   },
