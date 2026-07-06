@@ -4,8 +4,8 @@ import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRig
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import FeatureGate from "@/components/FeatureGate";
 
-const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium" };
-const planColors = { basic: "text-muted-foreground", pro: "text-primary", premium: "text-primary" };
+const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium", premium_plus: "Premium+" };
+const planColors = { basic: "text-muted-foreground", pro: "text-primary", premium: "text-primary", premium_plus: "text-primary" };
 
 const menuItems = [
   { icon: User, label: "My Account", desc: "View profile and settings", path: "/profile" },
