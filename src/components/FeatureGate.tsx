@@ -9,8 +9,8 @@ interface FeatureGateProps {
   children: React.ReactNode;
 }
 
-const planHierarchy: Record<PlanTier, number> = { basic: 0, pro: 1, premium: 2 };
-const planLabels: Record<PlanTier, string> = { basic: "Basic", pro: "Pro", premium: "Premium" };
+const planHierarchy: Record<PlanTier, number> = { basic: 0, pro: 1, premium: 2, premium_plus: 3 };
+const planLabels: Record<PlanTier, string> = { basic: "Basic", pro: "Pro", premium: "Premium", premium_plus: "Premium+" };
 
 const FeatureGate = ({ requiredPlan, feature, children }: FeatureGateProps) => {
   const { plan } = useSubscription();

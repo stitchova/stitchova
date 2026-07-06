@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-export type PlanTier = "basic" | "pro" | "premium";
+export type PlanTier = "basic" | "pro" | "premium" | "premium_plus";
 
 interface SubscriptionContextType {
   plan: PlanTier;
@@ -13,6 +13,7 @@ const featureAccess: Record<PlanTier, string[]> = {
   basic: ["clients_5", "orders_10", "measurements"],
   pro: ["clients_unlimited", "orders_unlimited", "measurements", "analytics", "workers", "ai_basic"],
   premium: ["clients_unlimited", "orders_unlimited", "measurements", "analytics", "workers", "ai_advanced", "marketplace_priority", "branding"],
+  premium_plus: ["clients_unlimited", "orders_unlimited", "measurements", "analytics", "workers", "ai_advanced", "marketplace_priority", "branding", "client_comms", "auto_notifications", "scheduled_notifications"],
 };
 
 const SubscriptionContext = createContext<SubscriptionContextType | null>(null);
