@@ -46,7 +46,7 @@ interface ShowcaseState {
   saved: string[]; // postIds saved by current user
 }
 
-const STORAGE_KEY = "fashionos-showcase-v1";
+const STORAGE_KEY = "fashionos-showcase-v2";
 
 const SEED_POSTS: ShowcasePost[] = [
   {
