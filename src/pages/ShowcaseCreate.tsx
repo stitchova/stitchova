@@ -23,6 +23,7 @@ const ShowcaseCreate = () => {
   const { toast } = useToast();
   const [media, setMedia] = useState<string[]>([]);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [poster, setPoster] = useState<string | undefined>(undefined);
   const [caption, setCaption] = useState("");
   const [tags, setTags] = useState<StyleTag[]>([]);
   const [available, setAvailable] = useState(true);
@@ -38,11 +39,35 @@ const ShowcaseCreate = () => {
     setMediaType("image");
   };
 
+  const captureVideoPoster = (src: string) =>
+    new Promise<string | undefined>((resolve) => {
+      const v = document.createElement("video");
+      v.src = src; v.muted = true; v.playsInline = true; v.preload = "metadata";
+      v.onloadeddata = () => {
+        try {
+          v.currentTime = Math.min(0.5, (v.duration || 1) / 2);
+        } catch { resolve(undefined); }
+      };
+      v.onseeked = () => {
+        try {
+          const c = document.createElement("canvas");
+          c.width = v.videoWidth || 720; c.height = v.videoHeight || 1280;
+          const ctx = c.getContext("2d");
+          if (!ctx) return resolve(undefined);
+          ctx.drawImage(v, 0, 0, c.width, c.height);
+          resolve(c.toDataURL("image/jpeg", 0.7));
+        } catch { resolve(undefined); }
+      };
+      v.onerror = () => resolve(undefined);
+    });
+
   const onVideo = async (files: FileList | null) => {
     if (!files || !files[0]) return;
     const url = await fileToDataUrl(files[0]);
     setMedia([url]);
     setMediaType("video");
+    const p = await captureVideoPoster(url);
+    setPoster(p);
   };
 
   const toggleTag = (t: StyleTag) => {
@@ -59,7 +84,7 @@ const ShowcaseCreate = () => {
     if (tags.length === 0) { toast({ title: "Pick at least one tag", variant: "destructive" }); return; }
     setPosting(true);
     await new Promise((r) => setTimeout(r, 600));
-    const post = createPost({ media, mediaType, caption: caption.trim(), tags, available });
+    const post = createPost({ media, mediaType, poster, caption: caption.trim(), tags, available });
     setPosting(false);
     toast({ title: "Post published" });
     navigate("/showcase", { state: { scrollTo: post.id } });
