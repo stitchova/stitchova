@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight } from "lucide-react";
+import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight, Play, Film } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShowcase } from "@/contexts/ShowcaseContext";
 import { useReviews, relativeTime } from "@/contexts/ReviewsContext";
