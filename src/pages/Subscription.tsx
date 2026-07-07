@@ -256,7 +256,7 @@ const Subscription = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end justify-center"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] flex items-end justify-center"
             onClick={() => setShowConfirm(false)}
           >
             <motion.div
@@ -264,7 +264,7 @@ const Subscription = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-card rounded-t-3xl p-6 space-y-5"
+              className="w-full max-w-md bg-card rounded-t-3xl p-6 pb-[calc(env(safe-area-inset-bottom)+7rem)] space-y-5"
             >
               <div className="w-10 h-1 bg-muted rounded-full mx-auto" />
               <div className="text-center space-y-2">
