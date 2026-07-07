@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Bookmark, MoreHorizontal, Volume2, VolumeX, Send as SendIcon } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, MoreHorizontal, Volume2, VolumeX, Send as SendIcon, Play, Pause, Film } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ShowcasePost, useShowcase, formatRelative } from "@/contexts/ShowcaseContext";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -17,6 +17,11 @@ const PostCard = ({ post, onOpenComments }: Props) => {
   const { toast } = useToast();
   const [carouselIdx, setCarouselIdx] = useState(0);
   const [muted, setMuted] = useState(true);
+  const [playing, setPlaying] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [showControls, setShowControls] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -27,6 +32,40 @@ const PostCard = ({ post, onOpenComments }: Props) => {
   const likeCount = (likes[post.id] || []).length;
   const commentCount = (comments[post.id] || []).length;
   const isOwner = post.designerId === currentDesigner.id;
+
+  // Autoplay video when the card is in view, pause when scrolled away.
+  useEffect(() => {
+    if (post.mediaType !== "video") return;
+    const el = containerRef.current;
+    const v = videoRef.current;
+    if (!el || !v) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.55) {
+          v.play().then(() => setPlaying(true)).catch(() => {});
+        } else {
+          v.pause();
+          setPlaying(false);
+        }
+      },
+      { threshold: [0, 0.55, 1] },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [post.mediaType]);
+
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) { v.play(); setPlaying(true); } else { v.pause(); setPlaying(false); }
+    setShowControls(true);
+    setTimeout(() => setShowControls(false), 1200);
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMuted((m) => !m);
+  };
 
   const handleRequest = () => {
     navigate(
@@ -76,11 +115,61 @@ const PostCard = ({ post, onOpenComments }: Props) => {
         </button>
 
         {post.mediaType === "video" ? (
-          <div className="relative">
-            <video src={post.media[0]} autoPlay loop muted={muted} playsInline className="w-full max-h-[520px] object-cover" />
-            <button onClick={() => setMuted((m) => !m)} className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-background/60 backdrop-blur-md flex items-center justify-center">
-              {muted ? <VolumeX className="w-4 h-4 text-foreground" /> : <Volume2 className="w-4 h-4 text-foreground" />}
+          <div ref={containerRef} className="relative select-none" onClick={togglePlay}>
+            <video
+              ref={videoRef}
+              src={post.media[0]}
+              poster={post.poster}
+              loop
+              muted={muted}
+              playsInline
+              preload="metadata"
+              onTimeUpdate={(e) => {
+                const el = e.currentTarget;
+                if (el.duration) setProgress((el.currentTime / el.duration) * 100);
+              }}
+              className="w-full aspect-[4/5] max-h-[620px] object-cover bg-black"
+            />
+
+            {/* Top gradient + VIDEO badge */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
+            <span className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-md text-white">
+              <Film className="w-3 h-3" /> VIDEO
+            </span>
+
+            {/* Bottom gradient */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+
+            {/* Center play/pause pulse */}
+            <AnimatePresence>
+              {(showControls || !playing) && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  transition={{ duration: 0.18 }}
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                >
+                  <div className="w-16 h-16 rounded-full bg-black/55 backdrop-blur-md flex items-center justify-center">
+                    {playing ? <Pause className="w-7 h-7 text-white" /> : <Play className="w-7 h-7 text-white translate-x-0.5" />}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Mute toggle */}
+            <button
+              onClick={toggleMute}
+              className="absolute bottom-4 right-3 w-10 h-10 rounded-full bg-black/55 backdrop-blur-md flex items-center justify-center z-10"
+              aria-label={muted ? "Unmute" : "Mute"}
+            >
+              {muted ? <VolumeX className="w-4 h-4 text-white" /> : <Volume2 className="w-4 h-4 text-white" />}
             </button>
+
+            {/* Progress bar */}
+            <div className="absolute left-0 right-0 bottom-0 h-1 bg-white/15">
+              <div className="h-full bg-primary transition-[width] duration-150" style={{ width: `${progress}%` }} />
+            </div>
           </div>
         ) : (
           <div className="relative">
