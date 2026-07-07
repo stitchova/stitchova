@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight } from "lucide-react";
+import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight, Play, Film } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShowcase } from "@/contexts/ShowcaseContext";
 import { useReviews, relativeTime } from "@/contexts/ReviewsContext";
@@ -196,18 +196,31 @@ const DesignerProfilePage = () => {
             {activeTab === "Portfolio" && (
               <div className="grid grid-cols-2 gap-2">
                 {(showcasePosts.length > 0
-                  ? showcasePosts.map((p) => p.media[0])
-                  : designer.portfolio
-                ).map((img: string, idx: number) => (
+                  ? showcasePosts.map((p) => ({ src: p.mediaType === "video" ? (p.poster || p.media[0]) : p.media[0], isVideo: p.mediaType === "video" }))
+                  : designer.portfolio.map((src: string) => ({ src, isVideo: false }))
+                ).map((item: { src: string; isVideo: boolean }, idx: number) => (
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.06 }}
-                    className="aspect-square rounded-xl overflow-hidden cursor-pointer"
+                    className="relative aspect-square rounded-xl overflow-hidden cursor-pointer bg-black"
                     onClick={() => navigate("/showcase")}
                   >
-                    <img src={img} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img src={item.src} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover" />
+                    {item.isVideo && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        <div className="absolute top-1.5 right-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[9px] font-bold">
+                          <Film className="w-2.5 h-2.5" /> VIDEO
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-black/55 backdrop-blur-md flex items-center justify-center">
+                            <Play className="w-4 h-4 text-white translate-x-0.5" />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </motion.div>
                 ))}
               </div>
