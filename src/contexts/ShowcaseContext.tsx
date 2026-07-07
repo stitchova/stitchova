@@ -31,6 +31,7 @@ export interface ShowcasePost {
   verified: boolean;
   media: string[]; // image data urls or asset paths
   mediaType: "image" | "video";
+  poster?: string; // preview thumbnail for videos
   caption: string;
   tags: StyleTag[];
   available: boolean;
@@ -71,6 +72,24 @@ const SEED_POSTS: ShowcasePost[] = [
     verified: true, media: [portfolio4], mediaType: "image",
     caption: "Corporate kaba — tailored for the modern executive.",
     tags: ["Corporate", "Kaba"], available: true, createdAt: Date.now() - 1000 * 60 * 60 * 80,
+  },
+  {
+    id: "p5", designerId: "kwame-styles", designerName: "Kwame Styles", designerAvatar: designerAvatar2,
+    verified: true,
+    media: ["https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"],
+    mediaType: "video",
+    poster: portfolio2,
+    caption: "Behind the seams — new gold-thread agbada in motion. Tap to unmute.",
+    tags: ["Traditional", "Suit"], available: true, createdAt: Date.now() - 1000 * 60 * 60 * 12,
+  },
+  {
+    id: "p6", designerId: "nana-ama", designerName: "Nana Ama Couture", designerAvatar: designerAvatar1,
+    verified: true,
+    media: ["https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"],
+    mediaType: "video",
+    poster: portfolio5,
+    caption: "Bridal fitting reel — every stitch matters.",
+    tags: ["Bridal", "Dress"], available: true, createdAt: Date.now() - 1000 * 60 * 60 * 3,
   },
 ];
 
