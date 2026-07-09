@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Crown, Zap, Star, Sparkles, Rocket } from "lucide-react";
+import { ArrowLeft, Check, Crown, Zap, Star, Sparkles, Rocket, ShieldCheck, X } from "lucide-react";
 import { useSubscription, PlanTier } from "@/contexts/SubscriptionContext";
 import { toast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/Spinner";
 
 const plans: {
   tier: PlanTier;
