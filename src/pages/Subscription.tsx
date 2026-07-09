@@ -110,6 +110,7 @@ const Subscription = () => {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [selectedPlan, setSelectedPlan] = useState<PlanTier | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const savingsPercent = 20;
 
@@ -119,16 +120,24 @@ const Subscription = () => {
     setShowConfirm(true);
   };
 
-  const handleConfirm = () => {
-    if (selectedPlan) {
-      setPlan(selectedPlan);
-      toast({
-        title: "Plan Updated! 🎉",
-        description: `You're now on the ${plans.find(p => p.tier === selectedPlan)?.name} plan.`,
-      });
-      setShowConfirm(false);
-      setTimeout(() => navigate(-1), 800);
-    }
+  const handleConfirm = async () => {
+    if (!selectedPlan || confirming) return;
+    setConfirming(true);
+    // Simulate a brief payment-plan switch confirmation so the button shows feedback.
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    setPlan(selectedPlan);
+    toast({
+      title: "Plan Updated! 🎉",
+      description: `You're now on the ${plans.find(p => p.tier === selectedPlan)?.name} plan.`,
+    });
+    setConfirming(false);
+    setShowConfirm(false);
+    setTimeout(() => navigate(-1), 800);
+  };
+
+  const closeConfirm = () => {
+    if (confirming) return;
+    setShowConfirm(false);
   };
 
   return (
