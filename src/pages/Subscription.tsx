@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Crown, Zap, Star, Sparkles, Rocket } from "lucide-react";
+import { ArrowLeft, Check, Crown, Zap, Star, Sparkles, Rocket, ShieldCheck, X } from "lucide-react";
 import { useSubscription, PlanTier } from "@/contexts/SubscriptionContext";
 import { toast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/Spinner";
 
 const plans: {
   tier: PlanTier;
@@ -109,6 +110,7 @@ const Subscription = () => {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [selectedPlan, setSelectedPlan] = useState<PlanTier | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const savingsPercent = 20;
 
@@ -118,16 +120,24 @@ const Subscription = () => {
     setShowConfirm(true);
   };
 
-  const handleConfirm = () => {
-    if (selectedPlan) {
-      setPlan(selectedPlan);
-      toast({
-        title: "Plan Updated! 🎉",
-        description: `You're now on the ${plans.find(p => p.tier === selectedPlan)?.name} plan.`,
-      });
-      setShowConfirm(false);
-      setTimeout(() => navigate(-1), 800);
-    }
+  const handleConfirm = async () => {
+    if (!selectedPlan || confirming) return;
+    setConfirming(true);
+    // Simulate a brief payment-plan switch confirmation so the button shows feedback.
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    setPlan(selectedPlan);
+    toast({
+      title: "Plan Updated! 🎉",
+      description: `You're now on the ${plans.find(p => p.tier === selectedPlan)?.name} plan.`,
+    });
+    setConfirming(false);
+    setShowConfirm(false);
+    setTimeout(() => navigate(-1), 800);
+  };
+
+  const closeConfirm = () => {
+    if (confirming) return;
+    setShowConfirm(false);
   };
 
   return (
@@ -256,45 +266,109 @@ const Subscription = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] flex items-end justify-center"
-            onClick={() => setShowConfirm(false)}
+            className="fixed inset-0 bg-background/85 backdrop-blur-md z-[60] flex items-center justify-center p-5"
+            onClick={closeConfirm}
           >
             <motion.div
-              initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
+              initial={{ scale: 0.94, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.96, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-card rounded-t-3xl p-6 pb-[calc(env(safe-area-inset-bottom)+7rem)] space-y-5"
+              className="relative w-full max-w-sm bg-card rounded-3xl border border-border/60 shadow-2xl overflow-hidden"
             >
-              <div className="w-10 h-1 bg-muted rounded-full mx-auto" />
-              <div className="text-center space-y-2">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-                  <Crown className="w-8 h-8 text-primary" />
+              {/* Decorative top glow */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
+
+              {/* Close */}
+              <button
+                onClick={closeConfirm}
+                disabled={confirming}
+                className="absolute top-4 right-4 p-2 rounded-full bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="p-6 pb-4">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto ring-1 ring-primary/20">
+                    {(() => {
+                      const Icon = plans.find(p => p.tier === selectedPlan)?.icon || Crown;
+                      return <Icon className="w-8 h-8 text-primary" />;
+                    })()}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">
+                      Confirm Subscription
+                    </p>
+                    <h3 className="text-xl font-bold text-foreground">
+                      {plans.find(p => p.tier === selectedPlan)?.name} Plan
+                    </h3>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-xs font-medium text-muted-foreground">
+                    <span className="capitalize">{billing}</span>
+                    <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                    <span className="text-foreground font-semibold">
+                      {billing === "monthly"
+                        ? `GHS ${plans.find(p => p.tier === selectedPlan)?.monthlyPrice}/mo`
+                        : `GHS ${plans.find(p => p.tier === selectedPlan)?.yearlyPrice}/yr`}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-foreground">
-                  Upgrade to {plans.find(p => p.tier === selectedPlan)?.name}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {billing === "monthly"
-                    ? `GHS ${plans.find(p => p.tier === selectedPlan)?.monthlyPrice}/month`
-                    : `GHS ${plans.find(p => p.tier === selectedPlan)?.yearlyPrice}/year`}
-                </p>
+
+                {/* Plan summary */}
+                <div className="mt-6 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Included</p>
+                  <ul className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                    {plans.find(p => p.tier === selectedPlan)?.features.slice(0, 5).map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-xs text-foreground">
+                        <div className="w-4 h-4 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-2.5 h-2.5 text-primary" />
+                        </div>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Trust badge */}
+                <div className="mt-5 flex items-center justify-center gap-2 text-[10px] text-muted-foreground">
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                  <span>Secure checkout &bull; Cancel anytime</span>
+                </div>
               </div>
-              <div className="flex gap-3">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setShowConfirm(false)}
-                  className="flex-1 py-3 rounded-xl bg-secondary text-foreground text-xs font-semibold"
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleConfirm}
-                  className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-xs font-semibold"
-                >
-                  Confirm
-                </motion.button>
+
+              {/* Sticky action footer */}
+              <div className="p-5 pt-0">
+                <div className="flex gap-3">
+                  <motion.button
+                    whileTap={confirming ? undefined : { scale: 0.97 }}
+                    onClick={closeConfirm}
+                    disabled={confirming}
+                    className="flex-1 py-3.5 rounded-xl bg-secondary text-foreground text-xs font-semibold transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    whileTap={confirming ? undefined : { scale: 0.97 }}
+                    onClick={handleConfirm}
+                    disabled={confirming}
+                    className="flex-1 py-3.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shadow-lg shadow-primary/25 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                  >
+                    {confirming ? (
+                      <>
+                        <Spinner className="w-3.5 h-3.5" />
+                        Processing…
+                      </>
+                    ) : (
+                      "Confirm"
+                    )}
+                  </motion.button>
+                </div>
+                <p className="text-center text-[10px] text-muted-foreground mt-3">
+                  By confirming, you agree to the selected billing cycle.
+                </p>
               </div>
             </motion.div>
           </motion.div>
