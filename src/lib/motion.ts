@@ -1,11 +1,11 @@
-import type { Variants, Transition } from "framer-motion";
+import type { Variants } from "framer-motion";
 
 // Respect prefers-reduced-motion at runtime
 export const prefersReducedMotion = (): boolean =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-const ease: Transition["ease"] = [0.16, 1, 0.3, 1];
+const ease = [0.16, 1, 0.3, 1] as const;
 
 export const fadeUp: Variants = {
   hidden: { opacity: 0, y: 40 },
