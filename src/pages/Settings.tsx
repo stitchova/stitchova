@@ -73,13 +73,10 @@ const Settings = () => {
               {section.title}
             </p>
             <div className="card-surface divide-y divide-border/50">
-              {section.items.map((item) => {
-                const hasToggle = "toggle" in item && item.toggle;
-                const Tag: any = hasToggle ? "div" : "button";
-                return (
-                <Tag
+              {section.items.map((item) => (
+                <button
                   key={item.label}
-                  onClick={hasToggle ? undefined : () => "action" in item && item.action?.()}
+                  onClick={() => "action" in item && item.action?.()}
                   className="w-full p-4 flex items-center gap-3 text-left active:bg-secondary/30 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
                 >
                   <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
@@ -89,12 +86,11 @@ const Settings = () => {
                     <p className="text-sm font-semibold text-foreground">{item.label}</p>
                     <p className="text-[10px] text-muted-foreground">{item.desc}</p>
                   </div>
-                  {hasToggle && (
-                    <Toggle value={item.toggle!.value} onChange={item.toggle!.onChange} />
+                  {"toggle" in item && item.toggle && (
+                    <Toggle value={item.toggle.value} onChange={item.toggle.onChange} />
                   )}
-                </Tag>
-                );
-              })}
+                </button>
+              ))}
             </div>
           </motion.div>
         ))}
