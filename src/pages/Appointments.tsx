@@ -37,11 +37,9 @@ interface AvailabilitySlot {
   reminder: boolean;
 }
 
-const Appointments = () => {
+const DesignerAppointments = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { role } = useRole();
-  if (role === "client") return <ClientAppointmentsView />;
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
