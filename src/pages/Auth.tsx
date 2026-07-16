@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock, User, Scissors, ArrowRight, Wrench, Phone, Loa
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useLock } from "@/contexts/LockContext";
 import Logo from "@/components/Logo";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type AuthMode = "signin" | "signup";
@@ -45,7 +46,53 @@ const Auth = () => {
   const handleSubmit = async () => {
     if (!selectedRole || submitting) return;
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 600));
+
+    // Real Supabase auth for designer/client so MCP clients can sign in with the
+    // same credentials. Worker stays on the mock flow (invited by designer).
+    if (selectedRole !== "worker") {
+      try {
+        if (mode === "signup") {
+          const { error } = await supabase.auth.signUp({
+            email: form.email,
+            password: form.password,
+            options: { emailRedirectTo: window.location.origin + "/auth" },
+          });
+          if (error && !/already/i.test(error.message)) {
+            toast.error(error.message);
+            setSubmitting(false);
+            return;
+          }
+          // If account already existed, fall through to sign-in below.
+          if (error) {
+            const { error: siErr } = await supabase.auth.signInWithPassword({
+              email: form.email,
+              password: form.password,
+            });
+            if (siErr) {
+              toast.error(siErr.message);
+              setSubmitting(false);
+              return;
+            }
+          }
+        } else {
+          const { error } = await supabase.auth.signInWithPassword({
+            email: form.email,
+            password: form.password,
+          });
+          if (error) {
+            toast.error(error.message);
+            setSubmitting(false);
+            return;
+          }
+        }
+      } catch (e: any) {
+        toast.error(e?.message ?? "Sign-in failed");
+        setSubmitting(false);
+        return;
+      }
+    } else {
+      await new Promise((r) => setTimeout(r, 400));
+    }
 
     if (mode === "signup" && selectedRole === "client" && form.referral.trim()) {
       const raw = localStorage.getItem("fashionos-referrals");
@@ -61,8 +108,17 @@ const Auth = () => {
     }
 
     setRole(selectedRole);
-    const home =
-      selectedRole === "designer" ? "/" : selectedRole === "client" ? "/client-home" : "/worker-dashboard";
+
+    // Honor OAuth consent redirect if present.
+    const nextParam = searchParams.get("next");
+    const safeNext = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
+    const home = safeNext
+      ? safeNext
+      : selectedRole === "designer"
+      ? "/"
+      : selectedRole === "client"
+      ? "/client-home"
+      : "/worker-dashboard";
     if (!hasPasscode) {
       navigate("/set-passcode", { state: { next: home } });
     } else {
