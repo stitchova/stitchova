@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useLock } from "@/contexts/LockContext";
 import Lockscreen from "./Lockscreen";
 
-const BYPASS = ["/auth", "/onboarding", "/set-passcode"];
+const BYPASS = ["/auth", "/onboarding", "/set-passcode", "/.lovable/oauth/consent"];
 
 const LockGate = ({ children }: { children: ReactNode }) => {
   const { isLocked } = useLock();
