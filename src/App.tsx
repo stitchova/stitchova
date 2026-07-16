@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
@@ -13,6 +14,7 @@ import { ShowcaseProvider } from "@/contexts/ShowcaseContext";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
 import LockGate from "@/components/LockGate";
+import RequireRole from "@/components/RequireRole";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Clients from "./pages/Clients";
@@ -67,66 +69,89 @@ import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
-const AnimatedRoutes = () => {
+const D = ({ children }: { children: React.ReactNode }) => <RequireRole allow="designer">{children}</RequireRole>;
+const C = ({ children }: { children: React.ReactNode }) => <RequireRole allow="client">{children}</RequireRole>;
+const W = ({ children }: { children: React.ReactNode }) => <RequireRole allow="worker">{children}</RequireRole>;
+const DC = ({ children }: { children: React.ReactNode }) => <RequireRole allow={["designer", "client"]}>{children}</RequireRole>;
+const ALL = ({ children }: { children: React.ReactNode }) => <RequireRole allow={["designer", "client", "worker"]}>{children}</RequireRole>;
+
+const AppShell = () => {
   const location = useLocation();
+  const [displayLocation, setDisplayLocation] = useState(location);
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <PageTransition key={location.pathname}>
-        <Routes location={location}>
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
-                <Route path="/subscription" element={<Subscription />} />
-                {/* Designer routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/more" element={<More />} />
-                <Route path="/add" element={<AddNew />} />
-                <Route path="/client/:id" element={<ClientProfile />} />
-                <Route path="/appointments" element={<Appointments />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/measurements" element={<Measurements />} />
-                <Route path="/fabrics" element={<Fabrics />} />
-                <Route path="/workers" element={<Workers />} />
-                <Route path="/order/:clientId" element={<OrderDetail />} />
-                <Route path="/designer-messages" element={<DesignerMessages />} />
-                <Route path="/materials" element={<Materials />} />
-                <Route path="/ai-insights" element={<AIInsights />} />
-                <Route path="/style-library" element={<StyleLibrary />} />
-                <Route path="/activity-logs" element={<ActivityLogs />} />
-                <Route path="/themes" element={<ThemePicker />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/help" element={<Help />} />
-                <Route path="/workshop-chat" element={<WorkshopChat />} />
-                <Route path="/workshop-chat/:chatId" element={<WorkshopConversation />} />
-                <Route path="/set-passcode" element={<SetPasscode />} />
-                <Route path="/showcase" element={<Showcase />} />
-                <Route path="/showcase/new" element={<ShowcaseCreate />} />
-                <Route path="/referrals" element={<Referrals />} />
-                <Route path="/settings/brand" element={<BrandSettings />} />
-                <Route path="/invoices" element={<Invoices />} />
-                <Route path="/order/:clientId/invoice/new" element={<InvoiceEditor />} />
-                <Route path="/invoice/:invoiceId" element={<InvoicePreview />} />
-                <Route path="/client-comms" element={<ClientCommunications />} />
-                {/* Client routes */}
-                <Route path="/client-home" element={<ClientHome />} />
-                <Route path="/discover" element={<DiscoverDesigners />} />
-                <Route path="/designer/:id" element={<DesignerProfilePage />} />
-                <Route path="/client-orders" element={<ClientOrders />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/review/:id" element={<ReviewDesigner />} />
-                <Route path="/profile" element={<Profile />} />
-                {/* Worker routes */}
-                <Route path="/worker-dashboard" element={<WorkerDashboard />} />
-                <Route path="/worker-tasks" element={<WorkerTasks />} />
-                <Route path="/worker-measurements" element={<WorkerMeasurements />} />
-                <Route path="/worker-materials" element={<WorkerMaterials />} />
-                <Route path="/worker-profile" element={<WorkerProfile />} />
-                <Route path="*" element={<NotFound />} />
-        </Routes>
-      </PageTransition>
-    </AnimatePresence>
+    <LockGate>
+      <div className="app-shell mx-auto min-h-screen max-w-md relative w-full">
+        <AnimatePresence
+          mode="wait"
+          initial={false}
+          onExitComplete={() => setDisplayLocation(location)}
+        >
+          <PageTransition key={location.pathname}>
+            <Routes location={location}>
+              {/* Public / pre-auth */}
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/set-passcode" element={<SetPasscode />} />
+
+              {/* Designer-only routes */}
+              <Route path="/" element={<D><Index /></D>} />
+              <Route path="/clients" element={<D><Clients /></D>} />
+              <Route path="/orders" element={<D><Orders /></D>} />
+              <Route path="/more" element={<D><More /></D>} />
+              <Route path="/add" element={<D><AddNew /></D>} />
+              <Route path="/client/:id" element={<D><ClientProfile /></D>} />
+              <Route path="/analytics" element={<D><Analytics /></D>} />
+              <Route path="/measurements" element={<D><Measurements /></D>} />
+              <Route path="/fabrics" element={<D><Fabrics /></D>} />
+              <Route path="/workers" element={<D><Workers /></D>} />
+              <Route path="/order/:clientId" element={<D><OrderDetail /></D>} />
+              <Route path="/designer-messages" element={<D><DesignerMessages /></D>} />
+              <Route path="/materials" element={<D><Materials /></D>} />
+              <Route path="/ai-insights" element={<D><AIInsights /></D>} />
+              <Route path="/style-library" element={<D><StyleLibrary /></D>} />
+              <Route path="/activity-logs" element={<D><ActivityLogs /></D>} />
+              <Route path="/workshop-chat" element={<D><WorkshopChat /></D>} />
+              <Route path="/workshop-chat/:chatId" element={<D><WorkshopConversation /></D>} />
+              <Route path="/referrals" element={<D><Referrals /></D>} />
+              <Route path="/settings/brand" element={<D><BrandSettings /></D>} />
+              <Route path="/invoices" element={<D><Invoices /></D>} />
+              <Route path="/order/:clientId/invoice/new" element={<D><InvoiceEditor /></D>} />
+              <Route path="/invoice/:invoiceId" element={<D><InvoicePreview /></D>} />
+              <Route path="/client-comms" element={<D><ClientCommunications /></D>} />
+              <Route path="/showcase/new" element={<D><ShowcaseCreate /></D>} />
+
+              {/* Client-only routes */}
+              <Route path="/client-home" element={<C><ClientHome /></C>} />
+              <Route path="/discover" element={<C><DiscoverDesigners /></C>} />
+              <Route path="/designer/:id" element={<C><DesignerProfilePage /></C>} />
+              <Route path="/client-orders" element={<C><ClientOrders /></C>} />
+              <Route path="/messages" element={<C><Messages /></C>} />
+              <Route path="/review/:id" element={<C><ReviewDesigner /></C>} />
+
+              {/* Worker-only routes */}
+              <Route path="/worker-dashboard" element={<W><WorkerDashboard /></W>} />
+              <Route path="/worker-tasks" element={<W><WorkerTasks /></W>} />
+              <Route path="/worker-measurements" element={<W><WorkerMeasurements /></W>} />
+              <Route path="/worker-materials" element={<W><WorkerMaterials /></W>} />
+              <Route path="/worker-profile" element={<W><WorkerProfile /></W>} />
+
+              {/* Shared routes (branch on role internally) */}
+              <Route path="/appointments" element={<DC><Appointments /></DC>} />
+              <Route path="/showcase" element={<DC><Showcase /></DC>} />
+              <Route path="/profile" element={<ALL><Profile /></ALL>} />
+              <Route path="/settings" element={<ALL><Settings /></ALL>} />
+              <Route path="/help" element={<ALL><Help /></ALL>} />
+              <Route path="/themes" element={<ALL><ThemePicker /></ALL>} />
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </PageTransition>
+        </AnimatePresence>
+        <BottomNav pathname={displayLocation.pathname} />
+      </div>
+    </LockGate>
   );
 };
 
@@ -145,12 +170,7 @@ const App = () => (
                 <NotificationsProvider>
                 <ReviewsProvider>
                 <LockProvider>
-                  <LockGate>
-                    <div className="app-shell mx-auto min-h-screen max-w-md relative w-full">
-                      <AnimatedRoutes />
-                      <BottomNav />
-                    </div>
-                  </LockGate>
+                  <AppShell />
                 </LockProvider>
                 </ReviewsProvider>
                 </NotificationsProvider>
