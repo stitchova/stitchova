@@ -30,7 +30,14 @@ const workerNav: NavItem[] = [
   { icon: UserCircle, label: "Profile", path: "/worker-profile" },
 ];
 
-const hiddenPaths = ["/onboarding", "/auth", "/messages", "/designer-messages"];
+const hiddenPaths = [
+  "/onboarding",
+  "/auth",
+  "/set-passcode",
+  "/messages",
+  "/designer-messages",
+  "/.lovable/oauth/consent",
+];
 
 const BottomNav = () => {
   const location = useLocation();
