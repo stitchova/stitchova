@@ -7,6 +7,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useRole } from "@/contexts/RoleContext";
+import ClientAppointmentsView from "./ClientAppointments";
 
 const defaultTimeSlots = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM",
@@ -35,7 +37,7 @@ interface AvailabilitySlot {
   reminder: boolean;
 }
 
-const Appointments = () => {
+const DesignerAppointments = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -234,6 +236,12 @@ const Appointments = () => {
       )}
     </div>
   );
+};
+
+const Appointments = () => {
+  const { role } = useRole();
+  if (role === "client") return <ClientAppointmentsView />;
+  return <DesignerAppointments />;
 };
 
 export default Appointments;
