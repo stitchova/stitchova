@@ -1,5 +1,5 @@
 import { Home, Users, ShoppingBag, MoreHorizontal, Plus, Compass, User, MessageCircle, ClipboardList, Ruler, Package, UserCircle, Clapperboard } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useRole } from "@/contexts/RoleContext";
 import { useBottomNavLayout, type BottomNavItem } from "@/hooks/useBottomNavLayout";
@@ -39,24 +39,23 @@ const hiddenPaths = [
   "/.lovable/oauth/consent",
 ];
 
-const BottomNav = () => {
-  const location = useLocation();
+const BottomNav = ({ pathname }: { pathname: string }) => {
   const navigate = useNavigate();
   const { role } = useRole();
 
   const navItems = role === "designer" ? designerNav : role === "worker" ? workerNav : clientNav;
   const isHidden =
-    hiddenPaths.includes(location.pathname) ||
-    location.pathname.startsWith("/designer/") ||
-    location.pathname.startsWith("/workshop-chat/") ||
-    location.pathname === "/showcase/new";
+    hiddenPaths.includes(pathname) ||
+    pathname.startsWith("/designer/") ||
+    pathname.startsWith("/workshop-chat/") ||
+    pathname === "/showcase/new";
   const { leftSlots, rightSlots, centerItem, CenterIcon, containerStyle, navStyle, gridStyle, fabStyle } =
     useBottomNavLayout(navItems);
 
   if (isHidden) return null;
 
   const renderItem = (item: NavItem) => {
-    const isActive = location.pathname === item.path;
+    const isActive = pathname === item.path;
     return (
       <motion.button
         key={item.path}
