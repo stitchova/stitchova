@@ -63,6 +63,7 @@ import { BrandInvoiceProvider } from "@/contexts/BrandInvoiceContext";
 import { ReviewsProvider } from "@/contexts/ReviewsContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import ClientCommunications from "./pages/ClientCommunications";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const AnimatedRoutes = () => {
         <Routes location={location}>
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route path="/subscription" element={<Subscription />} />
                 {/* Designer routes */}
                 <Route path="/" element={<Index />} />
