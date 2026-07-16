@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Lock, Delete } from "lucide-react";
 import { useLock } from "@/contexts/LockContext";
 import { toast } from "sonner";
@@ -10,13 +10,7 @@ type Step = "enter" | "confirm";
 
 const SetPasscode = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { setPasscode, hasPasscode, clearPasscode } = useLock();
-  const nextTarget = (location.state as { next?: string } | null)?.next;
-  const goNext = () => {
-    if (nextTarget) navigate(nextTarget, { replace: true });
-    else navigate(-1);
-  };
   const [step, setStep] = useState<Step>("enter");
   const [first, setFirst] = useState("");
   const [code, setCode] = useState("");
@@ -32,7 +26,7 @@ const SetPasscode = () => {
     if (value === first) {
       await setPasscode(value);
       toast.success("Passcode set");
-      goNext();
+      navigate(-1);
     } else {
       setShake(true);
       setTimeout(() => setShake(false), 450);
@@ -101,7 +95,7 @@ const SetPasscode = () => {
                     clearPasscode();
                     toast.success("Passcode removed");
                   }
-                  goNext();
+                  navigate(-1);
                 }}
                 className="aspect-square rounded-2xl flex items-center justify-center text-[11px] font-semibold text-muted-foreground"
               >
