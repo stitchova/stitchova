@@ -24,8 +24,10 @@ const Profile = () => {
   const [tab, setTab] = useState<"menu" | "saved">("menu");
 
   const menuItems = [
-    { icon: Bell, label: "Notifications", desc: "Manage your alerts", path: "/designer-messages", badge: 3, tint: "bg-primary/10 text-primary" },
-    { icon: CreditCard, label: "Payments", desc: "Payment methods & history", path: "/analytics", badge: 0, tint: "bg-green-500/10 text-green-400" },
+    { icon: Bell, label: "Notifications", desc: "Manage your alerts", path: isDesigner ? "/designer-messages" : "/messages", badge: 3, tint: "bg-primary/10 text-primary" },
+    ...(isDesigner
+      ? [{ icon: CreditCard, label: "Payments", desc: "Payment methods & history", path: "/analytics", badge: 0, tint: "bg-green-500/10 text-green-400" }]
+      : [{ icon: ShoppingBag, label: "My Orders", desc: "Track your orders", path: "/client-orders", badge: 0, tint: "bg-green-500/10 text-green-400" }]),
     { icon: Shield, label: "Privacy & Security", desc: "Account protection", path: "/settings", badge: 0, tint: "bg-blue-500/10 text-blue-400" },
     { icon: Settings, label: "Settings", desc: "App preferences", path: "/settings", badge: 0, tint: "bg-purple-500/10 text-purple-400" },
     { icon: HelpCircle, label: "Help & Support", desc: "Get assistance", path: "/help", badge: 0, tint: "bg-orange-500/10 text-orange-400" },
