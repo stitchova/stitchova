@@ -1,7 +1,22 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Bell, ChevronDown, RefreshCw, DollarSign, ShoppingBag, Users, UserPlus, Ruler, ClipboardList, CalendarDays, ChevronRight, Crown, TrendingUp, Loader2 } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  RefreshCw,
+  DollarSign,
+  ShoppingBag,
+  Users,
+  UserPlus,
+  Ruler,
+  ClipboardList,
+  CalendarDays,
+  ChevronRight,
+  Crown,
+  TrendingUp,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 
@@ -35,9 +50,33 @@ const quickActions = [
 ];
 
 const orders = [
-  { img: orderWedding, type: "Wedding Gown", client: "Ama Serwaa", clientId: "ama-serwaa", status: "Sewing", date: "Mar 25", statusColor: "bg-status-sewing" },
-  { img: orderSuit, type: "3-Piece Suit", client: "Kofi Mensah", clientId: "kofi-mensah", status: "Cutting", date: "Mar 28", statusColor: "bg-status-cutting" },
-  { img: orderAgbada, type: "Agbada Set", client: "Yaw Boateng", clientId: "yaw-boateng", status: "Completed", date: "Mar 15", statusColor: "bg-status-completed" },
+  {
+    img: orderWedding,
+    type: "Wedding Gown",
+    client: "Ama Serwaa",
+    clientId: "ama-serwaa",
+    status: "Sewing",
+    date: "Mar 25",
+    statusColor: "bg-status-sewing",
+  },
+  {
+    img: orderSuit,
+    type: "3-Piece Suit",
+    client: "Kofi Mensah",
+    clientId: "kofi-mensah",
+    status: "Cutting",
+    date: "Mar 28",
+    statusColor: "bg-status-cutting",
+  },
+  {
+    img: orderAgbada,
+    type: "Agbada Set",
+    client: "Yaw Boateng",
+    clientId: "yaw-boateng",
+    status: "Completed",
+    date: "Mar 15",
+    statusColor: "bg-status-completed",
+  },
 ];
 
 const fabrics = [
@@ -50,7 +89,7 @@ const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium" };
 
 const Index = () => {
   const navigate = useNavigate();
-  
+
   const { plan } = useSubscription();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -73,9 +112,12 @@ const Index = () => {
       {/* Hero Header */}
       <div className="designer-hero px-5 pt-6 pb-6 flex items-center justify-between rounded-b-3xl">
         <div className="flex items-center gap-3">
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate("/profile")}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/profile")}
             className="w-11 h-11 rounded-full p-[2px]"
-            style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
+            style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}
+          >
             <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
               <span className="text-sm font-semibold text-foreground">JA</span>
             </div>
@@ -88,8 +130,11 @@ const Index = () => {
             <span className="text-xs text-muted-foreground">053 698 7839</span>
           </div>
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/designer-messages")}
-          className="w-10 h-10 rounded-full frost-card flex items-center justify-center relative">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => navigate("/designer-messages")}
+          className="w-10 h-10 rounded-full frost-card flex items-center justify-center relative"
+        >
           <Bell className="w-5 h-5 text-foreground" />
           <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary pulse-glow" />
         </motion.button>
@@ -125,11 +170,7 @@ const Index = () => {
               disabled={refreshing}
               className="flex items-center gap-1 text-xs text-muted-foreground active:text-foreground transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {refreshing ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="w-3.5 h-3.5" />
-              )}
+              {refreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
               {refreshing ? "Updating..." : "Update"}
             </button>
           </div>
@@ -167,8 +208,12 @@ const Index = () => {
                 onClick={() => navigate(a.path)}
                 className="frost-card p-3 flex flex-col items-center gap-2"
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.18), hsl(var(--accent) / 0.12))" }}>
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(var(--primary) / 0.18), hsl(var(--accent) / 0.12))",
+                  }}
+                >
                   <a.icon className="w-5 h-5 text-primary" />
                 </div>
                 <span className="text-[10px] font-medium text-muted-foreground">{a.label}</span>
@@ -181,7 +226,10 @@ const Index = () => {
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground">Recent Orders</h2>
-            <button onClick={() => navigate("/orders")} className="text-xs text-muted-foreground flex items-center gap-1">
+            <button
+              onClick={() => navigate("/orders")}
+              className="text-xs text-muted-foreground flex items-center gap-1"
+            >
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -196,7 +244,9 @@ const Index = () => {
                 <div className="relative h-28">
                   <img src={o.img} alt={o.type} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
-                  <span className={`absolute bottom-2 left-2 text-[9px] font-semibold px-2 py-0.5 rounded-full ${o.statusColor} text-primary-foreground`}>
+                  <span
+                    className={`absolute bottom-2 left-2 text-[9px] font-semibold px-2 py-0.5 rounded-full ${o.statusColor} text-primary-foreground`}
+                  >
                     {o.status}
                   </span>
                 </div>
@@ -214,7 +264,10 @@ const Index = () => {
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground">Fabric Collection</h2>
-            <button onClick={() => navigate("/fabrics")} className="text-xs text-muted-foreground flex items-center gap-1">
+            <button
+              onClick={() => navigate("/fabrics")}
+              className="text-xs text-muted-foreground flex items-center gap-1"
+            >
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -232,7 +285,9 @@ const Index = () => {
                 </div>
                 <div className="p-3">
                   <p className="text-xs font-semibold text-foreground">{f.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{f.brand} · {f.color}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {f.brand} · {f.color}
+                  </p>
                 </div>
               </motion.div>
             ))}
