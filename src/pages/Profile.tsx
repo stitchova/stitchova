@@ -4,6 +4,7 @@ import { ArrowLeft, Camera, ChevronRight, LogOut, Bell, Shield, HelpCircle, Sett
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { useShowcase } from "@/contexts/ShowcaseContext";
+import { toast } from "sonner";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -23,9 +24,18 @@ const Profile = () => {
   const isDesigner = role === "designer";
   const [tab, setTab] = useState<"menu" | "saved">("menu");
 
+  const handleLogout = () => {
+    localStorage.removeItem("fashionos-role");
+    localStorage.removeItem("stitchova-lock-unlocked");
+    toast.success("Logged out");
+    navigate("/auth");
+  };
+
   const menuItems = [
-    { icon: Bell, label: "Notifications", desc: "Manage your alerts", path: "/designer-messages", badge: 3, tint: "bg-primary/10 text-primary" },
-    { icon: CreditCard, label: "Payments", desc: "Payment methods & history", path: "/analytics", badge: 0, tint: "bg-green-500/10 text-green-400" },
+    { icon: Bell, label: "Notifications", desc: "Manage your alerts", path: isDesigner ? "/designer-messages" : "/messages", badge: 3, tint: "bg-primary/10 text-primary" },
+    ...(isDesigner
+      ? [{ icon: CreditCard, label: "Payments", desc: "Payment methods & history", path: "/analytics", badge: 0, tint: "bg-green-500/10 text-green-400" }]
+      : [{ icon: ShoppingBag, label: "My Orders", desc: "Track your orders", path: "/client-orders", badge: 0, tint: "bg-green-500/10 text-green-400" }]),
     { icon: Shield, label: "Privacy & Security", desc: "Account protection", path: "/settings", badge: 0, tint: "bg-blue-500/10 text-blue-400" },
     { icon: Settings, label: "Settings", desc: "App preferences", path: "/settings", badge: 0, tint: "bg-purple-500/10 text-purple-400" },
     { icon: HelpCircle, label: "Help & Support", desc: "Get assistance", path: "/help", badge: 0, tint: "bg-orange-500/10 text-orange-400" },
@@ -192,7 +202,7 @@ const Profile = () => {
         <motion.button
           whileTap={{ scale: 0.97 }}
           whileHover={{ scale: 1.01 }}
-          onClick={() => navigate("/auth")}
+          onClick={handleLogout}
           className="w-full mt-5 p-4 flex items-center justify-center gap-2 rounded-2xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/20 transition-colors"
         >
           <LogOut className="w-4 h-4 text-destructive" />

@@ -214,7 +214,7 @@ const Index = () => {
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground">Fabric Collection</h2>
-            <button onClick={() => navigate("/add")} className="text-xs text-muted-foreground flex items-center gap-1">
+            <button onClick={() => navigate("/fabrics")} className="text-xs text-muted-foreground flex items-center gap-1">
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -223,7 +223,7 @@ const Index = () => {
               <motion.div
                 key={f.name}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => navigate("/add")}
+                onClick={() => navigate("/fabrics")}
                 className="card-surface min-w-[140px] overflow-hidden flex-shrink-0 cursor-pointer"
               >
                 <div className="relative h-28">

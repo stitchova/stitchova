@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift, FileText, Send } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import FeatureGate from "@/components/FeatureGate";
+import { toast } from "sonner";
 
 const planLabels = { basic: "Basic", pro: "Pro", premium: "Premium", premium_plus: "Premium+" };
 const planColors = { basic: "text-muted-foreground", pro: "text-primary", premium: "text-primary", premium_plus: "text-primary" };
@@ -16,7 +17,6 @@ const menuItems = [
   { icon: MessagesSquare, label: "Workshop Chat", desc: "Group, DMs & announcements", path: "/workshop-chat" },
   { icon: FileText, label: "Invoices & Receipts", desc: "Branded billing documents", path: "/invoices" },
   { icon: Send, label: "Client Communications", desc: "Automated SMS & email in your brand", path: "/client-comms", requiresPlan: "premium_plus" as const },
-  { icon: CreditCard, label: "Payments", desc: "Track revenue and expenses", path: "/analytics" },
   { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
   { icon: ClipboardList, label: "Activity Logs", desc: "Track all account actions", path: "/activity-logs" },
   { icon: HelpCircle, label: "Help & Support", desc: "Get help with any issue", path: "/help" },
@@ -26,6 +26,13 @@ const menuItems = [
 const More = () => {
   const navigate = useNavigate();
   const { plan, expiryDate } = useSubscription();
+
+  const handleLogout = () => {
+    localStorage.removeItem("fashionos-role");
+    localStorage.removeItem("stitchova-lock-unlocked");
+    toast.success("Logged out");
+    navigate("/auth");
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -86,7 +93,7 @@ const More = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: menuItems.length * 0.05 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate("/auth")}
+          onClick={handleLogout}
           className="card-surface p-4 flex items-center gap-4 w-full text-left"
         >
           <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
