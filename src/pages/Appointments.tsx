@@ -238,4 +238,10 @@ const DesignerAppointments = () => {
   );
 };
 
+const Appointments = () => {
+  const { role } = useRole();
+  if (role === "client") return <ClientAppointmentsView />;
+  return <DesignerAppointments />;
+};
+
 export default Appointments;
