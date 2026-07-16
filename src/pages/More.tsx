@@ -16,7 +16,6 @@ const menuItems = [
   { icon: MessagesSquare, label: "Workshop Chat", desc: "Group, DMs & announcements", path: "/workshop-chat" },
   { icon: FileText, label: "Invoices & Receipts", desc: "Branded billing documents", path: "/invoices" },
   { icon: Send, label: "Client Communications", desc: "Automated SMS & email in your brand", path: "/client-comms", requiresPlan: "premium_plus" as const },
-  { icon: CreditCard, label: "Payments", desc: "Track revenue and expenses", path: "/analytics" },
   { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
   { icon: ClipboardList, label: "Activity Logs", desc: "Track all account actions", path: "/activity-logs" },
   { icon: HelpCircle, label: "Help & Support", desc: "Get help with any issue", path: "/help" },
