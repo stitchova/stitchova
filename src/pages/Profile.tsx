@@ -4,6 +4,7 @@ import { ArrowLeft, Camera, ChevronRight, LogOut, Bell, Shield, HelpCircle, Sett
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { useShowcase } from "@/contexts/ShowcaseContext";
+import { toast } from "sonner";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -22,6 +23,13 @@ const Profile = () => {
   const { savedPosts } = useShowcase();
   const isDesigner = role === "designer";
   const [tab, setTab] = useState<"menu" | "saved">("menu");
+
+  const handleLogout = () => {
+    localStorage.removeItem("fashionos-role");
+    localStorage.removeItem("stitchova-lock-unlocked");
+    toast.success("Logged out");
+    navigate("/auth");
+  };
 
   const menuItems = [
     { icon: Bell, label: "Notifications", desc: "Manage your alerts", path: isDesigner ? "/designer-messages" : "/messages", badge: 3, tint: "bg-primary/10 text-primary" },
@@ -194,7 +202,7 @@ const Profile = () => {
         <motion.button
           whileTap={{ scale: 0.97 }}
           whileHover={{ scale: 1.01 }}
-          onClick={() => navigate("/auth")}
+          onClick={handleLogout}
           className="w-full mt-5 p-4 flex items-center justify-center gap-2 rounded-2xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/20 transition-colors"
         >
           <LogOut className="w-4 h-4 text-destructive" />
