@@ -14,7 +14,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { setRole } = useRole();
-  const { hasPasscode } = useLock();
+  const { hasPasscode, markAuthenticated } = useLock();
   const [mode, setMode] = useState<AuthMode>("signin");
   const [step, setStep] = useState<Step>("role");
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
@@ -74,9 +74,10 @@ const Auth = () => {
       ? "/client-home"
       : "/worker-dashboard";
     if (!hasPasscode) {
-      navigate("/set-passcode", { state: { next: home } });
+      navigate("/set-passcode", { state: { next: home }, replace: true });
     } else {
-      navigate(home);
+      markAuthenticated();
+      navigate(home, { replace: true });
     }
     setSubmitting(false);
   };

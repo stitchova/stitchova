@@ -25,6 +25,7 @@ interface LockCtx {
   clearPasscode: () => void;
   lockNow: () => void;
   ping: () => void;
+  markAuthenticated: () => void;
 }
 
 const LockContext = createContext<LockCtx | null>(null);
@@ -111,6 +112,11 @@ export const LockProvider = ({ children }: { children: ReactNode }) => {
 
   const ping = () => resetTimer();
 
+  const markAuthenticated = () => {
+    setIsLocked(false);
+    resetTimer();
+  };
+
   return (
     <LockContext.Provider
       value={{
@@ -124,6 +130,7 @@ export const LockProvider = ({ children }: { children: ReactNode }) => {
         clearPasscode,
         lockNow,
         ping,
+        markAuthenticated,
       }}
     >
       {children}

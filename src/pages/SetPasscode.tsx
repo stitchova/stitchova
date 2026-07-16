@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Lock, Delete } from "lucide-react";
 import { useLock } from "@/contexts/LockContext";
+import { useRole } from "@/contexts/RoleContext";
 import { toast } from "sonner";
 
 const LENGTH = 4;
@@ -12,10 +13,12 @@ const SetPasscode = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setPasscode, hasPasscode, clearPasscode } = useLock();
+  const { role } = useRole();
   const nextTarget = (location.state as { next?: string } | null)?.next;
   const goNext = () => {
-    if (nextTarget) navigate(nextTarget, { replace: true });
-    else navigate(-1);
+    const fallback =
+      role === "designer" ? "/" : role === "client" ? "/client-home" : "/worker-dashboard";
+    navigate(nextTarget || fallback, { replace: true });
   };
   const [step, setStep] = useState<Step>("enter");
   const [first, setFirst] = useState("");
