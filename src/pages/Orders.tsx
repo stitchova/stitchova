@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Filter, ChevronRight, Plus, X, CheckCircle2, XCircle } from "lucide-react";
+import { Search, Filter, ChevronRight, Plus, X, CheckCircle2, XCircle, Image as ImageIcon, Truck, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,10 +31,13 @@ const Orders = () => {
     category: "Men" as "Men" | "Women" | "Children",
     garment: "", price: "", deposit: "", paymentMethod: PAYMENT_METHODS[0],
     date: "", styleDesc: "",
+    deliveryMethod: "pickup" as "pickup" | "delivery",
+    deliveryAddress: "", deliveryDate: "",
   });
   const [stagesOn, setStagesOn] = useState<Record<string, boolean>>({ Beading: false, Fitting: true });
   const [fabricPicks, setFabricPicks] = useState<Record<string, number>>({});
   const [materialPicks, setMaterialPicks] = useState<Record<string, number>>({});
+  const [orderPhotos, setOrderPhotos] = useState<string[]>([]);
 
   useEffect(() => {
     if (params.get("new") === "1") {
@@ -72,10 +75,21 @@ const Orders = () => {
   });
 
   const resetForm = () => {
-    setNewOrder({ type: "", clientId: "", clientName: "", category: "Men", garment: "", price: "", deposit: "", paymentMethod: PAYMENT_METHODS[0], date: "", styleDesc: "" });
+    setNewOrder({ type: "", clientId: "", clientName: "", category: "Men", garment: "", price: "", deposit: "", paymentMethod: PAYMENT_METHODS[0], date: "", styleDesc: "", deliveryMethod: "pickup", deliveryAddress: "", deliveryDate: "" });
     setStagesOn({ Beading: false, Fitting: true });
     setFabricPicks({});
     setMaterialPicks({});
+    setOrderPhotos([]);
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    files.slice(0, 5).forEach((f) => {
+      if (f.size > 4 * 1024 * 1024) { toast({ title: "Photo skipped", description: `${f.name} exceeds 4MB.`, variant: "destructive" }); return; }
+      const reader = new FileReader();
+      reader.onload = () => setOrderPhotos((p) => [...p, String(reader.result)]);
+      reader.readAsDataURL(f);
+    });
   };
 
   const buildStages = () => {
@@ -122,6 +136,11 @@ const Orders = () => {
       status: "active",
       payments: deposit > 0 ? [{ id: `pay-${Date.now()}`, amount: deposit, method: newOrder.paymentMethod, date: new Date().toISOString().split("T")[0] }] : [],
       source: "manual",
+      photos: orderPhotos,
+      deliveryMethod: newOrder.deliveryMethod,
+      deliveryAddress: newOrder.deliveryMethod === "delivery" ? newOrder.deliveryAddress : undefined,
+      deliveryDate: newOrder.deliveryDate || undefined,
+      deliveryStatus: "pending",
     });
 
     fabricUse.forEach((f) => deductFabric(f.id, f.amount));
