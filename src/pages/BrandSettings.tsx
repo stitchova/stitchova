@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload, Palette } from "lucide-react";
+import { ArrowLeft, Upload, Palette, Ruler } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useBrandInvoice, BrandProfile } from "@/contexts/BrandInvoiceContext";
@@ -80,6 +80,26 @@ const BrandSettings = () => {
             onChange={(e) => updateBrand({ accentColor: e.target.value })}
             className="w-12 h-10 rounded-lg cursor-pointer bg-transparent border border-border"
           />
+        </div>
+
+        {/* Measurement unit */}
+        <div className="card-surface p-4 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+            <Ruler className="w-5 h-5 text-foreground" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-foreground">Measurement Unit</p>
+            <p className="text-[10px] text-muted-foreground">Default unit for new measurements</p>
+          </div>
+          <div className="flex gap-2">
+            {(["in", "cm"] as const).map((u) => (
+              <button key={u}
+                onClick={() => updateBrand({ measurementUnit: u })}
+                className={`px-3 py-2 rounded-lg text-xs font-bold uppercase ${brand.measurementUnit === u ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
+                {u === "in" ? "Inches" : "Centimeters"}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Fields */}
