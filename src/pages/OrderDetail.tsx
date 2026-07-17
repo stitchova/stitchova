@@ -216,6 +216,19 @@ const OrderDetail = () => {
       <div className="px-5 space-y-5 pt-4">
         {/* Order Info */}
         <motion.div {...fadeUp} className="card-surface p-4 space-y-3">
+          {orderReview && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20">
+              <Sparkles className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-semibold text-foreground">
+                  Client left a review · ★ {orderReview.rating.toFixed(1)}
+                </p>
+                {orderReview.text && (
+                  <p className="text-[10px] text-muted-foreground truncate">"{orderReview.text}"</p>
+                )}
+              </div>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">{description}</p>
           <div className="card-glass p-3 rounded-xl">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Style Description</p>
