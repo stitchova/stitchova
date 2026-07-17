@@ -218,6 +218,18 @@ const OrderDetail = () => {
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Style Description</p>
             <p className="text-xs text-foreground">{order.styleDesc}</p>
           </div>
+          {order.photos && order.photos.length > 0 && (
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <ImageIcon className="w-3 h-3" /> Reference Photos
+              </p>
+              <div className="flex gap-2 overflow-x-auto">
+                {order.photos.map((p, i) => (
+                  <img key={i} src={p} alt={`ref-${i}`} className="w-24 h-24 rounded-lg object-cover flex-shrink-0" />
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex gap-4">
             <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">Due: {order.dueDate}</span></div>
             <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">{order.client}</span></div>
@@ -268,6 +280,97 @@ const OrderDetail = () => {
               ))}
             </div>
           )}
+          {/* Cost breakdown (designer-only, expandable) */}
+          <button onClick={() => setShowCosts(s => !s)}
+            className="mt-3 w-full flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/40 pt-2">
+            <span>Cost breakdown (margin)</span>
+            {showCosts ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+          <AnimatePresence>
+            {showCosts && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden">
+                <div className="pt-2 space-y-2">
+                  {(["fabric", "materials", "labor"] as const).map((k) => (
+                    <div key={k} className="flex items-center justify-between gap-2">
+                      <label className="text-[10px] text-muted-foreground uppercase capitalize flex-1">{k} cost</label>
+                      <input type="number" inputMode="decimal"
+                        defaultValue={String(order.costs?.[k] ?? "")}
+                        onBlur={(e) => updateOrder(order.id, { costs: { ...(order.costs || {}), [k]: parseFloat(e.target.value) || 0 } })}
+                        placeholder="0"
+                        className="w-24 bg-secondary/50 border border-border rounded-lg px-2 py-1 text-[11px] text-foreground text-right outline-none" />
+                    </div>
+                  ))}
+                  {(() => {
+                    const f = order.costs?.fabric || 0;
+                    const m = order.costs?.materials || 0;
+                    const l = order.costs?.labor || 0;
+                    const total = f + m + l;
+                    const margin = order.price - total;
+                    return (
+                      <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                        <span className="text-[10px] text-muted-foreground">Est. Margin</span>
+                        <span className={`text-xs font-bold ${margin >= 0 ? "text-status-completed" : "text-destructive"}`}>
+                          {money(margin, brand.currency)}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                  <p className="text-[9px] text-muted-foreground italic">Visible only to you — not shown to clients.</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Delivery */}
+        <motion.div {...fadeUp} transition={{ delay: 0.035 }} className="card-surface p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              {order.deliveryMethod === "delivery" ? <Truck className="w-3.5 h-3.5" /> : <Package className="w-3.5 h-3.5" />}
+              {order.deliveryMethod === "delivery" ? "Delivery" : "Pickup"}
+            </span>
+            <div className="flex gap-1">
+              {(["pickup", "delivery"] as const).map(m => (
+                <button key={m} onClick={() => updateOrder(order.id, { deliveryMethod: m })}
+                  className={cn("px-2 py-0.5 rounded-md text-[9px] font-bold uppercase",
+                    (order.deliveryMethod || "pickup") === m ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+          {order.deliveryMethod === "delivery" && (
+            <div className="mb-3 space-y-1.5">
+              <div className="flex items-center gap-2 text-[11px] text-foreground">
+                <MapPin className="w-3 h-3 text-muted-foreground" />
+                <input value={order.deliveryAddress || clientRec?.address || ""}
+                  onChange={(e) => updateOrder(order.id, { deliveryAddress: e.target.value })}
+                  placeholder="Delivery address"
+                  className="flex-1 bg-secondary/40 rounded-md px-2 py-1 outline-none text-[11px]" />
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-[11px] text-foreground mb-3">
+            <Calendar className="w-3 h-3 text-muted-foreground" />
+            <input type="datetime-local"
+              value={order.deliveryDate || ""}
+              onChange={(e) => updateOrder(order.id, { deliveryDate: e.target.value })}
+              className="flex-1 bg-secondary/40 rounded-md px-2 py-1 outline-none text-[11px]" />
+          </div>
+          <div className="flex items-center justify-between">
+            {deliveryStages.map((s, i) => (
+              <button key={s.key} onClick={() => setDeliveryStatus(order.id, s.key)}
+                className="flex flex-col items-center flex-1 focus:outline-none">
+                <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 transition-all",
+                  i <= deliveryIdx ? "bg-primary border-primary text-primary-foreground" : "bg-secondary border-border text-muted-foreground")}>
+                  {i < deliveryIdx ? "✓" : i + 1}
+                </div>
+                <span className={cn("text-[8px] mt-1 text-center leading-tight", i <= deliveryIdx ? "text-primary" : "text-muted-foreground")}>{s.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-[9px] text-muted-foreground mt-2 text-center">Tap a stage to update delivery status.</p>
         </motion.div>
 
         {/* Billing */}
