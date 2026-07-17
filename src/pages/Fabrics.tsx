@@ -1,38 +1,18 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, Search, X, Save, Trash2, ImagePlus, Camera, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Search, X, Save, Trash2, ImagePlus, Camera, Loader2, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-
-interface Fabric {
-  id: string;
-  name: string;
-  brand: string;
-  color: string;
-  qty: string;
-  price: string;
-  image: string | null;
-  fabricType: string;
-  source: string;
-  dateReceived: string;
-}
+import { useAtelier, fabricLowStock, type Fabric } from "@/contexts/AtelierContext";
 
 const fabricTypes = ["Lace", "Ankara", "Silk", "Denim", "Cotton", "Kente", "Brocade", "Wool", "Satin", "Other"];
 const sources = ["Client", "Designer"];
 
-const defaultFabrics: Fabric[] = [
-  { id: "1", name: "Ankara Print", brand: "Vlisco", color: "Multi", qty: "5 yards", price: "GHS 350", image: null, fabricType: "Ankara", source: "Designer", dateReceived: "2024-03-10" },
-  { id: "2", name: "Silk Satin", brand: "Premium", color: "Navy/Gold", qty: "3 yards", price: "GHS 520", image: null, fabricType: "Silk", source: "Client", dateReceived: "2024-03-08" },
-  { id: "3", name: "French Lace", brand: "Imported", color: "Ivory", qty: "4 yards", price: "GHS 780", image: null, fabricType: "Lace", source: "Designer", dateReceived: "2024-03-05" },
-  { id: "4", name: "Kente Cloth", brand: "Bonwire", color: "Gold/Green", qty: "6 yards", price: "GHS 900", image: null, fabricType: "Kente", source: "Designer", dateReceived: "2024-02-28" },
-  { id: "5", name: "Cotton Poplin", brand: "Local", color: "White", qty: "10 yards", price: "GHS 150", image: null, fabricType: "Cotton", source: "Designer", dateReceived: "2024-02-20" },
-];
-
 const Fabrics = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [fabrics, setFabrics] = useState<Fabric[]>(defaultFabrics);
+  const { fabrics, setFabrics } = useAtelier();
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", brand: "", color: "", qty: "", price: "", fabricType: "Ankara", source: "Designer", dateReceived: "" });
@@ -192,7 +172,14 @@ const Fabrics = () => {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{f.name}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-foreground">{f.name}</p>
+                  {fabricLowStock(f.qty) && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive font-bold flex items-center gap-0.5">
+                      <AlertTriangle className="w-2.5 h-2.5" /> LOW
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-muted-foreground">{f.brand} · {f.color}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">{f.fabricType}</span>
@@ -201,7 +188,7 @@ const Fabrics = () => {
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="text-sm font-bold text-foreground">{f.price}</p>
-                <p className="text-[10px] text-muted-foreground">{f.qty}</p>
+                <p className={cn("text-[10px]", fabricLowStock(f.qty) ? "text-destructive font-semibold" : "text-muted-foreground")}>{f.qty}</p>
               </div>
               <motion.button whileTap={{ scale: 0.9 }} disabled={deletingId === f.id}
                 onClick={(e) => { e.stopPropagation(); handleDelete(f.id); }}
