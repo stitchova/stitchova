@@ -5,7 +5,9 @@ import { ArrowLeft, Save, ChevronRight, Plus, X, History, User } from "lucide-re
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAtelier } from "@/contexts/AtelierContext";
+import { useBrandInvoice } from "@/contexts/BrandInvoiceContext";
 import ClientPicker from "@/components/ClientPicker";
+import { Image as ImageIcon } from "lucide-react";
 
 const genders = [
   { id: "male", label: "Male", emoji: "👨" },
@@ -67,6 +69,8 @@ const Measurements = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addMeasurement, measurements, clientById, latestMeasurement } = useAtelier();
+  const { brand } = useBrandInvoice();
+  const unit = brand.measurementUnit || "in";
   const [step, setStep] = useState<"select" | "fields" | "history">("select");
   const [gender, setGender] = useState("female");
   const [ageGroup, setAgeGroup] = useState("adult");
@@ -78,6 +82,7 @@ const Measurements = () => {
   const [customFields, setCustomFields] = useState<string[]>([]);
   const [newFieldName, setNewFieldName] = useState("");
   const [showAddField, setShowAddField] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
 
   const defaultFields = garment ? (defaultMeasurementFields[garment] || []) : [];
   const allFields = [...defaultFields, ...customFields];
@@ -130,9 +135,20 @@ const Measurements = () => {
     if (!clientId || !garment) return;
     addMeasurement({
       clientId, garment, gender, ageGroup, category, fields: values, notes,
+      unit,
+      photo: photo || undefined,
     });
     toast({ title: "Measurements saved!", description: `${garment} for ${selectedClient?.name} recorded.` });
     navigate(-1);
+  };
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) { toast({ title: "Photo too large", description: "Max 4MB.", variant: "destructive" }); return; }
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(String(reader.result));
+    reader.readAsDataURL(file);
   };
 
   const handleBack = () => {
@@ -167,18 +183,22 @@ const Measurements = () => {
             )}
             {measurements.map((entry, i) => {
               const cname = clientById(entry.clientId)?.name || "—";
+              const entryUnit = entry.unit || "in";
               return (
                 <motion.div key={entry.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                   className="card-glass p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-foreground">{entry.garment} <span className="text-[10px] text-muted-foreground">· {cname}</span></p>
+                    <p className="text-sm font-semibold text-foreground">{entry.garment} <span className="text-[10px] text-muted-foreground">· {cname} · {entryUnit}</span></p>
                     <span className="text-[10px] text-muted-foreground">{entry.createdAt}</span>
                   </div>
+                  {entry.photo && (
+                    <img src={entry.photo} alt="Reference" className="w-full h-32 object-cover rounded-lg" />
+                  )}
                   <div className="grid grid-cols-3 gap-2">
                     {Object.entries(entry.fields).map(([k, v]) => (
                       <div key={k} className="bg-secondary/50 rounded-lg p-2 text-center">
                         <p className="text-[9px] text-muted-foreground uppercase">{k}</p>
-                        <p className="text-sm font-bold text-foreground">{String(v)}</p>
+                        <p className="text-sm font-bold text-foreground">{String(v)} <span className="text-[8px] text-muted-foreground">{entryUnit}</span></p>
                       </div>
                     ))}
                   </div>
@@ -255,7 +275,7 @@ const Measurements = () => {
           <motion.div key="fields" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">All measurements in inches</p>
+                <p className="text-sm text-muted-foreground">All measurements in {unit === "in" ? "inches" : "centimeters"}</p>
                 <p className="text-[10px] text-primary">{selectedClient?.name} · {gender === "male" ? "👨 Male" : "👩 Female"} · {ageGroups.find(a => a.id === ageGroup)?.label}</p>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowAddField(true)}
@@ -297,11 +317,28 @@ const Measurements = () => {
                       <input type="number" inputMode="decimal" value={values[field] || ""}
                         onChange={(e) => setValues({ ...values, [field]: e.target.value })} placeholder="0.0"
                         className="w-full bg-card border border-border rounded-xl py-3 px-4 pr-10 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary transition-colors" />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">in</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{unit}</span>
                     </div>
                   </div>
                 );
               })}
+            </div>
+
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Reference Photo (optional)</label>
+              {photo ? (
+                <div className="relative">
+                  <img src={photo} alt="Reference" className="w-full h-40 object-cover rounded-xl" />
+                  <button onClick={() => setPhoto(null)} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center">
+                    <X className="w-3.5 h-3.5 text-foreground" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-border bg-card cursor-pointer text-xs text-muted-foreground">
+                  <ImageIcon className="w-4 h-4" /> Attach photo (client, swatch, style)
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+                </label>
+              )}
             </div>
 
             <div>
