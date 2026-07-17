@@ -145,7 +145,7 @@ const OrderDetail = () => {
     };
     const key: NotifTriggerKey = isComplete ? "completed" : (stageKeyMap[stageName] || "custom");
     if (!commsUnlocked) {
-      toast("Stage updated. Upgrade to Premium+ to auto-notify clients.");
+      toast("Stage updated. Upgrade to Pro to auto-notify clients.");
       return;
     }
     // Default to the client's preferred channel (map whatsapp -> sms for our sms/email model)
@@ -172,7 +172,7 @@ const OrderDetail = () => {
     setReceived(true);
     setDeliveryStatus(order.id, "received");
     if (!commsUnlocked) {
-      toast("Marked as received. Upgrade to Premium+ to send thank-you automatically.");
+      toast("Marked as received. Upgrade to Pro to send thank-you automatically.");
       return;
     }
     const recs = send({
