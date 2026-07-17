@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Phone, Mail, MapPin, Edit2, ChevronRight, Save, X, Calendar, User, CreditCard, Clock, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAtelier, money } from "@/contexts/AtelierContext";
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
 
-const clientsData: Record<string, {
+type StaticClient = {
   name: string; initials: string; phone: string; email: string; location: string;
   joined: string; totalOrders: number; totalSpent: string; gender: string; dob: string;
   address: string; notes: string;
@@ -14,7 +15,9 @@ const clientsData: Record<string, {
   orders: { type: string; status: string; date: string; price: string; img: string; statusColor: string; category: string }[];
   payments: { id: string; date: string; amount: string; method: string; order: string; status: string; planType: string; balance: string }[];
   appointments: { date: string; type: string; time: string; status: string }[];
-}> = {
+};
+
+const clientsData: Record<string, StaticClient> = {
   "ama-serwaa": {
     name: "Ama Serwaa", initials: "AS", phone: "024 123 4567", email: "ama@email.com",
     location: "Accra, Ghana", joined: "Jan 2024", totalOrders: 5, totalSpent: "GHS 8,200",
@@ -165,7 +168,63 @@ const ClientProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
-  const client = clientsData[id || ""] || defaultClient;
+  const { clientById, measurementsByClient, ordersByClient } = useAtelier();
+  const record = id ? clientById(id) : undefined;
+  const liveMeasurements = id ? measurementsByClient(id) : [];
+  const liveOrders = id ? ordersByClient(id) : [];
+
+  // Merge live data over the static demo fallback for continuity
+  const staticFallback = clientsData[id || ""] || defaultClient;
+  const client = useMemo<StaticClient>(() => {
+    if (!record) return staticFallback;
+    const measurements = liveMeasurements.length
+      ? liveMeasurements.flatMap((m) =>
+          Object.entries(m.fields).map(([label, value]) => ({
+            label, value: `${value}"`, date: m.createdAt,
+          }))
+        )
+      : staticFallback.measurements;
+    const orders = liveOrders.length
+      ? liveOrders.map((o) => ({
+          type: o.type, status: o.status,
+          date: o.dueDate, price: money(o.price, o.currency),
+          img: o.img,
+          statusColor: o.status === "completed" ? "bg-status-completed" : o.status === "requested" ? "bg-primary/60" : "bg-status-sewing",
+          category: o.category,
+        }))
+      : staticFallback.orders;
+    const payments = liveOrders.flatMap((o) =>
+      o.payments.map((p) => {
+        const totalPaid = o.payments.reduce((s, x) => s + x.amount, 0);
+        const bal = Math.max(0, o.price - totalPaid);
+        return {
+          id: p.id, date: p.date, amount: money(p.amount, o.currency),
+          method: p.method, order: o.type,
+          status: bal === 0 ? "Paid" : "Partial",
+          planType: totalPaid >= o.price ? "Full Payment" : "Installment",
+          balance: money(bal, o.currency),
+        };
+      })
+    );
+    const totalSpent = liveOrders.reduce(
+      (s, o) => s + o.payments.reduce((x, p) => x + p.amount, 0), 0
+    );
+    return {
+      ...staticFallback,
+      name: record.name,
+      initials: record.initials,
+      phone: record.phone || staticFallback.phone,
+      gender: record.gender || staticFallback.gender,
+      notes: record.notes || staticFallback.notes,
+      joined: record.joined || staticFallback.joined,
+      totalOrders: liveOrders.length || staticFallback.totalOrders,
+      totalSpent: totalSpent > 0 ? money(totalSpent) : staticFallback.totalSpent,
+      measurements,
+      orders,
+      payments: payments.length ? payments : staticFallback.payments,
+    };
+  }, [record, liveMeasurements, liveOrders, staticFallback]);
+
   const [activeTab, setActiveTab] = useState<Tab>("Measurements");
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({

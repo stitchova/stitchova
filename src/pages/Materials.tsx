@@ -1,36 +1,19 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, Search, X, Save, Trash2, Package, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Search, X, Save, Trash2, Package, Loader2, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-
-interface Material {
-  id: string;
-  name: string;
-  category: string;
-  qty: string;
-  unitCost: string;
-  totalCost: string;
-  linkedOrder: string;
-}
+import { useAtelier, materialLowStock, type Material } from "@/contexts/AtelierContext";
 
 const materialCategories = ["Threads", "Beads", "Buttons", "Zips", "Needles", "Linings", "Elastic", "Stiff", "Other"];
-
-const defaultMaterials: Material[] = [
-  { id: "1", name: "Gold Embroidery Thread", category: "Threads", qty: "12 spools", unitCost: "GHS 15", totalCost: "GHS 180", linkedOrder: "Wedding Gown" },
-  { id: "2", name: "Pearl Beads (4mm)", category: "Beads", qty: "500 pcs", unitCost: "GHS 0.50", totalCost: "GHS 250", linkedOrder: "Evening Dress" },
-  { id: "3", name: "Invisible Zip (22\")", category: "Zips", qty: "8 pcs", unitCost: "GHS 12", totalCost: "GHS 96", linkedOrder: "—" },
-  { id: "4", name: "Coat Buttons – Gold", category: "Buttons", qty: "24 pcs", unitCost: "GHS 5", totalCost: "GHS 120", linkedOrder: "3-Piece Suit" },
-  { id: "5", name: "Polyester Lining – Black", category: "Linings", qty: "3 yards", unitCost: "GHS 35", totalCost: "GHS 105", linkedOrder: "Agbada Set" },
-];
 
 const Materials = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { materials, setMaterials } = useAtelier();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
-  const [materials, setMaterials] = useState<Material[]>(defaultMaterials);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [showForm, setShowForm] = useState(false);
@@ -157,8 +140,15 @@ const Materials = () => {
                 <span className="text-lg">{categoryEmojis[m.category] || "📦"}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{m.name}</p>
-                <p className="text-[11px] text-muted-foreground">{m.category} · {m.qty}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-foreground">{m.name}</p>
+                  {materialLowStock(m.qty) && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive font-bold flex items-center gap-0.5">
+                      <AlertTriangle className="w-2.5 h-2.5" /> LOW
+                    </span>
+                  )}
+                </div>
+                <p className={cn("text-[11px]", materialLowStock(m.qty) ? "text-destructive" : "text-muted-foreground")}>{m.category} · {m.qty}</p>
                 {m.linkedOrder !== "—" && <p className="text-[10px] text-primary mt-0.5">🔗 {m.linkedOrder}</p>}
               </div>
               <div className="text-right flex-shrink-0">

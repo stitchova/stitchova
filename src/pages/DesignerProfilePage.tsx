@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight, Play, Film } from "lucide-react";
+import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight, Play, Film, Package } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShowcase } from "@/contexts/ShowcaseContext";
 import { useReviews, relativeTime } from "@/contexts/ReviewsContext";
+import { useAtelier, parsePrice } from "@/contexts/AtelierContext";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -81,8 +85,16 @@ type Tab = typeof tabs[number];
 const DesignerProfilePage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { toast } = useToast();
+  const { addClient, addOrder } = useAtelier();
   const [activeTab, setActiveTab] = useState<Tab>("Portfolio");
   const [saved, setSaved] = useState(false);
+  const [showRequest, setShowRequest] = useState(false);
+  const [req, setReq] = useState({
+    name: "", phone: "",
+    category: "Women" as "Men" | "Women" | "Children",
+    garment: "", type: "", styleDesc: "", budget: "", date: "",
+  });
   const { postsByDesigner } = useShowcase();
   const showcasePosts = postsByDesigner(id || "nana-ama");
 
@@ -97,6 +109,38 @@ const DesignerProfilePage = () => {
     clientReviews.length === 0
       ? designer.rating
       : Number(((designer.rating * designer.reviews + clientReviews.reduce((s, r) => s + r.rating, 0)) / totalCount).toFixed(1));
+
+  const submitRequest = () => {
+    if (!req.name.trim() || !req.type.trim()) {
+      toast({ title: "Missing info", description: "Add your name and what you'd like made.", variant: "destructive" });
+      return;
+    }
+    const client = addClient({
+      name: req.name, phone: req.phone, gender: req.category === "Men" ? "Male" : req.category === "Women" ? "Female" : "",
+      notes: `Marketplace request via ${designer.name}`,
+      referralSource: `marketplace:${id || "nana-ama"}`,
+    });
+    addOrder({
+      clientId: client.id, client: client.name,
+      type: req.type, category: req.category,
+      garment: req.garment || "Custom",
+      styleDesc: req.styleDesc || "",
+      price: parsePrice(req.budget) || 0, currency: "GHS",
+      dueDate: req.date || "TBD",
+      stages: ["Cutting", "Sewing", "Fitting", "Finishing", "Quality Check"],
+      currentStage: 0,
+      fabricUse: [], materialUse: [],
+      status: "requested",
+      payments: [],
+      source: "marketplace",
+      designerId: id,
+    });
+    setShowRequest(false);
+    setReq({ name: "", phone: "", category: "Women", garment: "", type: "", styleDesc: "", budget: "", date: "" });
+    toast({ title: "Request sent!", description: `${designer.name} will review and confirm shortly.` });
+  };
+
+  const inputClass = "w-full bg-secondary/50 border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all";
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -322,24 +366,70 @@ const DesignerProfilePage = () => {
       {/* Fixed CTA Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
         <div className="bg-card/95 backdrop-blur-xl border-t border-border px-5 py-3 max-w-md mx-auto">
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate(`/messages?designer=${id || "nana-ama"}&name=${encodeURIComponent(designer.name)}`)}
-              className="flex-1 py-3 rounded-xl bg-secondary text-foreground text-sm font-semibold flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl bg-secondary text-foreground text-xs font-semibold flex items-center justify-center gap-1.5"
             >
               <MessageCircle className="w-4 h-4" /> Message
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate(`/appointments?designer=${id || "nana-ama"}&name=${encodeURIComponent(designer.name)}&avatar=${encodeURIComponent(designer.avatar)}`)}
-              className="flex-[2] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl bg-secondary text-foreground text-xs font-semibold flex items-center justify-center gap-1.5"
             >
-              <CalendarDays className="w-4 h-4" /> Book Appointment
+              <CalendarDays className="w-4 h-4" /> Book
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowRequest(true)}
+              className="flex-[1.4] py-3 rounded-xl bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center gap-1.5"
+            >
+              <Package className="w-4 h-4" /> Request Order
             </motion.button>
           </div>
         </div>
       </div>
+
+      <Dialog open={showRequest} onOpenChange={setShowRequest}>
+        <DialogContent className="max-w-sm mx-auto bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Request Order · {designer.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2 max-h-[70vh] overflow-y-auto">
+            <input value={req.name} onChange={(e) => setReq(p => ({ ...p, name: e.target.value }))}
+              placeholder="Your name *" className={inputClass} />
+            <input value={req.phone} onChange={(e) => setReq(p => ({ ...p, phone: e.target.value }))}
+              placeholder="Phone (optional)" className={inputClass} />
+            <input value={req.type} onChange={(e) => setReq(p => ({ ...p, type: e.target.value }))}
+              placeholder="What do you want made? e.g. Wedding Gown *" className={inputClass} />
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Category</p>
+              <div className="flex gap-2">
+                {["Men", "Women", "Children"].map((c) => (
+                  <button key={c} onClick={() => setReq(p => ({ ...p, category: c as any }))}
+                    className={cn("px-3 py-1.5 rounded-xl text-xs font-medium transition-colors flex-1",
+                      req.category === c ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <input value={req.budget} onChange={(e) => setReq(p => ({ ...p, budget: e.target.value }))}
+              placeholder="Budget (e.g. 2500)" className={inputClass} />
+            <input type="date" value={req.date} onChange={(e) => setReq(p => ({ ...p, date: e.target.value }))}
+              className={inputClass} />
+            <textarea value={req.styleDesc} onChange={(e) => setReq(p => ({ ...p, styleDesc: e.target.value }))}
+              placeholder="Style notes, colors, references..." rows={3}
+              className={inputClass + " resize-none"} />
+            <motion.button whileTap={{ scale: 0.97 }} onClick={submitRequest}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-lg shadow-primary/25">
+              Send Request
+            </motion.button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
