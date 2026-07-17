@@ -162,23 +162,29 @@ const Measurements = () => {
         {step === "history" ? (
           <motion.div key="history" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-4">
             <p className="text-sm text-muted-foreground">Track measurement changes over time</p>
-            {measurementHistory.map((entry, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                className="card-glass p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">{entry.garment}</p>
-                  <span className="text-[10px] text-muted-foreground">{entry.date}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(entry.fields).map(([k, v]) => (
-                    <div key={k} className="bg-secondary/50 rounded-lg p-2 text-center">
-                      <p className="text-[9px] text-muted-foreground uppercase">{k}</p>
-                      <p className="text-sm font-bold text-foreground">{v}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+            {measurements.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-8">No measurements recorded yet.</p>
+            )}
+            {measurements.map((entry, i) => {
+              const cname = clientById(entry.clientId)?.name || "—";
+              return (
+                <motion.div key={entry.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                  className="card-glass p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground">{entry.garment} <span className="text-[10px] text-muted-foreground">· {cname}</span></p>
+                    <span className="text-[10px] text-muted-foreground">{entry.createdAt}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(entry.fields).map(([k, v]) => (
+                      <div key={k} className="bg-secondary/50 rounded-lg p-2 text-center">
+                        <p className="text-[9px] text-muted-foreground uppercase">{k}</p>
+                        <p className="text-sm font-bold text-foreground">{String(v)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
           </motion.div>
         ) : step === "select" ? (
           <motion.div key="select" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-5">
