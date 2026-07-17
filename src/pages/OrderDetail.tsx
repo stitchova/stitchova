@@ -6,6 +6,7 @@ import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceCo
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAtelier, PAYMENT_METHODS, DeliveryStatus } from "@/contexts/AtelierContext";
+import { useReviews } from "@/contexts/ReviewsContext";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -96,8 +97,10 @@ const OrderDetail = () => {
   const { getByOrder, brand } = useBrandInvoice();
   const orderInvoices = getByOrder(order.id);
   const { send } = useNotifications();
-  const { plan } = useSubscription();
-  const commsUnlocked = plan === "premium_plus";
+  const { plan, isFeatureAvailable } = useSubscription();
+  const commsUnlocked = isFeatureAvailable("auto_notifications");
+  const { byOrder: reviewByOrder } = useReviews();
+  const orderReview = reviewByOrder(order.id);
 
   const [tasks, setTasks] = useState<OrderTask[]>([
     { id: 1, title: "Cut fabric pieces", assignee: "Amina K.", assigneeAvatar: "AK", status: "completed", deadline: "Mar 20" },
