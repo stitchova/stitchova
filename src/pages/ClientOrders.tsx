@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Star, Package, CheckCircle2, Truck } from "lucide-react";
+import { ArrowLeft, Star, Package, CheckCircle2, Truck, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAtelier, money, Order } from "@/contexts/AtelierContext";
+import { useReviews } from "@/contexts/ReviewsContext";
 import { cn } from "@/lib/utils";
 
 const ease = [0.16, 1, 0.3, 1];
@@ -58,6 +59,7 @@ const OrderTimeline = ({ o }: { o: Order }) => {
 const ClientOrders = () => {
   const navigate = useNavigate();
   const { orders } = useAtelier();
+  const { hasReviewedOrder } = useReviews();
   const [activeTab, setActiveTab] = useState("Active");
 
   const filtered = orders.filter((o) => {
@@ -98,6 +100,30 @@ const ClientOrders = () => {
         </div>
       </div>
 
+      {/* Received banner: prompt review for the most recent received-but-unreviewed order */}
+      {(() => {
+        const pending = orders.find(o => o.deliveryStatus === "received" && o.designerId && !hasReviewedOrder(o.id));
+        if (!pending) return null;
+        return (
+          <motion.button
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate(`/review/${pending.id}`)}
+            className="mx-5 mb-4 w-[calc(100%-2.5rem)] rounded-2xl bg-primary/10 border border-primary/30 p-4 flex items-center gap-3 text-left"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-foreground">How was your {pending.type}?</p>
+              <p className="text-[10px] text-muted-foreground">Leave a review to help other clients.</p>
+            </div>
+            <Star className="w-4 h-4 text-primary fill-primary" />
+          </motion.button>
+        );
+      })()}
+
       <div className="px-5 space-y-4">
         <AnimatePresence mode="popLayout">
           {filtered.map((o, i) => (
@@ -126,14 +152,20 @@ const ClientOrders = () => {
 
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-[10px] text-muted-foreground">Due: {o.dueDate}</span>
-                    {o.status === "completed" && o.designerId && (
-                      <motion.button
-                        whileTap={{ scale: 0.9 }}
-                        onClick={(e) => { e.stopPropagation(); navigate(`/review/${o.designerId}`); }}
-                        className="flex items-center gap-1 text-[10px] font-semibold text-primary"
-                      >
-                        <Star className="w-3 h-3 fill-primary" /> Rate
-                      </motion.button>
+                    {(o.deliveryStatus === "received" || o.status === "completed") && o.designerId && (
+                      hasReviewedOrder(o.id) ? (
+                        <span className="flex items-center gap-1 text-[10px] font-semibold text-status-completed">
+                          <CheckCircle2 className="w-3 h-3" /> Reviewed
+                        </span>
+                      ) : (
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/review/${o.id}`); }}
+                          className="flex items-center gap-1 text-[10px] font-semibold text-primary"
+                        >
+                          <Star className="w-3 h-3 fill-primary" /> Rate
+                        </motion.button>
+                      )
                     )}
                   </div>
                 </div>

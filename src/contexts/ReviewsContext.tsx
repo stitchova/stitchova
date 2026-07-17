@@ -9,11 +9,16 @@ export interface ClientReview {
   text: string;
   createdAt: number;
   orderRef?: string;
+  orderId?: string;
+  garment?: string;
+  photo?: string;
 }
 
 interface Ctx {
   reviews: ClientReview[];
   byDesigner: (designerId: string) => ClientReview[];
+  byOrder: (orderId: string) => ClientReview | undefined;
+  hasReviewedOrder: (orderId: string) => boolean;
   addReview: (r: Omit<ClientReview, "id" | "createdAt">) => ClientReview;
 }
 
@@ -33,6 +38,8 @@ export const ReviewsProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo<Ctx>(() => ({
     reviews,
     byDesigner: (designerId) => reviews.filter((r) => r.designerId === designerId).sort((a,b) => b.createdAt - a.createdAt),
+    byOrder: (orderId) => reviews.find((r) => r.orderId === orderId),
+    hasReviewedOrder: (orderId) => reviews.some((r) => r.orderId === orderId),
     addReview: (r) => {
       const rec: ClientReview = {
         ...r,

@@ -10,9 +10,9 @@ interface SubscriptionContextType {
 }
 
 const featureAccess: Record<PlanTier, string[]> = {
-  basic: ["clients_5", "orders_10", "measurements"],
-  pro: ["clients_unlimited", "orders_unlimited", "measurements", "analytics", "workers", "ai_basic"],
-  premium: ["clients_unlimited", "orders_unlimited", "measurements", "analytics", "workers", "ai_advanced", "marketplace_priority", "branding"],
+  basic: ["clients_20", "orders_10", "measurements"],
+  pro: ["clients_unlimited", "orders_unlimited", "measurements", "analytics", "workers", "ai_basic", "auto_notifications"],
+  premium: ["clients_unlimited", "orders_unlimited", "measurements", "analytics", "workers", "ai_advanced", "marketplace_priority", "branding", "auto_notifications", "scheduled_notifications"],
   premium_plus: ["clients_unlimited", "orders_unlimited", "measurements", "analytics", "workers", "ai_advanced", "marketplace_priority", "branding", "client_comms", "auto_notifications", "scheduled_notifications"],
 };
 

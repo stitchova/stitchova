@@ -6,6 +6,7 @@ import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceCo
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAtelier, PAYMENT_METHODS, DeliveryStatus } from "@/contexts/AtelierContext";
+import { useReviews } from "@/contexts/ReviewsContext";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -96,8 +97,10 @@ const OrderDetail = () => {
   const { getByOrder, brand } = useBrandInvoice();
   const orderInvoices = getByOrder(order.id);
   const { send } = useNotifications();
-  const { plan } = useSubscription();
-  const commsUnlocked = plan === "premium_plus";
+  const { plan, isFeatureAvailable } = useSubscription();
+  const commsUnlocked = isFeatureAvailable("auto_notifications");
+  const { byOrder: reviewByOrder } = useReviews();
+  const orderReview = reviewByOrder(order.id);
 
   const [tasks, setTasks] = useState<OrderTask[]>([
     { id: 1, title: "Cut fabric pieces", assignee: "Amina K.", assigneeAvatar: "AK", status: "completed", deadline: "Mar 20" },
@@ -142,7 +145,7 @@ const OrderDetail = () => {
     };
     const key: NotifTriggerKey = isComplete ? "completed" : (stageKeyMap[stageName] || "custom");
     if (!commsUnlocked) {
-      toast("Stage updated. Upgrade to Premium+ to auto-notify clients.");
+      toast("Stage updated. Upgrade to Pro to auto-notify clients.");
       return;
     }
     // Default to the client's preferred channel (map whatsapp -> sms for our sms/email model)
@@ -169,7 +172,7 @@ const OrderDetail = () => {
     setReceived(true);
     setDeliveryStatus(order.id, "received");
     if (!commsUnlocked) {
-      toast("Marked as received. Upgrade to Premium+ to send thank-you automatically.");
+      toast("Marked as received. Upgrade to Pro to send thank-you automatically.");
       return;
     }
     const recs = send({
@@ -213,6 +216,19 @@ const OrderDetail = () => {
       <div className="px-5 space-y-5 pt-4">
         {/* Order Info */}
         <motion.div {...fadeUp} className="card-surface p-4 space-y-3">
+          {orderReview && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20">
+              <Sparkles className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-semibold text-foreground">
+                  Client left a review · ★ {orderReview.rating.toFixed(1)}
+                </p>
+                {orderReview.text && (
+                  <p className="text-[10px] text-muted-foreground truncate">"{orderReview.text}"</p>
+                )}
+              </div>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">{description}</p>
           <div className="card-glass p-3 rounded-xl">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Style Description</p>

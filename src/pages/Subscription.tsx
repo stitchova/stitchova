@@ -26,7 +26,7 @@ const plans: {
     popular: false,
     color: "text-muted-foreground",
     features: [
-      "Up to 5 clients",
+      "Up to 20 clients",
       "Up to 10 orders/month",
       "Basic measurements",
       "Standard support",
@@ -53,9 +53,11 @@ const plans: {
       "Worker management",
       "Analytics dashboard",
       "Basic AI insights",
+      "Automated client SMS + email",
       "Priority support",
     ],
     limits: [
+      "No scheduled / recurring notifications",
       "No marketplace priority",
       "No branding customization",
     ],
@@ -73,13 +75,13 @@ const plans: {
       "Marketplace priority visibility",
       "Advanced AI insights",
       "Branding customization",
+      "Scheduled & recurring notifications",
       "Higher client reach",
       "Dedicated account manager",
       "Custom integrations",
     ],
     limits: [
-      "No automated client SMS / email",
-      "No scheduled notifications",
+      "Messages sent from platform sender",
     ],
   },
   {
@@ -92,9 +94,8 @@ const plans: {
     color: "text-primary",
     features: [
       "Everything in Premium",
-      "Automated SMS + email to clients",
-      "Scheduled & recurring notifications",
       "Sent in your brand name (not platform)",
+      "Fully branded transactional messages",
       "Auto stage updates (cutting → ready)",
       "Order completed & received alerts",
       "Appointment & payment reminders",

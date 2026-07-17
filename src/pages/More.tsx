@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift, FileText, Send } from "lucide-react";
+import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift, FileText, Send, Brain } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import FeatureGate from "@/components/FeatureGate";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ const menuItems = [
   { icon: FileText, label: "Invoices & Receipts", desc: "Branded billing documents", path: "/invoices" },
   { icon: Send, label: "Client Communications", desc: "Automated SMS & email in your brand", path: "/client-comms", requiresPlan: "premium_plus" as const },
   { icon: BarChart3, label: "Analytics", desc: "Business insights and reports", path: "/analytics", requiresPlan: "pro" as const },
+  { icon: Brain, label: "AI Insights", desc: "Smart predictions for your business", path: "/ai-insights", requiresPlan: "pro" as const },
   { icon: ClipboardList, label: "Activity Logs", desc: "Track all account actions", path: "/activity-logs" },
   { icon: HelpCircle, label: "Help & Support", desc: "Get help with any issue", path: "/help" },
   { icon: Settings, label: "Settings", desc: "Customize the app", path: "/settings" },
