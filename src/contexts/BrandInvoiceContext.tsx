@@ -14,6 +14,7 @@ export interface BrandProfile {
   website: string;
   instagram: string;
   currency: string;
+  measurementUnit: "in" | "cm";
   accentColor: string;
   invoicePrefix: string;
   nextInvoiceNumber: number;
@@ -63,6 +64,7 @@ const DEFAULT_BRAND: BrandProfile = {
   website: "stitchova.app",
   instagram: "@stitchova",
   currency: "GHS",
+  measurementUnit: "in",
   accentColor: "#D4A94A",
   invoicePrefix: "STV",
   nextInvoiceNumber: 1001,
