@@ -5,47 +5,12 @@ import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, 
 import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceContext";
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useAtelier, PAYMENT_METHODS } from "@/contexts/AtelierContext";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import orderWedding from "@/assets/order-wedding.jpg";
-import orderSuit from "@/assets/order-suit.jpg";
-import orderAgbada from "@/assets/order-agbada.jpg";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } };
-
-const productionStages = ["Cutting", "Sewing", "Beading", "Finishing", "Quality Check"];
-
-const ordersData: Record<string, {
-  img: string; type: string; client: string; status: string; date: string; price: string;
-  statusColor: string; description: string; fabrics: string[]; category: string; garment: string;
-  styleDesc: string; currentStage: number; paymentPlan: string; amountPaid: string; balance: string;
-}> = {
-  "ama-serwaa": {
-    img: orderWedding, type: "Wedding Gown", client: "Ama Serwaa", status: "Sewing",
-    date: "Mar 25", price: "GHS 2,500", statusColor: "bg-status-sewing",
-    description: "Custom wedding gown with lace overlay, sweetheart neckline, and cathedral train.",
-    fabrics: ["French Lace – Ivory", "Silk Satin – White"], category: "Women", garment: "Bridal",
-    styleDesc: "Sweetheart neckline, mermaid silhouette with cathedral train and crystal embellishments",
-    currentStage: 1, paymentPlan: "Installment", amountPaid: "GHS 1,500", balance: "GHS 1,000",
-  },
-  "kofi-mensah": {
-    img: orderSuit, type: "3-Piece Suit", client: "Kofi Mensah", status: "Cutting",
-    date: "Mar 28", price: "GHS 1,800", statusColor: "bg-status-cutting",
-    description: "Slim-fit 3-piece suit in navy blue with gold buttons and custom lining.",
-    fabrics: ["English Wool – Navy", "Silk Lining – Gold"], category: "Men", garment: "Suit",
-    styleDesc: "Slim fit, peak lapel, double-breasted waistcoat, flat-front trousers",
-    currentStage: 0, paymentPlan: "Full Payment", amountPaid: "GHS 1,800", balance: "GHS 0",
-  },
-  "yaw-boateng": {
-    img: orderAgbada, type: "Agbada Set", client: "Yaw Boateng", status: "Completed",
-    date: "Mar 15", price: "GHS 3,200", statusColor: "bg-status-completed",
-    description: "Full agbada set with heavy embroidery, sokoto, and fila cap.",
-    fabrics: ["Guinea Brocade – Royal Blue", "Embroidery Thread – Gold"], category: "Men", garment: "Agbada",
-    styleDesc: "Full-length agbada with heavy hand-embroidered patterns, matching sokoto and fila cap",
-    currentStage: 4, paymentPlan: "Deposit", amountPaid: "GHS 2,500", balance: "GHS 700",
-  },
-};
 
 const availableWorkers = [
   { id: "w1", name: "Tunde A.", role: "Tailor", avatar: "TA" },
@@ -70,12 +35,38 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const orderInitial = ordersData[clientId || ""] || ordersData["ama-serwaa"];
-  const [currentStage, setCurrentStage] = useState(orderInitial.currentStage);
+  const { orderById, orders, advanceStage, addPayment } = useAtelier();
+  // clientId param may be an order id (new format) or legacy demo clientId
+  const order =
+    orderById(clientId || "") ||
+    orders.find((o) => o.clientId === clientId) ||
+    orders[0];
   const [received, setReceived] = useState(false);
-  const order = { ...orderInitial, currentStage };
+  const [showPay, setShowPay] = useState(false);
+  const [payAmount, setPayAmount] = useState("");
+  const [payMethod, setPayMethod] = useState(PAYMENT_METHODS[0]);
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <p className="text-sm text-muted-foreground">Order not found</p>
+      </div>
+    );
+  }
+
+  const productionStages = order.stages;
+  const currentStage = order.currentStage;
+  const paidTotal = order.payments.reduce((s, p) => s + p.amount, 0);
+  const balance = Math.max(0, order.price - paidTotal);
+  const paymentPlan = paidTotal >= order.price ? "Paid in Full" : paidTotal === 0 ? "Unpaid" : "Installment";
+  const statusColor = order.status === "completed" ? "bg-status-completed"
+    : order.status === "requested" ? "bg-primary/60"
+    : order.status === "declined" ? "bg-destructive/70"
+    : "bg-primary";
+  const description = order.styleDesc;
+
   const { getByOrder, brand } = useBrandInvoice();
-  const orderInvoices = getByOrder(clientId || "");
+  const orderInvoices = getByOrder(order.id);
   const { send } = useNotifications();
   const { plan } = useSubscription();
   const commsUnlocked = plan === "premium_plus";
@@ -109,9 +100,19 @@ const OrderDetail = () => {
 
   const notifyStage = (stageIdx: number) => {
     if (stageIdx < 0 || stageIdx >= productionStages.length) return;
-    setCurrentStage(stageIdx);
+    advanceStage(order.id, stageIdx);
     const isComplete = stageIdx === productionStages.length - 1;
-    const key: NotifTriggerKey = isComplete ? "completed" : STAGE_TRIGGER_KEYS[stageIdx];
+    // Map by stage name so custom stages (Fitting etc.) still notify sensibly
+    const stageName = productionStages[stageIdx];
+    const stageKeyMap: Record<string, NotifTriggerKey> = {
+      "Cutting": "stage_cutting",
+      "Sewing": "stage_sewing",
+      "Beading": "stage_beading",
+      "Finishing": "stage_finishing",
+      "Quality Check": "stage_quality",
+      "Fitting": "custom",
+    };
+    const key: NotifTriggerKey = isComplete ? "completed" : (stageKeyMap[stageName] || "custom");
     if (!commsUnlocked) {
       toast("Stage updated. Upgrade to Premium+ to auto-notify clients.");
       return;
@@ -124,9 +125,9 @@ const OrderDetail = () => {
       tokens: {
         garment: order.garment.toLowerCase(),
         stage: productionStages[stageIdx],
-        balance: order.balance,
+        balance: money(balance, brand.currency),
       },
-      orderRef: clientId,
+      orderRef: order.id,
     });
     if (recs.length) toast.success(`Notified ${order.client} via ${recs.map(r => r.channel).join(" + ")} as ${brand.businessName}`);
   };
@@ -143,9 +144,17 @@ const OrderDetail = () => {
       clientContact: order.client.split(" ")[0].toLowerCase() + "@client.local",
       brandName: brand.businessName,
       tokens: { garment: order.garment.toLowerCase() },
-      orderRef: clientId,
+      orderRef: order.id,
     });
     if (recs.length) toast.success(`Thank-you sent as ${brand.businessName}`);
+  };
+
+  const submitPayment = () => {
+    const amount = parseFloat(payAmount.replace(/,/g, "")) || 0;
+    if (amount <= 0) return;
+    addPayment(order.id, { amount, method: payMethod, date: new Date().toISOString().split("T")[0] });
+    setPayAmount(""); setShowPay(false);
+    toast.success(`Payment of ${money(amount, brand.currency)} recorded.`);
   };
 
   return (
@@ -158,7 +167,7 @@ const OrderDetail = () => {
         </button>
         <div className="absolute bottom-4 left-5 right-5">
           <div className="flex items-center gap-2">
-            <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${order.statusColor} text-primary-foreground`}>{order.status}</span>
+            <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${statusColor} text-primary-foreground`}>{order.status}</span>
             <span className="text-[9px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{order.category}</span>
             <span className="text-[9px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{order.garment}</span>
           </div>
@@ -170,34 +179,61 @@ const OrderDetail = () => {
       <div className="px-5 space-y-5 pt-4">
         {/* Order Info */}
         <motion.div {...fadeUp} className="card-surface p-4 space-y-3">
-          <p className="text-xs text-muted-foreground">{order.description}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
           <div className="card-glass p-3 rounded-xl">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Style Description</p>
             <p className="text-xs text-foreground">{order.styleDesc}</p>
           </div>
           <div className="flex gap-4">
-            <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">Due: {order.date}</span></div>
+            <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">Due: {order.dueDate}</span></div>
             <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">{order.client}</span></div>
           </div>
-          <div className="flex items-center gap-2">
-            <Scissors className="w-3.5 h-3.5 text-muted-foreground" />
-            <div className="flex flex-wrap gap-1">
-              {order.fabrics.map(f => <span key={f} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground">{f}</span>)}
+          {(order.fabricUse.length > 0 || order.materialUse.length > 0) && (
+            <div className="flex items-start gap-2">
+              <Scissors className="w-3.5 h-3.5 text-muted-foreground mt-1" />
+              <div className="flex flex-wrap gap-1">
+                {order.fabricUse.map(f => (
+                  <span key={f.id} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground">
+                    {f.name} · {f.amount} {f.unit}
+                  </span>
+                ))}
+                {order.materialUse.map(m => (
+                  <span key={m.id} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground">
+                    {m.name} · {m.amount} {m.unit}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </motion.div>
 
         {/* Payment Info */}
         <motion.div {...fadeUp} transition={{ delay: 0.03 }} className="card-surface p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-foreground">Payment</span>
-            <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{order.paymentPlan}</span>
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{paymentPlan}</span>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <div className="text-center"><p className="text-xs text-muted-foreground">Total</p><p className="text-sm font-bold text-foreground">{order.price}</p></div>
-            <div className="text-center"><p className="text-xs text-muted-foreground">Paid</p><p className="text-sm font-bold text-status-completed">{order.amountPaid}</p></div>
-            <div className="text-center"><p className="text-xs text-muted-foreground">Balance</p><p className="text-sm font-bold text-primary">{order.balance}</p></div>
+            <div className="text-center"><p className="text-xs text-muted-foreground">Total</p><p className="text-sm font-bold text-foreground">{money(order.price, brand.currency)}</p></div>
+            <div className="text-center"><p className="text-xs text-muted-foreground">Paid</p><p className="text-sm font-bold text-status-completed">{money(paidTotal, brand.currency)}</p></div>
+            <div className="text-center"><p className="text-xs text-muted-foreground">Balance</p><p className="text-sm font-bold text-primary">{money(balance, brand.currency)}</p></div>
           </div>
+          {balance > 0 && (
+            <button onClick={() => setShowPay(true)}
+              className="mt-3 w-full py-2 rounded-xl bg-primary/10 text-primary text-[11px] font-bold">
+              + Record Payment
+            </button>
+          )}
+          {order.payments.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {order.payments.map((p) => (
+                <div key={p.id} className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span>{p.date} · {p.method}</span>
+                  <span className="text-foreground font-semibold">{money(p.amount, brand.currency)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         {/* Billing */}
