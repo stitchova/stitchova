@@ -16,7 +16,9 @@ const ClientPicker = ({ value, onChange, label = "Client", allowCreate = true }:
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", gender: "Female", notes: "" });
+  const [form, setForm] = useState<{ name: string; phone: string; gender: string; notes: string; address: string; preferredChannel: "sms" | "whatsapp" | "email" }>(
+    { name: "", phone: "", gender: "Female", notes: "", address: "", preferredChannel: "sms" }
+  );
 
   const selected = clients.find(c => c.id === value);
   const filtered = useMemo(
@@ -29,7 +31,7 @@ const ClientPicker = ({ value, onChange, label = "Client", allowCreate = true }:
     const client = addClient(form);
     onChange(client.id, client);
     setCreating(false); setOpen(false); setQ("");
-    setForm({ name: "", phone: "", gender: "Female", notes: "" });
+    setForm({ name: "", phone: "", gender: "Female", notes: "", address: "", preferredChannel: "sms" });
   };
 
   return (
@@ -117,6 +119,20 @@ const ClientPicker = ({ value, onChange, label = "Client", allowCreate = true }:
                     className="w-full bg-secondary/50 border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary" />
                   <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone number"
                     className="w-full bg-secondary/50 border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary" />
+                  <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address (for delivery)"
+                    className="w-full bg-secondary/50 border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary" />
+                  <div>
+                    <p className="text-[11px] text-muted-foreground mb-1.5">Preferred Contact Channel</p>
+                    <div className="flex gap-2">
+                      {(["sms", "whatsapp", "email"] as const).map((ch) => (
+                        <button key={ch} onClick={() => setForm({ ...form, preferredChannel: ch })}
+                          className={cn("flex-1 py-2 rounded-xl text-xs font-medium border transition-colors capitalize",
+                            form.preferredChannel === ch ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
+                          {ch}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div>
                     <p className="text-[11px] text-muted-foreground mb-1.5">Gender</p>
                     <div className="flex gap-2">

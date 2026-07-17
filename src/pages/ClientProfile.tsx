@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Phone, Mail, MapPin, Edit2, ChevronRight, Save, X, Calendar, User, CreditCard, Clock, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAtelier, money } from "@/contexts/AtelierContext";
+import { useAtelier, money, Measurement } from "@/contexts/AtelierContext";
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
 
@@ -59,23 +59,52 @@ const fadeVariant = {
   exit: { opacity: 0, y: -8, transition: { duration: 0.15 } },
 };
 
-const MeasurementsTab = ({ measurements }: { measurements: typeof defaultClient.measurements }) => (
-  <motion.div variants={fadeVariant} initial="hidden" animate="visible" exit="exit" className="space-y-3">
-    <div className="flex items-center justify-between mb-1">
-      <span className="text-xs text-muted-foreground">Last updated: Mar 15, 2024</span>
-      <motion.button whileTap={{ scale: 0.95 }} className="flex items-center gap-1 text-xs text-primary font-medium">
-        <Edit2 className="w-3 h-3" /> Edit
-      </motion.button>
-    </div>
-    <div className="grid grid-cols-2 gap-3">
-      {measurements.map((m) => (
-        <div key={m.label} className="card-surface p-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{m.label}</p>
-          <p className="text-lg font-bold text-foreground mt-1">{m.value}</p>
-          <p className="text-[9px] text-primary mt-0.5">{m.date}</p>
-        </div>
-      ))}
-    </div>
+const MeasurementsTab = ({
+  measurements,
+  records,
+}: {
+  measurements: typeof defaultClient.measurements;
+  records: Measurement[];
+}) => (
+  <motion.div variants={fadeVariant} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+    {records.length > 0 ? (
+      records.map((rec) => {
+        const u = rec.unit || "in";
+        return (
+          <div key={rec.id} className="card-surface p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-foreground">
+                {rec.garment} <span className="text-[10px] text-muted-foreground">· recorded in {u}</span>
+              </p>
+              <span className="text-[10px] text-muted-foreground">{rec.createdAt}</span>
+            </div>
+            {rec.photo && (
+              <img src={rec.photo} alt="Reference" className="w-full h-32 object-cover rounded-lg" />
+            )}
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(rec.fields).map(([k, v]) => (
+                <div key={k} className="bg-secondary/50 rounded-lg p-2 text-center">
+                  <p className="text-[9px] text-muted-foreground uppercase">{k}</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {String(v)} <span className="text-[8px] text-muted-foreground">{u}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })
+    ) : (
+      <div className="grid grid-cols-2 gap-3">
+        {measurements.map((m) => (
+          <div key={m.label} className="card-surface p-3">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{m.label}</p>
+            <p className="text-lg font-bold text-foreground mt-1">{m.value}</p>
+            <p className="text-[9px] text-primary mt-0.5">{m.date}</p>
+          </div>
+        ))}
+      </div>
+    )}
   </motion.div>
 );
 
@@ -168,7 +197,7 @@ const ClientProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
-  const { clientById, measurementsByClient, ordersByClient } = useAtelier();
+  const { clientById, measurementsByClient, ordersByClient, updateClient } = useAtelier();
   const record = id ? clientById(id) : undefined;
   const liveMeasurements = id ? measurementsByClient(id) : [];
   const liveOrders = id ? ordersByClient(id) : [];
@@ -230,10 +259,19 @@ const ClientProfile = () => {
   const [editData, setEditData] = useState({
     name: client.name, phone: client.phone, email: client.email,
     location: client.location, gender: client.gender, dob: client.dob,
-    address: client.address, notes: client.notes,
+    address: (record?.address ?? client.address) || "",
+    notes: client.notes,
+    preferredChannel: (record?.preferredChannel || "sms") as "sms" | "whatsapp" | "email",
   });
 
   const handleSaveEdit = () => {
+    if (record) {
+      updateClient(record.id, {
+        name: editData.name, phone: editData.phone, gender: editData.gender,
+        notes: editData.notes, address: editData.address,
+        preferredChannel: editData.preferredChannel,
+      });
+    }
     setEditing(false);
     toast({ title: "Profile updated", description: "Client details saved successfully." });
   };
@@ -286,6 +324,17 @@ const ClientProfile = () => {
                 <textarea value={editData.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} rows={3}
                   className="w-full bg-background border border-border rounded-xl py-2.5 px-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none" />
               </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1 block">Preferred Contact Channel</label>
+                <div className="flex gap-2">
+                  {(["sms", "whatsapp", "email"] as const).map((ch) => (
+                    <motion.button key={ch} whileTap={{ scale: 0.95 }} onClick={() => setEditData({ ...editData, preferredChannel: ch })}
+                      className={`flex-1 py-2 rounded-xl text-xs font-medium border transition-all capitalize ${editData.preferredChannel === ch ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+                      {ch}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
               <motion.button whileTap={{ scale: 0.97 }} onClick={handleSaveEdit}
                 className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center gap-2">
                 <Save className="w-4 h-4" /> Save Changes
@@ -335,7 +384,7 @@ const ClientProfile = () => {
 
       <div className="px-5">
         <AnimatePresence mode="wait">
-          {activeTab === "Measurements" && <MeasurementsTab key="m" measurements={client.measurements} />}
+          {activeTab === "Measurements" && <MeasurementsTab key="m" measurements={client.measurements} records={liveMeasurements} />}
           {activeTab === "Orders" && <OrdersTab key="o" orders={client.orders} />}
           {activeTab === "Payments" && <PaymentsTab key="p" payments={client.payments} />}
           {activeTab === "History" && <HistoryTab key="h" client={client} />}

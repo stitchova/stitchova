@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt, Send, Sparkles, PackageCheck } from "lucide-react";
+import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt, Send, Sparkles, PackageCheck, Truck, MapPin, ChevronDown, ChevronUp, Image as ImageIcon } from "lucide-react";
 import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceContext";
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useAtelier, PAYMENT_METHODS } from "@/contexts/AtelierContext";
+import { useAtelier, PAYMENT_METHODS, DeliveryStatus } from "@/contexts/AtelierContext";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -35,7 +35,7 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const { orderById, orders, advanceStage, addPayment } = useAtelier();
+  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById } = useAtelier();
   // clientId param may be an order id (new format) or legacy demo clientId
   const order =
     orderById(clientId || "") ||
@@ -45,6 +45,7 @@ const OrderDetail = () => {
   const [showPay, setShowPay] = useState(false);
   const [payAmount, setPayAmount] = useState("");
   const [payMethod, setPayMethod] = useState(PAYMENT_METHODS[0]);
+  const [showCosts, setShowCosts] = useState(false);
 
   if (!order) {
     return (
@@ -58,6 +59,33 @@ const OrderDetail = () => {
   const currentStage = order.currentStage;
   const paidTotal = order.payments.reduce((s, p) => s + p.amount, 0);
   const balance = Math.max(0, order.price - paidTotal);
+  const clientRec = clientById(order.clientId);
+  const preferredChannel = clientRec?.preferredChannel;
+
+  // Cost breakdown auto-suggestion from linked inventory
+  const inventoryFabricCost = order.fabricUse.reduce((s, f) => {
+    // best-effort: use inventory fabric price
+    return s + 0; // amounts stored, price lives on Fabric entity; keep 0 as fallback
+  }, 0);
+  const costs = order.costs || {};
+  const fabricCost = costs.fabric ?? 0;
+  const materialsCost = costs.materials ?? 0;
+  const laborCost = costs.labor ?? (order.price - fabricCost - materialsCost > 0 ? order.price - fabricCost - materialsCost : 0);
+
+  const deliveryStages: { key: DeliveryStatus; label: string }[] =
+    order.deliveryMethod === "delivery"
+      ? [
+          { key: "pending", label: "Preparing" },
+          { key: "ready", label: "Ready" },
+          { key: "out_for_delivery", label: "Out for Delivery" },
+          { key: "received", label: "Received" },
+        ]
+      : [
+          { key: "pending", label: "Preparing" },
+          { key: "ready", label: "Ready for Pickup" },
+          { key: "received", label: "Received" },
+        ];
+  const deliveryIdx = Math.max(0, deliveryStages.findIndex(s => s.key === (order.deliveryStatus || "pending")));
   const paymentPlan = paidTotal >= order.price ? "Paid in Full" : paidTotal === 0 ? "Unpaid" : "Installment";
   const statusColor = order.status === "completed" ? "bg-status-completed"
     : order.status === "requested" ? "bg-primary/60"
@@ -117,11 +145,16 @@ const OrderDetail = () => {
       toast("Stage updated. Upgrade to Premium+ to auto-notify clients.");
       return;
     }
+    // Default to the client's preferred channel (map whatsapp -> sms for our sms/email model)
+    const preferChannels = preferredChannel
+      ? preferredChannel === "email" ? (["email"] as const) : (["sms"] as const)
+      : undefined;
     const recs = send({
       key,
       clientName: order.client,
       clientContact: order.client.split(" ")[0].toLowerCase() + "@client.local",
       brandName: brand.businessName,
+      channels: preferChannels as any,
       tokens: {
         garment: order.garment.toLowerCase(),
         stage: productionStages[stageIdx],
@@ -134,6 +167,7 @@ const OrderDetail = () => {
 
   const markReceived = () => {
     setReceived(true);
+    setDeliveryStatus(order.id, "received");
     if (!commsUnlocked) {
       toast("Marked as received. Upgrade to Premium+ to send thank-you automatically.");
       return;
@@ -184,6 +218,18 @@ const OrderDetail = () => {
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Style Description</p>
             <p className="text-xs text-foreground">{order.styleDesc}</p>
           </div>
+          {order.photos && order.photos.length > 0 && (
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <ImageIcon className="w-3 h-3" /> Reference Photos
+              </p>
+              <div className="flex gap-2 overflow-x-auto">
+                {order.photos.map((p, i) => (
+                  <img key={i} src={p} alt={`ref-${i}`} className="w-24 h-24 rounded-lg object-cover flex-shrink-0" />
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex gap-4">
             <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">Due: {order.dueDate}</span></div>
             <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-xs text-foreground">{order.client}</span></div>
@@ -234,6 +280,97 @@ const OrderDetail = () => {
               ))}
             </div>
           )}
+          {/* Cost breakdown (designer-only, expandable) */}
+          <button onClick={() => setShowCosts(s => !s)}
+            className="mt-3 w-full flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/40 pt-2">
+            <span>Cost breakdown (margin)</span>
+            {showCosts ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+          <AnimatePresence>
+            {showCosts && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden">
+                <div className="pt-2 space-y-2">
+                  {(["fabric", "materials", "labor"] as const).map((k) => (
+                    <div key={k} className="flex items-center justify-between gap-2">
+                      <label className="text-[10px] text-muted-foreground uppercase capitalize flex-1">{k} cost</label>
+                      <input type="number" inputMode="decimal"
+                        defaultValue={String(order.costs?.[k] ?? "")}
+                        onBlur={(e) => updateOrder(order.id, { costs: { ...(order.costs || {}), [k]: parseFloat(e.target.value) || 0 } })}
+                        placeholder="0"
+                        className="w-24 bg-secondary/50 border border-border rounded-lg px-2 py-1 text-[11px] text-foreground text-right outline-none" />
+                    </div>
+                  ))}
+                  {(() => {
+                    const f = order.costs?.fabric || 0;
+                    const m = order.costs?.materials || 0;
+                    const l = order.costs?.labor || 0;
+                    const total = f + m + l;
+                    const margin = order.price - total;
+                    return (
+                      <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                        <span className="text-[10px] text-muted-foreground">Est. Margin</span>
+                        <span className={`text-xs font-bold ${margin >= 0 ? "text-status-completed" : "text-destructive"}`}>
+                          {money(margin, brand.currency)}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                  <p className="text-[9px] text-muted-foreground italic">Visible only to you — not shown to clients.</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Delivery */}
+        <motion.div {...fadeUp} transition={{ delay: 0.035 }} className="card-surface p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              {order.deliveryMethod === "delivery" ? <Truck className="w-3.5 h-3.5" /> : <Package className="w-3.5 h-3.5" />}
+              {order.deliveryMethod === "delivery" ? "Delivery" : "Pickup"}
+            </span>
+            <div className="flex gap-1">
+              {(["pickup", "delivery"] as const).map(m => (
+                <button key={m} onClick={() => updateOrder(order.id, { deliveryMethod: m })}
+                  className={cn("px-2 py-0.5 rounded-md text-[9px] font-bold uppercase",
+                    (order.deliveryMethod || "pickup") === m ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+          {order.deliveryMethod === "delivery" && (
+            <div className="mb-3 space-y-1.5">
+              <div className="flex items-center gap-2 text-[11px] text-foreground">
+                <MapPin className="w-3 h-3 text-muted-foreground" />
+                <input value={order.deliveryAddress || clientRec?.address || ""}
+                  onChange={(e) => updateOrder(order.id, { deliveryAddress: e.target.value })}
+                  placeholder="Delivery address"
+                  className="flex-1 bg-secondary/40 rounded-md px-2 py-1 outline-none text-[11px]" />
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-[11px] text-foreground mb-3">
+            <Calendar className="w-3 h-3 text-muted-foreground" />
+            <input type="datetime-local"
+              value={order.deliveryDate || ""}
+              onChange={(e) => updateOrder(order.id, { deliveryDate: e.target.value })}
+              className="flex-1 bg-secondary/40 rounded-md px-2 py-1 outline-none text-[11px]" />
+          </div>
+          <div className="flex items-center justify-between">
+            {deliveryStages.map((s, i) => (
+              <button key={s.key} onClick={() => setDeliveryStatus(order.id, s.key)}
+                className="flex flex-col items-center flex-1 focus:outline-none">
+                <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 transition-all",
+                  i <= deliveryIdx ? "bg-primary border-primary text-primary-foreground" : "bg-secondary border-border text-muted-foreground")}>
+                  {i < deliveryIdx ? "✓" : i + 1}
+                </div>
+                <span className={cn("text-[8px] mt-1 text-center leading-tight", i <= deliveryIdx ? "text-primary" : "text-muted-foreground")}>{s.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-[9px] text-muted-foreground mt-2 text-center">Tap a stage to update delivery status.</p>
         </motion.div>
 
         {/* Billing */}

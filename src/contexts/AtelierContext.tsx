@@ -5,6 +5,10 @@ import orderAgbada from "@/assets/order-agbada.jpg";
 
 // ---------- Types ----------
 export type OrderStatus = "requested" | "active" | "completed" | "declined";
+export type DeliveryMethod = "pickup" | "delivery";
+export type DeliveryStatus = "pending" | "ready" | "out_for_delivery" | "received";
+export type ContactChannel = "sms" | "whatsapp" | "email";
+export type MeasurementUnit = "in" | "cm";
 
 export interface Client {
   id: string;
@@ -15,6 +19,8 @@ export interface Client {
   initials: string;
   joined: string;
   referralSource?: string;
+  address?: string;
+  preferredChannel?: ContactChannel;
 }
 
 export interface Measurement {
@@ -27,6 +33,8 @@ export interface Measurement {
   fields: Record<string, string>;
   notes?: string;
   createdAt: string;
+  unit?: MeasurementUnit;
+  photo?: string; // base64 data URL, single reference photo
 }
 
 export interface OrderPayment {
@@ -64,6 +72,12 @@ export interface Order {
   createdAt: string;
   source?: "manual" | "marketplace";
   designerId?: string;
+  photos?: string[]; // reference/inspiration photos, base64 data URLs
+  deliveryMethod?: DeliveryMethod;
+  deliveryAddress?: string;
+  deliveryDate?: string; // ISO date-time
+  deliveryStatus?: DeliveryStatus;
+  costs?: { fabric?: number; materials?: number; labor?: number };
 }
 
 export interface Fabric {
@@ -223,8 +237,11 @@ interface AtelierState {
   materials: Material[];
 
   addClient: (c: Omit<Client, "id" | "initials" | "joined"> & { id?: string; initials?: string; joined?: string }) => Client;
+  updateClient: (id: string, patch: Partial<Client>) => void;
   addMeasurement: (m: Omit<Measurement, "id" | "createdAt">) => Measurement;
   addOrder: (o: Omit<Order, "id" | "createdAt" | "img"> & { img?: string }) => Order;
+  updateOrder: (id: string, patch: Partial<Order>) => void;
+  setDeliveryStatus: (orderId: string, status: DeliveryStatus) => void;
   advanceStage: (orderId: string, stageIdx: number) => void;
   addPayment: (orderId: string, p: Omit<OrderPayment, "id">) => void;
   confirmOrder: (orderId: string) => void;
@@ -275,9 +292,15 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
       initials: c.initials || initialsOf(c.name),
       joined: c.joined || new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
       referralSource: c.referralSource,
+      address: c.address,
+      preferredChannel: c.preferredChannel,
     };
     setClients((prev) => [client, ...prev]);
     return client;
+  }, [setClients]);
+
+  const updateClient: AtelierState["updateClient"] = useCallback((id, patch) => {
+    setClients((prev) => prev.map(c => c.id === id ? { ...c, ...patch } : c));
   }, [setClients]);
 
   const addMeasurement: AtelierState["addMeasurement"] = useCallback((m) => {
@@ -292,9 +315,18 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
       ...o, img,
       id: `ord-${Date.now()}`,
       createdAt: new Date().toISOString(),
+      deliveryStatus: o.deliveryStatus || "pending",
     };
     setOrders((prev) => [order, ...prev]);
     return order;
+  }, [setOrders]);
+
+  const updateOrder: AtelierState["updateOrder"] = useCallback((id, patch) => {
+    setOrders((prev) => prev.map(o => o.id === id ? { ...o, ...patch } : o));
+  }, [setOrders]);
+
+  const setDeliveryStatus: AtelierState["setDeliveryStatus"] = useCallback((orderId, status) => {
+    setOrders((prev) => prev.map(o => o.id === orderId ? { ...o, deliveryStatus: status } : o));
   }, [setOrders]);
 
   const advanceStage: AtelierState["advanceStage"] = useCallback((orderId, stageIdx) => {
@@ -350,10 +382,10 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
 
   const value: AtelierState = useMemo(() => ({
     clients, measurements, orders, fabrics, materials,
-    addClient, addMeasurement, addOrder, advanceStage, addPayment, confirmOrder, declineOrder,
+    addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder,
     setFabrics, setMaterials, deductFabric, deductMaterial,
     latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient,
-  }), [clients, measurements, orders, fabrics, materials, addClient, addMeasurement, addOrder, advanceStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
+  }), [clients, measurements, orders, fabrics, materials, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
 
   return <AtelierContext.Provider value={value}>{children}</AtelierContext.Provider>;
 };
