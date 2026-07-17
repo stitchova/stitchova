@@ -3,8 +3,8 @@ import { UserPlus, Ruler, ClipboardList, CalendarDays, Shirt, Package, ArrowLeft
 import { useNavigate } from "react-router-dom";
 
 const actions = [
-  { icon: UserPlus, label: "New Client", desc: "Add a new client to your list", color: "text-primary", path: "/clients" },
-  { icon: ClipboardList, label: "New Order", desc: "Create a fashion order", color: "text-primary", path: "/orders" },
+  { icon: UserPlus, label: "New Client", desc: "Add a new client to your list", color: "text-primary", path: "/clients?new=1" },
+  { icon: ClipboardList, label: "New Order", desc: "Create a fashion order", color: "text-primary", path: "/orders?new=1" },
   { icon: Ruler, label: "Record Measurement", desc: "Take client measurements", color: "text-primary", path: "/measurements" },
   { icon: CalendarDays, label: "Schedule Appointment", desc: "Schedule a fitting session for a client", color: "text-primary", path: "/appointments" },
   { icon: Shirt, label: "Add Fabric", desc: "Add to your fabric collection", color: "text-primary", path: "/fabrics" },
