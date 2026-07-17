@@ -280,9 +280,12 @@ const Measurements = () => {
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowAddField(true)}
                 className="text-xs text-primary font-medium flex items-center gap-1">
-                <Plus className="w-3.5 h-3.5" /> Add Field
+                <Plus className="w-3.5 h-3.5" /> Add Field (this session)
               </motion.button>
             </div>
+            <p className="text-[10px] text-muted-foreground italic -mt-2">
+              Custom fields apply to this measurement only — they aren't saved as a permanent template yet.
+            </p>
 
             <AnimatePresence>
               {showAddField && (
