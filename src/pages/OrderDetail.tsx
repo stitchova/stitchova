@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt, Send, Sparkles, PackageCheck } from "lucide-react";
+import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt, Send, Sparkles, PackageCheck, Truck, MapPin, ChevronDown, ChevronUp, Image as ImageIcon } from "lucide-react";
 import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceContext";
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useAtelier, PAYMENT_METHODS } from "@/contexts/AtelierContext";
+import { useAtelier, PAYMENT_METHODS, DeliveryStatus } from "@/contexts/AtelierContext";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -35,7 +35,7 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const { orderById, orders, advanceStage, addPayment } = useAtelier();
+  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById } = useAtelier();
   // clientId param may be an order id (new format) or legacy demo clientId
   const order =
     orderById(clientId || "") ||
@@ -45,6 +45,7 @@ const OrderDetail = () => {
   const [showPay, setShowPay] = useState(false);
   const [payAmount, setPayAmount] = useState("");
   const [payMethod, setPayMethod] = useState(PAYMENT_METHODS[0]);
+  const [showCosts, setShowCosts] = useState(false);
 
   if (!order) {
     return (
@@ -58,6 +59,33 @@ const OrderDetail = () => {
   const currentStage = order.currentStage;
   const paidTotal = order.payments.reduce((s, p) => s + p.amount, 0);
   const balance = Math.max(0, order.price - paidTotal);
+  const clientRec = clientById(order.clientId);
+  const preferredChannel = clientRec?.preferredChannel;
+
+  // Cost breakdown auto-suggestion from linked inventory
+  const inventoryFabricCost = order.fabricUse.reduce((s, f) => {
+    // best-effort: use inventory fabric price
+    return s + 0; // amounts stored, price lives on Fabric entity; keep 0 as fallback
+  }, 0);
+  const costs = order.costs || {};
+  const fabricCost = costs.fabric ?? 0;
+  const materialsCost = costs.materials ?? 0;
+  const laborCost = costs.labor ?? (order.price - fabricCost - materialsCost > 0 ? order.price - fabricCost - materialsCost : 0);
+
+  const deliveryStages: { key: DeliveryStatus; label: string }[] =
+    order.deliveryMethod === "delivery"
+      ? [
+          { key: "pending", label: "Preparing" },
+          { key: "ready", label: "Ready" },
+          { key: "out_for_delivery", label: "Out for Delivery" },
+          { key: "received", label: "Received" },
+        ]
+      : [
+          { key: "pending", label: "Preparing" },
+          { key: "ready", label: "Ready for Pickup" },
+          { key: "received", label: "Received" },
+        ];
+  const deliveryIdx = Math.max(0, deliveryStages.findIndex(s => s.key === (order.deliveryStatus || "pending")));
   const paymentPlan = paidTotal >= order.price ? "Paid in Full" : paidTotal === 0 ? "Unpaid" : "Installment";
   const statusColor = order.status === "completed" ? "bg-status-completed"
     : order.status === "requested" ? "bg-primary/60"
@@ -117,11 +145,16 @@ const OrderDetail = () => {
       toast("Stage updated. Upgrade to Premium+ to auto-notify clients.");
       return;
     }
+    // Default to the client's preferred channel (map whatsapp -> sms for our sms/email model)
+    const preferChannels = preferredChannel
+      ? preferredChannel === "email" ? (["email"] as const) : (["sms"] as const)
+      : undefined;
     const recs = send({
       key,
       clientName: order.client,
       clientContact: order.client.split(" ")[0].toLowerCase() + "@client.local",
       brandName: brand.businessName,
+      channels: preferChannels as any,
       tokens: {
         garment: order.garment.toLowerCase(),
         stage: productionStages[stageIdx],
@@ -134,6 +167,7 @@ const OrderDetail = () => {
 
   const markReceived = () => {
     setReceived(true);
+    setDeliveryStatus(order.id, "received");
     if (!commsUnlocked) {
       toast("Marked as received. Upgrade to Premium+ to send thank-you automatically.");
       return;
