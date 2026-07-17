@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Send, Camera, CheckCircle } from "lucide-react";
+import { ArrowLeft, Star, Send, Camera, CheckCircle, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useReviews } from "@/contexts/ReviewsContext";
+import { useAtelier } from "@/contexts/AtelierContext";
+import { useToast } from "@/hooks/use-toast";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -25,13 +27,21 @@ const categories = [
 const ReviewDesigner = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { addReview } = useReviews();
-  const designer = designerInfo[id || "nana-ama"] || designerInfo["nana-ama"];
+  const { addReview, hasReviewedOrder } = useReviews();
+  const { orderById } = useAtelier();
+  const { toast } = useToast();
+
+  // id may be an order id (preferred) or legacy designer slug.
+  const order = orderById(id || "");
+  const designerId = order?.designerId || id || "nana-ama";
+  const designer = designerInfo[designerId] || designerInfo["nana-ama"];
+  const alreadyReviewed = order ? hasReviewedOrder(order.id) : false;
 
   const [overallRating, setOverallRating] = useState(0);
   const [categoryRatings, setCategoryRatings] = useState<Record<string, number>>({});
   const [review, setReview] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
 
   const handleCategoryRating = (key: string, value: number) => {
     setCategoryRatings((prev) => ({ ...prev, [key]: value }));
@@ -40,16 +50,48 @@ const ReviewDesigner = () => {
   const canSubmit = overallRating > 0 && review.trim().length > 10;
 
   const handleSubmit = () => {
+    if (alreadyReviewed) {
+      toast({ title: "Already reviewed", description: "You've already left a review for this order.", variant: "destructive" });
+      return;
+    }
     addReview({
-      designerId: id || "nana-ama",
+      designerId,
       clientName: "You",
       rating: overallRating,
       categories: categoryRatings,
       text: review.trim(),
+      orderId: order?.id,
+      garment: order?.type || order?.garment,
+      photo: photo || undefined,
     });
     setSubmitted(true);
     setTimeout(() => navigate(-1), 2500);
   };
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast({ title: "Photo too large", description: "Max 4MB.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(String(reader.result));
+    reader.readAsDataURL(file);
+  };
+
+  if (alreadyReviewed && !submitted) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center">
+        <div className="w-20 h-20 rounded-full bg-status-completed/20 flex items-center justify-center mb-6">
+          <CheckCircle className="w-10 h-10 text-status-completed" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground mb-2">Already Reviewed</h2>
+        <p className="text-sm text-muted-foreground mb-6">You've already left a review for this order.</p>
+        <button onClick={() => navigate(-1)} className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold">Go Back</button>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -98,7 +140,9 @@ const ReviewDesigner = () => {
           <img src={designer.avatar} alt={designer.name} className="w-14 h-14 rounded-2xl object-cover" />
           <div>
             <p className="text-sm font-semibold text-foreground">{designer.name}</p>
-            <p className="text-[10px] text-muted-foreground">How was your experience?</p>
+            <p className="text-[10px] text-muted-foreground">
+              {order ? `Reviewing: ${order.type || order.garment}` : "How was your experience?"}
+            </p>
           </div>
         </div>
 
@@ -171,14 +215,21 @@ const ReviewDesigner = () => {
           <p className="text-[10px] text-muted-foreground text-right">{review.length} / 500</p>
         </div>
 
-        {/* Add Photos */}
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          className="w-full card-surface p-4 flex items-center justify-center gap-2 border border-dashed border-border"
-        >
-          <Camera className="w-4 h-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Add Photos (optional)</span>
-        </motion.button>
+        {/* Add Photo */}
+        {photo ? (
+          <div className="relative">
+            <img src={photo} alt="Attached" className="w-full h-48 object-cover rounded-2xl" />
+            <button onClick={() => setPhoto(null)} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/85 backdrop-blur flex items-center justify-center">
+              <X className="w-4 h-4 text-foreground" />
+            </button>
+          </div>
+        ) : (
+          <label className="w-full card-surface p-4 flex items-center justify-center gap-2 border border-dashed border-border cursor-pointer">
+            <Camera className="w-4 h-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Add a photo of the finished outfit (optional)</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+          </label>
+        )}
       </div>
 
       {/* Submit CTA */}
