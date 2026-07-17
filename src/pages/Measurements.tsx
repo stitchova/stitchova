@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Save, ChevronRight, Plus, X, History, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAtelier } from "@/contexts/AtelierContext";
+import ClientPicker from "@/components/ClientPicker";
 
 const genders = [
   { id: "male", label: "Male", emoji: "👨" },
@@ -59,23 +61,19 @@ const defaultMeasurementFields: Record<string, string[]> = {
   Uniform: ["Chest", "Shoulder", "Sleeve", "Length", "Waist", "Trouser Length"],
 };
 
-const measurementHistory = [
-  { date: "Mar 15, 2024", garment: "Gown", fields: { Bust: '36"', Waist: '28"', Hip: '38"' } },
-  { date: "Jan 10, 2024", garment: "Blouse", fields: { Bust: '35.5"', Shoulder: '15"', Sleeve: '24"' } },
-  { date: "Nov 5, 2023", garment: "Gown", fields: { Bust: '35"', Waist: '27.5"', Hip: '37.5"' } },
-];
-
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 
 const Measurements = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { addMeasurement, measurements, clientById, latestMeasurement } = useAtelier();
   const [step, setStep] = useState<"select" | "fields" | "history">("select");
   const [gender, setGender] = useState("female");
   const [ageGroup, setAgeGroup] = useState("adult");
   const [category, setCategory] = useState("women");
   const [garment, setGarment] = useState<string | null>(null);
-  const [clientName, setClientName] = useState("");
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
   const [values, setValues] = useState<Record<string, string>>({});
   const [customFields, setCustomFields] = useState<string[]>([]);
   const [newFieldName, setNewFieldName] = useState("");
@@ -83,6 +81,26 @@ const Measurements = () => {
 
   const defaultFields = garment ? (defaultMeasurementFields[garment] || []) : [];
   const allFields = [...defaultFields, ...customFields];
+  const selectedClient = clientId ? clientById(clientId) : undefined;
+
+  // Auto-populate prior measurements for repeat client + garment
+  useEffect(() => {
+    if (!clientId || !garment) return;
+    const prior = latestMeasurement(clientId, garment);
+    if (prior) {
+      setValues(prior.fields);
+      toast({ title: "Loaded previous measurements", description: `From ${prior.createdAt}` });
+    } else {
+      setValues({});
+    }
+  }, [clientId, garment, latestMeasurement, toast]);
+
+  // Auto-set gender when client selected
+  useEffect(() => {
+    if (!selectedClient) return;
+    if (selectedClient.gender === "Male") { setGender("male"); setCategory("men"); }
+    else if (selectedClient.gender === "Female") { setGender("female"); setCategory("women"); }
+  }, [selectedClient]);
 
   const handleAddField = () => {
     const name = newFieldName.trim();
@@ -109,7 +127,11 @@ const Measurements = () => {
   };
 
   const handleSave = () => {
-    toast({ title: "Measurements saved!", description: `${garment} measurements for ${clientName || "client"} recorded.` });
+    if (!clientId || !garment) return;
+    addMeasurement({
+      clientId, garment, gender, ageGroup, category, fields: values, notes,
+    });
+    toast({ title: "Measurements saved!", description: `${garment} for ${selectedClient?.name} recorded.` });
     navigate(-1);
   };
 
@@ -140,31 +162,33 @@ const Measurements = () => {
         {step === "history" ? (
           <motion.div key="history" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-4">
             <p className="text-sm text-muted-foreground">Track measurement changes over time</p>
-            {measurementHistory.map((entry, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                className="card-glass p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">{entry.garment}</p>
-                  <span className="text-[10px] text-muted-foreground">{entry.date}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(entry.fields).map(([k, v]) => (
-                    <div key={k} className="bg-secondary/50 rounded-lg p-2 text-center">
-                      <p className="text-[9px] text-muted-foreground uppercase">{k}</p>
-                      <p className="text-sm font-bold text-foreground">{v}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+            {measurements.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-8">No measurements recorded yet.</p>
+            )}
+            {measurements.map((entry, i) => {
+              const cname = clientById(entry.clientId)?.name || "—";
+              return (
+                <motion.div key={entry.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                  className="card-glass p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground">{entry.garment} <span className="text-[10px] text-muted-foreground">· {cname}</span></p>
+                    <span className="text-[10px] text-muted-foreground">{entry.createdAt}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(entry.fields).map(([k, v]) => (
+                      <div key={k} className="bg-secondary/50 rounded-lg p-2 text-center">
+                        <p className="text-[9px] text-muted-foreground uppercase">{k}</p>
+                        <p className="text-sm font-bold text-foreground">{String(v)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
           </motion.div>
         ) : step === "select" ? (
           <motion.div key="select" variants={fadeUp} initial="hidden" animate="visible" exit="hidden" className="px-5 pt-4 space-y-5">
-            <div>
-              <label className="text-sm text-muted-foreground mb-1.5 block">Client Name</label>
-              <input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Enter client name"
-                className="w-full bg-card border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors" />
-            </div>
+            <ClientPicker value={clientId} onChange={(id) => setClientId(id)} />
 
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Gender</label>
@@ -211,7 +235,10 @@ const Measurements = () => {
               <div className="grid grid-cols-2 gap-3">
                 {(garmentTypes[category] || []).map((g) => (
                   <motion.button key={g.label} whileTap={{ scale: 0.96 }}
-                    onClick={() => { setGarment(g.label); setValues({}); setCustomFields([]); setStep("fields"); }}
+                    onClick={() => {
+                      if (!clientId) { toast({ title: "Pick a client first", variant: "destructive" }); return; }
+                      setGarment(g.label); setCustomFields([]); setStep("fields");
+                    }}
                     className="card-surface p-4 flex items-center gap-3 border border-transparent hover:border-border transition-all text-left">
                     <span className="text-2xl">{g.emoji}</span>
                     <div className="flex-1">
@@ -229,7 +256,7 @@ const Measurements = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">All measurements in inches</p>
-                <p className="text-[10px] text-primary">{gender === "male" ? "👨 Male" : "👩 Female"} · {ageGroups.find(a => a.id === ageGroup)?.label}</p>
+                <p className="text-[10px] text-primary">{selectedClient?.name} · {gender === "male" ? "👨 Male" : "👩 Female"} · {ageGroups.find(a => a.id === ageGroup)?.label}</p>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowAddField(true)}
                 className="text-xs text-primary font-medium flex items-center gap-1">
@@ -279,7 +306,7 @@ const Measurements = () => {
 
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">Notes (optional)</label>
-              <textarea placeholder="Add fitting notes..." rows={3}
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Add fitting notes..." rows={3}
                 className="w-full bg-card border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary transition-colors resize-none" />
             </div>
           </motion.div>
