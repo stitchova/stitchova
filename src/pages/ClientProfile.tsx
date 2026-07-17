@@ -324,6 +324,17 @@ const ClientProfile = () => {
                 <textarea value={editData.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} rows={3}
                   className="w-full bg-background border border-border rounded-xl py-2.5 px-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none" />
               </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1 block">Preferred Contact Channel</label>
+                <div className="flex gap-2">
+                  {(["sms", "whatsapp", "email"] as const).map((ch) => (
+                    <motion.button key={ch} whileTap={{ scale: 0.95 }} onClick={() => setEditData({ ...editData, preferredChannel: ch })}
+                      className={`flex-1 py-2 rounded-xl text-xs font-medium border transition-all capitalize ${editData.preferredChannel === ch ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+                      {ch}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
               <motion.button whileTap={{ scale: 0.97 }} onClick={handleSaveEdit}
                 className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center gap-2">
                 <Save className="w-4 h-4" /> Save Changes
