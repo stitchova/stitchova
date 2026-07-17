@@ -66,6 +66,7 @@ import { ReviewsProvider } from "@/contexts/ReviewsContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import ClientCommunications from "./pages/ClientCommunications";
 import OAuthConsent from "./pages/OAuthConsent";
+import { AtelierProvider } from "@/contexts/AtelierContext";
 
 const queryClient = new QueryClient();
 
@@ -169,9 +170,11 @@ const App = () => (
                 <BrandInvoiceProvider>
                 <NotificationsProvider>
                 <ReviewsProvider>
+                <AtelierProvider>
                 <LockProvider>
                   <AppShell />
                 </LockProvider>
+                </AtelierProvider>
                 </ReviewsProvider>
                 </NotificationsProvider>
                 </BrandInvoiceProvider>
