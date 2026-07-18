@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 
-export type NotifChannel = "email" | "sms";
+export type NotifChannel = "email" | "sms" | "whatsapp";
 export type NotifStatus = "sent" | "scheduled" | "failed";
 export type NotifTriggerKey =
   | "stage_cutting"
@@ -68,7 +68,7 @@ const DEFAULT_TEMPLATES: NotifTemplate[] = [
     subject: "{brand}: Thank you for collecting your {garment}",
     body: "Hi {client}, thank you for picking up your {garment}. We hope you love it! We'd truly appreciate a quick review. — {brand}",
     autoSchedule: "immediate" },
-  { key: "appointment_reminder", label: "Appointment reminder", channels: ["sms"], enabled: true,
+  { key: "appointment_reminder", label: "Appointment reminder", channels: ["sms", "whatsapp"], enabled: true,
     subject: "{brand}: Reminder for your appointment",
     body: "Hi {client}, this is a reminder of your appointment with {brand} on {date}. See you soon!",
     autoSchedule: "24h_before" },
@@ -155,7 +155,7 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
         channel: ch,
         status: scheduledFor && scheduledFor > now ? "scheduled" : "sent",
         clientName,
-        clientContact: clientContact || (ch === "email" ? "—" : "—"),
+        clientContact: clientContact || "—",
         brandName,
         subject,
         body,
@@ -186,7 +186,9 @@ export const downloadMessagePreview = (rec: NotifRecord) => {
   const header =
     rec.channel === "email"
       ? `From: ${rec.brandName} <notify@${rec.brandName.toLowerCase().replace(/[^a-z0-9]/g, "")}.co>\nTo: ${rec.clientName} <${rec.clientContact}>\nSubject: ${rec.subject}\n\n`
-      : `${rec.brandName} SMS\nTo: ${rec.clientContact}\n\n`;
+      : rec.channel === "whatsapp"
+        ? `${rec.brandName} WhatsApp\nTo: ${rec.clientContact}\n\n`
+        : `${rec.brandName} SMS\nTo: ${rec.clientContact}\n\n`;
   const blob = new Blob([header + rec.body], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
