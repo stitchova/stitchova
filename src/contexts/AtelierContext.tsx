@@ -266,6 +266,7 @@ interface AtelierState {
   orders: Order[];
   fabrics: Fabric[];
   materials: Material[];
+  measurementTemplates: Record<string, string[]>;
 
   addClient: (c: Omit<Client, "id" | "initials" | "joined"> & { id?: string; initials?: string; joined?: string }) => Client;
   updateClient: (id: string, patch: Partial<Client>) => void;
@@ -282,6 +283,9 @@ interface AtelierState {
   setMaterials: React.Dispatch<React.SetStateAction<Material[]>>;
   deductFabric: (id: string, amount: number) => void;
   deductMaterial: (id: string, amount: number) => void;
+
+  addTemplateField: (garment: string, field: string) => void;
+  removeTemplateField: (garment: string, field: string) => void;
 
   latestMeasurement: (clientId: string, garment: string) => Measurement | undefined;
   clientById: (id: string) => Client | undefined;
@@ -311,6 +315,10 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useLS<Order[]>("stitchova.orders", seedOrders);
   const [fabrics, setFabrics] = useLS<Fabric[]>("stitchova.fabrics", seedFabrics);
   const [materials, setMaterials] = useLS<Material[]>("stitchova.materials", seedMaterials);
+  const [measurementTemplates, setMeasurementTemplates] = useLS<Record<string, string[]>>(
+    "stitchova.measurementTemplates.v1",
+    {},
+  );
 
   const addClient: AtelierState["addClient"] = useCallback((c) => {
     const id = c.id || slugId(c.name);
@@ -401,6 +409,25 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, [setMaterials]);
 
+  const addTemplateField: AtelierState["addTemplateField"] = useCallback((garment, field) => {
+    const name = field.trim();
+    if (!garment || !name) return;
+    setMeasurementTemplates((prev) => {
+      const existing = prev[garment] || [];
+      if (existing.includes(name)) return prev;
+      return { ...prev, [garment]: [...existing, name] };
+    });
+  }, [setMeasurementTemplates]);
+
+  const removeTemplateField: AtelierState["removeTemplateField"] = useCallback((garment, field) => {
+    setMeasurementTemplates((prev) => {
+      const existing = prev[garment] || [];
+      const next = existing.filter((f) => f !== field);
+      if (next.length === existing.length) return prev;
+      return { ...prev, [garment]: next };
+    });
+  }, [setMeasurementTemplates]);
+
   const clientById = useCallback((id: string) => clients.find(c => c.id === id), [clients]);
   const orderById = useCallback((id: string) => orders.find(o => o.id === id), [orders]);
   const ordersByClient = useCallback((cid: string) => orders.filter(o => o.clientId === cid), [orders]);
@@ -412,11 +439,12 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
   }, [measurements]);
 
   const value: AtelierState = useMemo(() => ({
-    clients, measurements, orders, fabrics, materials,
+    clients, measurements, orders, fabrics, materials, measurementTemplates,
     addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder,
     setFabrics, setMaterials, deductFabric, deductMaterial,
+    addTemplateField, removeTemplateField,
     latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient,
-  }), [clients, measurements, orders, fabrics, materials, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
+  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
 
   return <AtelierContext.Provider value={value}>{children}</AtelierContext.Provider>;
 };
