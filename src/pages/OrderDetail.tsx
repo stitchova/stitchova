@@ -5,7 +5,7 @@ import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, 
 import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceContext";
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useAtelier, PAYMENT_METHODS, DeliveryStatus } from "@/contexts/AtelierContext";
+import { useAtelier, PAYMENT_METHODS, DeliveryStatus, costFromFabricUse, costFromMaterialUse } from "@/contexts/AtelierContext";
 import { useReviews } from "@/contexts/ReviewsContext";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -36,7 +36,7 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById } = useAtelier();
+  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials } = useAtelier();
   // clientId param may be an order id (new format) or legacy demo clientId
   const order =
     orderById(clientId || "") ||
@@ -63,14 +63,12 @@ const OrderDetail = () => {
   const clientRec = clientById(order.clientId);
   const preferredChannel = clientRec?.preferredChannel;
 
-  // Cost breakdown auto-suggestion from linked inventory
-  const inventoryFabricCost = order.fabricUse.reduce((s, f) => {
-    // best-effort: use inventory fabric price
-    return s + 0; // amounts stored, price lives on Fabric entity; keep 0 as fallback
-  }, 0);
+  // Cost breakdown — prefer designer-entered override, else derive from linked inventory pricing.
+  const inventoryFabricCost = costFromFabricUse(order.fabricUse, fabrics);
+  const inventoryMaterialsCost = costFromMaterialUse(order.materialUse, materials);
   const costs = order.costs || {};
-  const fabricCost = costs.fabric ?? 0;
-  const materialsCost = costs.materials ?? 0;
+  const fabricCost = costs.fabric ?? Math.round(inventoryFabricCost);
+  const materialsCost = costs.materials ?? Math.round(inventoryMaterialsCost);
   const laborCost = costs.labor ?? (order.price - fabricCost - materialsCost > 0 ? order.price - fabricCost - materialsCost : 0);
 
   const deliveryStages: { key: DeliveryStatus; label: string }[] =
