@@ -148,9 +148,13 @@ const OrderDetail = () => {
       toast("Stage updated. Upgrade to Pro to auto-notify clients.");
       return;
     }
-    // Default to the client's preferred channel (map whatsapp -> sms for our sms/email model)
+    // Default to the client's preferred channel (sms, whatsapp, or email).
     const preferChannels = preferredChannel
-      ? preferredChannel === "email" ? (["email"] as const) : (["sms"] as const)
+      ? preferredChannel === "email"
+        ? (["email"] as const)
+        : preferredChannel === "whatsapp"
+          ? (["whatsapp"] as const)
+          : (["sms"] as const)
       : undefined;
     const recs = send({
       key,
