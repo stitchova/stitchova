@@ -137,6 +137,37 @@ export const parsePrice = (s: string) => {
   return m ? parseFloat(m[1].replace(/,/g, "")) : 0;
 };
 
+// Per-unit price for an inventory item priced as a total (e.g. "GHS 350" for "5 yards").
+// Returns 0 when the qty is missing/zero or the price can't be parsed.
+export const perUnitPrice = (priceStr: string, qtyStr: string) => {
+  const total = parsePrice(priceStr);
+  const { n } = parseQty(qtyStr);
+  if (!total || !n || Number.isNaN(n)) return 0;
+  return total / n;
+};
+
+export const costFromFabricUse = (
+  uses: InventoryUse[],
+  fabrics: Fabric[],
+) =>
+  uses.reduce((sum, u) => {
+    const f = fabrics.find((x) => x.id === u.id);
+    if (!f) return sum;
+    return sum + perUnitPrice(f.price, f.qty) * u.amount;
+  }, 0);
+
+export const costFromMaterialUse = (
+  uses: InventoryUse[],
+  materials: Material[],
+) =>
+  uses.reduce((sum, u) => {
+    const m = materials.find((x) => x.id === u.id);
+    if (!m) return sum;
+    // materials store an explicit unit cost, prefer that; fallback to total/qty.
+    const unit = parsePrice(m.unitCost) || perUnitPrice(m.totalCost, m.qty);
+    return sum + unit * u.amount;
+  }, 0);
+
 // ---------- Seeds ----------
 const now = new Date().toISOString();
 
