@@ -309,20 +309,30 @@ const OrderDetail = () => {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden">
                 <div className="pt-2 space-y-2">
-                  {(["fabric", "materials", "labor"] as const).map((k) => (
-                    <div key={k} className="flex items-center justify-between gap-2">
-                      <label className="text-[10px] text-muted-foreground uppercase capitalize flex-1">{k} cost</label>
-                      <input type="number" inputMode="decimal"
-                        defaultValue={String(order.costs?.[k] ?? "")}
-                        onBlur={(e) => updateOrder(order.id, { costs: { ...(order.costs || {}), [k]: parseFloat(e.target.value) || 0 } })}
-                        placeholder="0"
-                        className="w-24 bg-secondary/50 border border-border rounded-lg px-2 py-1 text-[11px] text-foreground text-right outline-none" />
-                    </div>
-                  ))}
+                  {(["fabric", "materials", "labor"] as const).map((k) => {
+                    const suggested = k === "fabric" ? Math.round(inventoryFabricCost)
+                      : k === "materials" ? Math.round(inventoryMaterialsCost)
+                      : 0;
+                    return (
+                      <div key={k} className="flex items-center justify-between gap-2">
+                        <label className="text-[10px] text-muted-foreground uppercase capitalize flex-1">
+                          {k} cost
+                          {order.costs?.[k] == null && suggested > 0 && (
+                            <span className="ml-1 text-[9px] text-primary/80 normal-case">· auto</span>
+                          )}
+                        </label>
+                        <input key={`${k}-${suggested}`} type="number" inputMode="decimal"
+                          defaultValue={String(order.costs?.[k] ?? (suggested || ""))}
+                          onBlur={(e) => updateOrder(order.id, { costs: { ...(order.costs || {}), [k]: parseFloat(e.target.value) || 0 } })}
+                          placeholder="0"
+                          className="w-24 bg-secondary/50 border border-border rounded-lg px-2 py-1 text-[11px] text-foreground text-right outline-none" />
+                      </div>
+                    );
+                  })}
                   {(() => {
-                    const f = order.costs?.fabric || 0;
-                    const m = order.costs?.materials || 0;
-                    const l = order.costs?.labor || 0;
+                    const f = order.costs?.fabric ?? Math.round(inventoryFabricCost);
+                    const m = order.costs?.materials ?? Math.round(inventoryMaterialsCost);
+                    const l = order.costs?.labor ?? 0;
                     const total = f + m + l;
                     const margin = order.price - total;
                     return (
