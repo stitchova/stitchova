@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ClientPicker from "@/components/ClientPicker";
-import { useAtelier, BASE_STAGES, OPTIONAL_STAGES, PAYMENT_METHODS, parsePrice, money } from "@/contexts/AtelierContext";
+import { useAtelier, BASE_STAGES, OPTIONAL_STAGES, PAYMENT_METHODS, parsePrice, money, costFromFabricUse, costFromMaterialUse } from "@/contexts/AtelierContext";
 
 const statusTabs = ["All", "Requested", "Active", "Completed"];
 
@@ -120,6 +120,10 @@ const Orders = () => {
         return { id, name: m.name, amount, unit: "units" };
       });
 
+    // Auto-fill cost breakdown from inventory pricing so margins aren't 0 by default.
+    const fabricCost = costFromFabricUse(fabricUse, fabrics);
+    const materialsCost = costFromMaterialUse(materialUse, materials);
+
     const created = addOrder({
       clientId: newOrder.clientId,
       client: newOrder.clientName,
@@ -141,6 +145,7 @@ const Orders = () => {
       deliveryAddress: newOrder.deliveryMethod === "delivery" ? newOrder.deliveryAddress : undefined,
       deliveryDate: newOrder.deliveryDate || undefined,
       deliveryStatus: "pending",
+      costs: { fabric: Math.round(fabricCost), materials: Math.round(materialsCost) },
     });
 
     fabricUse.forEach((f) => deductFabric(f.id, f.amount));
