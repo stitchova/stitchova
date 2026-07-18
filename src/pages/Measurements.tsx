@@ -68,7 +68,7 @@ const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 const Measurements = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addMeasurement, measurements, clientById, latestMeasurement } = useAtelier();
+  const { addMeasurement, measurements, clientById, latestMeasurement, measurementTemplates, addTemplateField, removeTemplateField } = useAtelier();
   const { brand } = useBrandInvoice();
   const unit = brand.measurementUnit || "in";
   const [step, setStep] = useState<"select" | "fields" | "history">("select");
@@ -79,13 +79,13 @@ const Measurements = () => {
   const [clientId, setClientId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [values, setValues] = useState<Record<string, string>>({});
-  const [customFields, setCustomFields] = useState<string[]>([]);
   const [newFieldName, setNewFieldName] = useState("");
   const [showAddField, setShowAddField] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
 
   const defaultFields = garment ? (defaultMeasurementFields[garment] || []) : [];
-  const allFields = [...defaultFields, ...customFields];
+  const templateFields = garment ? (measurementTemplates[garment] || []) : [];
+  const allFields = [...defaultFields, ...templateFields];
   const selectedClient = clientId ? clientById(clientId) : undefined;
 
   // Auto-populate prior measurements for repeat client + garment
@@ -109,23 +109,24 @@ const Measurements = () => {
 
   const handleAddField = () => {
     const name = newFieldName.trim();
-    if (!name) return;
+    if (!name || !garment) return;
     if (allFields.includes(name)) {
       toast({ title: "Field exists", description: `"${name}" is already in the list.`, variant: "destructive" });
       return;
     }
-    setCustomFields((prev) => [...prev, name]);
+    addTemplateField(garment, name);
     setNewFieldName("");
     setShowAddField(false);
-    toast({ title: "Field added", description: `"${name}" added to measurements.` });
+    toast({ title: "Field added", description: `"${name}" now appears for every ${garment}.` });
   };
 
   const handleRemoveField = (field: string) => {
+    if (!garment) return;
     if (defaultFields.includes(field)) {
       toast({ title: "Cannot remove", description: "Default fields cannot be removed.", variant: "destructive" });
       return;
     }
-    setCustomFields((prev) => prev.filter((f) => f !== field));
+    removeTemplateField(garment, field);
     const newValues = { ...values };
     delete newValues[field];
     setValues(newValues);
@@ -257,7 +258,7 @@ const Measurements = () => {
                   <motion.button key={g.label} whileTap={{ scale: 0.96 }}
                     onClick={() => {
                       if (!clientId) { toast({ title: "Pick a client first", variant: "destructive" }); return; }
-                      setGarment(g.label); setCustomFields([]); setStep("fields");
+                      setGarment(g.label); setStep("fields");
                     }}
                     className="card-surface p-4 flex items-center gap-3 border border-transparent hover:border-border transition-all text-left">
                     <span className="text-2xl">{g.emoji}</span>
@@ -280,11 +281,11 @@ const Measurements = () => {
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowAddField(true)}
                 className="text-xs text-primary font-medium flex items-center gap-1">
-                <Plus className="w-3.5 h-3.5" /> Add Field (this session)
+                <Plus className="w-3.5 h-3.5" /> Add Field
               </motion.button>
             </div>
             <p className="text-[10px] text-muted-foreground italic -mt-2">
-              Custom fields apply to this measurement only — they aren't saved as a permanent template yet.
+              Fields you add here are saved to your <span className="text-primary">{garment}</span> template and reused for every client.
             </p>
 
             <AnimatePresence>
@@ -305,7 +306,7 @@ const Measurements = () => {
 
             <div className="grid grid-cols-2 gap-3">
               {allFields.map((field) => {
-                const isCustom = customFields.includes(field);
+                const isCustom = templateFields.includes(field);
                 return (
                   <div key={field} className="space-y-1.5">
                     <div className="flex items-center justify-between">

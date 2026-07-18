@@ -5,7 +5,7 @@ import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, 
 import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceContext";
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useAtelier, PAYMENT_METHODS, DeliveryStatus } from "@/contexts/AtelierContext";
+import { useAtelier, PAYMENT_METHODS, DeliveryStatus, costFromFabricUse, costFromMaterialUse } from "@/contexts/AtelierContext";
 import { useReviews } from "@/contexts/ReviewsContext";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -36,7 +36,7 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById } = useAtelier();
+  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials } = useAtelier();
   // clientId param may be an order id (new format) or legacy demo clientId
   const order =
     orderById(clientId || "") ||
@@ -63,14 +63,12 @@ const OrderDetail = () => {
   const clientRec = clientById(order.clientId);
   const preferredChannel = clientRec?.preferredChannel;
 
-  // Cost breakdown auto-suggestion from linked inventory
-  const inventoryFabricCost = order.fabricUse.reduce((s, f) => {
-    // best-effort: use inventory fabric price
-    return s + 0; // amounts stored, price lives on Fabric entity; keep 0 as fallback
-  }, 0);
+  // Cost breakdown — prefer designer-entered override, else derive from linked inventory pricing.
+  const inventoryFabricCost = costFromFabricUse(order.fabricUse, fabrics);
+  const inventoryMaterialsCost = costFromMaterialUse(order.materialUse, materials);
   const costs = order.costs || {};
-  const fabricCost = costs.fabric ?? 0;
-  const materialsCost = costs.materials ?? 0;
+  const fabricCost = costs.fabric ?? Math.round(inventoryFabricCost);
+  const materialsCost = costs.materials ?? Math.round(inventoryMaterialsCost);
   const laborCost = costs.labor ?? (order.price - fabricCost - materialsCost > 0 ? order.price - fabricCost - materialsCost : 0);
 
   const deliveryStages: { key: DeliveryStatus; label: string }[] =
@@ -148,9 +146,13 @@ const OrderDetail = () => {
       toast("Stage updated. Upgrade to Pro to auto-notify clients.");
       return;
     }
-    // Default to the client's preferred channel (map whatsapp -> sms for our sms/email model)
+    // Default to the client's preferred channel (sms, whatsapp, or email).
     const preferChannels = preferredChannel
-      ? preferredChannel === "email" ? (["email"] as const) : (["sms"] as const)
+      ? preferredChannel === "email"
+        ? (["email"] as const)
+        : preferredChannel === "whatsapp"
+          ? (["whatsapp"] as const)
+          : (["sms"] as const)
       : undefined;
     const recs = send({
       key,
@@ -307,20 +309,30 @@ const OrderDetail = () => {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden">
                 <div className="pt-2 space-y-2">
-                  {(["fabric", "materials", "labor"] as const).map((k) => (
-                    <div key={k} className="flex items-center justify-between gap-2">
-                      <label className="text-[10px] text-muted-foreground uppercase capitalize flex-1">{k} cost</label>
-                      <input type="number" inputMode="decimal"
-                        defaultValue={String(order.costs?.[k] ?? "")}
-                        onBlur={(e) => updateOrder(order.id, { costs: { ...(order.costs || {}), [k]: parseFloat(e.target.value) || 0 } })}
-                        placeholder="0"
-                        className="w-24 bg-secondary/50 border border-border rounded-lg px-2 py-1 text-[11px] text-foreground text-right outline-none" />
-                    </div>
-                  ))}
+                  {(["fabric", "materials", "labor"] as const).map((k) => {
+                    const suggested = k === "fabric" ? Math.round(inventoryFabricCost)
+                      : k === "materials" ? Math.round(inventoryMaterialsCost)
+                      : 0;
+                    return (
+                      <div key={k} className="flex items-center justify-between gap-2">
+                        <label className="text-[10px] text-muted-foreground uppercase capitalize flex-1">
+                          {k} cost
+                          {order.costs?.[k] == null && suggested > 0 && (
+                            <span className="ml-1 text-[9px] text-primary/80 normal-case">· auto</span>
+                          )}
+                        </label>
+                        <input key={`${k}-${suggested}`} type="number" inputMode="decimal"
+                          defaultValue={String(order.costs?.[k] ?? (suggested || ""))}
+                          onBlur={(e) => updateOrder(order.id, { costs: { ...(order.costs || {}), [k]: parseFloat(e.target.value) || 0 } })}
+                          placeholder="0"
+                          className="w-24 bg-secondary/50 border border-border rounded-lg px-2 py-1 text-[11px] text-foreground text-right outline-none" />
+                      </div>
+                    );
+                  })}
                   {(() => {
-                    const f = order.costs?.fabric || 0;
-                    const m = order.costs?.materials || 0;
-                    const l = order.costs?.labor || 0;
+                    const f = order.costs?.fabric ?? Math.round(inventoryFabricCost);
+                    const m = order.costs?.materials ?? Math.round(inventoryMaterialsCost);
+                    const l = order.costs?.labor ?? 0;
                     const total = f + m + l;
                     const margin = order.price - total;
                     return (

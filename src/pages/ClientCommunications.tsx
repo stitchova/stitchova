@@ -96,6 +96,7 @@ const ClientCommunications = () => {
                         <p className="text-sm font-semibold text-foreground">{t.label}</p>
                         <div className="flex gap-1.5 mt-1">
                           {t.channels.includes("sms") && <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1"><MessageSquare className="w-2.5 h-2.5" />SMS</span>}
+                          {t.channels.includes("whatsapp") && <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center gap-1"><MessageSquare className="w-2.5 h-2.5" />WhatsApp</span>}
                           {t.channels.includes("email") && <span className="text-[9px] px-2 py-0.5 rounded-full bg-secondary text-foreground flex items-center gap-1"><Mail className="w-2.5 h-2.5" />Email</span>}
                           {t.autoSchedule && t.autoSchedule !== "immediate" && (
                             <span className="text-[9px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground flex items-center gap-1"><Clock className="w-2.5 h-2.5" />{t.autoSchedule.replace("_", " ")}</span>
@@ -134,7 +135,7 @@ const ClientCommunications = () => {
                   <div key={r.id} className="card-surface p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        {r.channel === "email" ? <Mail className="w-3.5 h-3.5 text-primary" /> : <MessageSquare className="w-3.5 h-3.5 text-primary" />}
+                        {r.channel === "email" ? <Mail className="w-3.5 h-3.5 text-primary" /> : <MessageSquare className={`w-3.5 h-3.5 ${r.channel === "whatsapp" ? "text-emerald-500" : "text-primary"}`} />}
                         <span className="text-xs font-semibold text-foreground uppercase tracking-wider">{r.channel}</span>
                         <span className={`text-[9px] px-2 py-0.5 rounded-full ${r.status === "sent" ? "bg-status-completed/10 text-status-completed" : r.status === "scheduled" ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
                           {r.status === "sent" && <CheckCircle2 className="inline w-2.5 h-2.5 mr-0.5" />}
@@ -170,7 +171,7 @@ const ClientCommunications = () => {
                       className="w-full mt-1 bg-secondary rounded-xl px-4 py-2.5 text-sm text-foreground outline-none" />
                   </div>
                   <div className="flex gap-2">
-                    {(["sms", "email"] as NotifChannel[]).map(ch => {
+                    {(["sms", "whatsapp", "email"] as NotifChannel[]).map(ch => {
                       const active = composeChannels.includes(ch);
                       return (
                         <button key={ch} onClick={() => setComposeChannels(c => active ? c.filter(x => x !== ch) : [...c, ch])}
@@ -239,7 +240,7 @@ const ClientCommunications = () => {
                   <p className="text-[9px] text-muted-foreground mt-1">Tokens: {tokenHelp}</p>
                 </div>
                 <div className="flex gap-2">
-                  {(["sms", "email"] as NotifChannel[]).map(ch => {
+                  {(["sms", "whatsapp", "email"] as NotifChannel[]).map(ch => {
                     const active = editingTpl.channels.includes(ch);
                     return (
                       <button key={ch}
