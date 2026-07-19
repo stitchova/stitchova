@@ -74,6 +74,7 @@ const D = ({ children }: { children: React.ReactNode }) => <RequireRole allow="d
 const C = ({ children }: { children: React.ReactNode }) => <RequireRole allow="client">{children}</RequireRole>;
 const W = ({ children }: { children: React.ReactNode }) => <RequireRole allow="worker">{children}</RequireRole>;
 const DC = ({ children }: { children: React.ReactNode }) => <RequireRole allow={["designer", "client"]}>{children}</RequireRole>;
+const DW = ({ children }: { children: React.ReactNode }) => <RequireRole allow={["designer", "worker"]}>{children}</RequireRole>;
 const ALL = ({ children }: { children: React.ReactNode }) => <RequireRole allow={["designer", "client", "worker"]}>{children}</RequireRole>;
 
 const AppShell = () => {
@@ -113,8 +114,8 @@ const AppShell = () => {
               <Route path="/ai-insights" element={<D><AIInsights /></D>} />
               <Route path="/style-library" element={<D><StyleLibrary /></D>} />
               <Route path="/activity-logs" element={<D><ActivityLogs /></D>} />
-              <Route path="/workshop-chat" element={<D><WorkshopChat /></D>} />
-              <Route path="/workshop-chat/:chatId" element={<D><WorkshopConversation /></D>} />
+              <Route path="/workshop-chat" element={<DW><WorkshopChat /></DW>} />
+              <Route path="/workshop-chat/:chatId" element={<DW><WorkshopConversation /></DW>} />
               <Route path="/referrals" element={<D><Referrals /></D>} />
               <Route path="/settings/brand" element={<D><BrandSettings /></D>} />
               <Route path="/invoices" element={<D><Invoices /></D>} />
