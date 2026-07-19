@@ -8,60 +8,7 @@ import { useAtelier } from "@/contexts/AtelierContext";
 import { useBrandInvoice } from "@/contexts/BrandInvoiceContext";
 import ClientPicker from "@/components/ClientPicker";
 import { Image as ImageIcon } from "lucide-react";
-
-const genders = [
-  { id: "male", label: "Male", emoji: "👨" },
-  { id: "female", label: "Female", emoji: "👩" },
-];
-
-const ageGroups = [
-  { id: "child", label: "Child", desc: "0–12 yrs" },
-  { id: "teen", label: "Teen", desc: "13–17 yrs" },
-  { id: "adult", label: "Adult", desc: "18–59 yrs" },
-  { id: "elder", label: "Elder", desc: "60+ yrs" },
-];
-
-const categories = [
-  { id: "men", label: "Men", emoji: "👔" },
-  { id: "women", label: "Women", emoji: "👗" },
-  { id: "children", label: "Children", emoji: "🧒" },
-];
-
-const garmentTypes: Record<string, { label: string; emoji: string }[]> = {
-  men: [
-    { label: "Agbada", emoji: "🥻" }, { label: "Senator", emoji: "👔" }, { label: "Kaftan", emoji: "🧥" },
-    { label: "Suit", emoji: "🤵" }, { label: "Shirt", emoji: "👕" }, { label: "Trouser", emoji: "👖" },
-    { label: "Blazer", emoji: "🧥" },
-  ],
-  women: [
-    { label: "Blouse", emoji: "👚" }, { label: "Skirt", emoji: "👗" }, { label: "Gown", emoji: "💃" },
-    { label: "Iro & Buba", emoji: "🥻" }, { label: "Jumpsuit", emoji: "🩱" }, { label: "Wrapper", emoji: "👘" },
-    { label: "Bridal", emoji: "👰" },
-  ],
-  children: [
-    { label: "Shirt", emoji: "👕" }, { label: "Dress", emoji: "👗" }, { label: "Trouser", emoji: "👖" },
-    { label: "Agbada", emoji: "🥻" }, { label: "Uniform", emoji: "🎓" },
-  ],
-};
-
-const defaultMeasurementFields: Record<string, string[]> = {
-  Agbada: ["Chest", "Shoulder", "Sleeve", "Length", "Round Arm", "Neck"],
-  Senator: ["Chest", "Shoulder", "Sleeve", "Length", "Round Arm", "Neck"],
-  Kaftan: ["Chest", "Shoulder", "Sleeve", "Length", "Round Arm"],
-  Suit: ["Chest", "Shoulder", "Sleeve", "Length", "Waist", "Hip", "Trouser Length", "Thigh"],
-  Shirt: ["Chest", "Shoulder", "Sleeve", "Length", "Neck", "Round Arm"],
-  Trouser: ["Waist", "Hip", "Thigh", "Knee", "Length", "Bottom"],
-  Blazer: ["Chest", "Shoulder", "Sleeve", "Back Length", "Waist"],
-  Blouse: ["Bust", "Shoulder", "Sleeve", "Length", "Round Arm", "Under Bust"],
-  Skirt: ["Waist", "Hip", "Length", "Knee"],
-  Gown: ["Bust", "Waist", "Hip", "Shoulder", "Sleeve", "Length", "Under Bust"],
-  "Iro & Buba": ["Bust", "Shoulder", "Sleeve", "Blouse Length", "Wrapper Length", "Hip"],
-  Jumpsuit: ["Bust", "Waist", "Hip", "Shoulder", "Sleeve", "Full Length", "Inseam"],
-  Wrapper: ["Waist", "Hip", "Length"],
-  Bridal: ["Bust", "Waist", "Hip", "Shoulder", "Sleeve", "Full Length", "Under Bust", "Train Length"],
-  Dress: ["Chest", "Shoulder", "Length", "Waist"],
-  Uniform: ["Chest", "Shoulder", "Sleeve", "Length", "Waist", "Trouser Length"],
-};
+import { genders, ageGroups, categories, garmentTypes, defaultMeasurementFields } from "@/constants/garments";
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 
