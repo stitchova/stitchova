@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt, Send, Sparkles, PackageCheck, Truck, MapPin, ChevronDown, ChevronUp, Image as ImageIcon, Flame, Flag } from "lucide-react";
@@ -6,6 +6,7 @@ import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceCo
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAtelier, PAYMENT_METHODS, DeliveryStatus, costFromFabricUse, costFromMaterialUse, TaskStatus } from "@/contexts/AtelierContext";
+import StageTracker from "@/components/StageTracker";
 import { useReviews } from "@/contexts/ReviewsContext";
 import { AVAILABLE_WORKERS, WorkerRef } from "@/lib/workers";
 import { toast } from "sonner";
@@ -23,7 +24,7 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials,
+  const { orderById, orders, advanceStage, setStage, undoLastStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials,
     tasksByOrder, addTask, updateTask, deleteTask, measurementsByClient } = useAtelier();
   // clientId param may be an order id (new format) or legacy demo clientId
   const order =
@@ -90,6 +91,16 @@ const OrderDetail = () => {
 
   const orderTasks = tasksByOrder(order.id);
 
+  // Photo gating for the final stage transition — reuse the task photo grid
+  // when a worker is on the order; otherwise (designer solo) prompt for a
+  // completion photo via an inline file input.
+  const finalPhotoRef = useRef<HTMLInputElement>(null);
+  const [pendingFinalIdx, setPendingFinalIdx] = useState<number | null>(null);
+
+  const hasFinishedPhoto = () =>
+    orderTasks.some(t => t.images.length > 0) ||
+    (order.stageHistory || []).some(h => !!h.photoUrl);
+
   const [showAssign, setShowAssign] = useState(false);
   const [assigningTaskId, setAssigningTaskId] = useState<string | null>(null);
   const [showAddTask, setShowAddTask] = useState(false);
@@ -124,9 +135,7 @@ const OrderDetail = () => {
   const completedCount = orderTasks.filter(t => t.status === "completed").length;
   const progress = orderTasks.length === 0 ? 0 : Math.round((completedCount / orderTasks.length) * 100);
 
-  const notifyStage = (stageIdx: number) => {
-    if (stageIdx < 0 || stageIdx >= productionStages.length) return;
-    advanceStage(order.id, stageIdx);
+  const runStageNotifications = (stageIdx: number) => {
     const isComplete = stageIdx === productionStages.length - 1;
     // Map by stage name so custom stages (Fitting etc.) still notify sensibly
     const stageName = productionStages[stageIdx];
@@ -165,6 +174,51 @@ const OrderDetail = () => {
       orderRef: order.id,
     });
     if (recs.length) toast.success(`Notified ${order.client} via ${recs.map(r => r.channel).join(" + ")} as ${brand.businessName}`);
+  };
+
+  const applyStageChange = (stageIdx: number, photoUrl?: string) => {
+    setStage(order.id, stageIdx, { photoUrl });
+    runStageNotifications(stageIdx);
+    const stageName = productionStages[stageIdx];
+    toast.success(`Advanced to ${stageName}`, {
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          undoLastStage(order.id);
+          toast("Stage change reverted");
+        },
+      },
+    });
+  };
+
+  const handleStageTap = (stageIdx: number) => {
+    if (stageIdx < 0 || stageIdx >= productionStages.length) return;
+    if (stageIdx === order.currentStage) return;
+    const isFinal = stageIdx === productionStages.length - 1;
+    if (isFinal && !hasFinishedPhoto()) {
+      setPendingFinalIdx(stageIdx);
+      finalPhotoRef.current?.click();
+      toast("Attach a finished-work photo to complete the final stage.");
+      return;
+    }
+    const latestPhoto = isFinal
+      ? (orderTasks.flatMap(t => t.images).slice(-1)[0])
+      : undefined;
+    applyStageChange(stageIdx, latestPhoto);
+  };
+
+  const onFinalPhotoPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f || pendingFinalIdx == null) { e.target.value = ""; return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string;
+      applyStageChange(pendingFinalIdx, url);
+      setPendingFinalIdx(null);
+    };
+    reader.readAsDataURL(f);
+    e.target.value = "";
   };
 
   const markReceived = () => {
@@ -454,22 +508,17 @@ const OrderDetail = () => {
             )}
           </div>
           <div className="flex items-center justify-between">
-            {productionStages.map((stage, i) => (
-              <button key={stage} onClick={() => notifyStage(i)} className="flex flex-col items-center flex-1 focus:outline-none">
-                <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all",
-                  i <= order.currentStage ? "bg-primary border-primary text-primary-foreground" : "bg-secondary border-border text-muted-foreground")}>
-                  {i < order.currentStage ? "✓" : i + 1}
-                </div>
-                <span className={cn("text-[8px] mt-1 text-center leading-tight", i <= order.currentStage ? "text-primary" : "text-muted-foreground")}>{stage}</span>
-                {i < productionStages.length - 1 && (
-                  <div className={cn("absolute h-0.5 w-full", i < order.currentStage ? "bg-primary" : "bg-border")} style={{ display: "none" }} />
-                )}
-              </button>
-            ))}
+            <div className="w-full">
+              <StageTracker
+                stages={productionStages}
+                currentIdx={order.currentStage}
+                onSelect={handleStageTap}
+              />
+            </div>
           </div>
           <p className="text-[9px] text-muted-foreground mt-3 text-center">Tap a stage to advance & auto-notify the client as <span className="text-primary font-semibold">{brand.businessName}</span>.</p>
           <div className="grid grid-cols-2 gap-2 mt-3">
-            <button onClick={() => notifyStage(productionStages.length - 1)}
+            <button onClick={() => handleStageTap(productionStages.length - 1)}
               className="py-2.5 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center gap-1.5">
               <Send className="w-3.5 h-3.5" /> Mark Completed
             </button>
@@ -478,6 +527,8 @@ const OrderDetail = () => {
               <PackageCheck className="w-3.5 h-3.5" /> {received ? "Received ✓" : "Mark Received"}
             </button>
           </div>
+          <input ref={finalPhotoRef} type="file" accept="image/*" capture="environment"
+            className="hidden" onChange={onFinalPhotoPick} />
         </motion.div>
 
         {/* Task Progress */}
