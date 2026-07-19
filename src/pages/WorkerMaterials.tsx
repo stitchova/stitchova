@@ -1,38 +1,35 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Scissors, Shirt, Palette, Sparkles, Info } from "lucide-react";
+import { ArrowLeft, Scissors, Sparkles, Info, PackageOpen } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
+import { useAtelier } from "@/contexts/AtelierContext";
+import { CURRENT_WORKER } from "@/lib/workers";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
-const iconTint: Record<string, string> = {
-  Scissors: "bg-primary/10 text-primary",
-  Shirt: "bg-blue-400/10 text-blue-400",
-  Palette: "bg-purple-400/10 text-purple-400",
-  Sparkles: "bg-green-400/10 text-green-400",
-};
-
-const materials = [
-  { id: 1, order: "Ankara Gown – Mrs. Adebayo", items: [
-    { name: "Ankara Fabric (Floral)", qty: "3 yards", icon: Scissors, iconKey: "Scissors" },
-    { name: "White Lining", qty: "2 yards", icon: Shirt, iconKey: "Shirt" },
-    { name: "Matching Thread", qty: "2 spools", icon: Palette, iconKey: "Palette" },
-    { name: "Zipper (18\")", qty: "1 pc", icon: Sparkles, iconKey: "Sparkles" },
-  ]},
-  { id: 2, order: "Agbada Set – Mr. Okafor", items: [
-    { name: "Guinea Brocade (White)", qty: "5 yards", icon: Scissors, iconKey: "Scissors" },
-    { name: "Embroidery Thread", qty: "4 spools", icon: Palette, iconKey: "Palette" },
-    { name: "Inner Lining", qty: "3 yards", icon: Shirt, iconKey: "Shirt" },
-  ]},
-  { id: 3, order: "Bridesmaid Dress – Kemi O.", items: [
-    { name: "Lace Overlay (Champagne)", qty: "3 yards", icon: Scissors, iconKey: "Scissors" },
-    { name: "Satin Base", qty: "3 yards", icon: Shirt, iconKey: "Shirt" },
-    { name: "Beads (Gold)", qty: "1 pack", icon: Sparkles, iconKey: "Sparkles" },
-    { name: "Matching Thread", qty: "2 spools", icon: Palette, iconKey: "Palette" },
-  ]},
-];
-
 const WorkerMaterials = () => {
   const navigate = useNavigate();
+  const { tasksByWorker, orderById } = useAtelier();
+
+  // Group the worker's active assignments by order and surface the fabrics
+  // + materials the designer already reserved from inventory for that order.
+  const grouped = useMemo(() => {
+    const seen = new Map<string, { orderId: string; title: string; fabricUse: any[]; materialUse: any[] }>();
+    for (const task of tasksByWorker(CURRENT_WORKER.id)) {
+      if (task.status === "completed") continue;
+      const order = orderById(task.orderId);
+      if (!order) continue;
+      if (seen.has(order.id)) continue;
+      seen.set(order.id, {
+        orderId: order.id,
+        title: `${order.type} – ${order.client}`,
+        fabricUse: order.fabricUse || [],
+        materialUse: order.materialUse || [],
+      });
+    }
+    return Array.from(seen.values());
+  }, [tasksByWorker, orderById]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -58,29 +55,54 @@ const WorkerMaterials = () => {
       </div>
 
       <div className="px-5 space-y-4">
-        {materials.map((order, oi) => (
-          <motion.div key={order.id} {...fadeUp} transition={{ delay: oi * 0.05 }}
+        {grouped.map((order, oi) => (
+          <motion.div key={order.orderId} {...fadeUp} transition={{ delay: oi * 0.05 }}
             className="card-glass overflow-hidden">
             <div className="px-4 py-3 border-b border-border/20">
-              <p className="text-sm font-bold text-foreground">{order.order}</p>
+              <p className="text-sm font-bold text-foreground">{order.title}</p>
             </div>
             <div className="divide-y divide-border/10">
-              {order.items.map((item, ii) => (
-                <motion.div key={ii} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+              {order.fabricUse.length + order.materialUse.length === 0 && (
+                <p className="px-4 py-3 text-[11px] text-muted-foreground">No materials reserved for this order yet.</p>
+              )}
+              {order.fabricUse.map((item, ii) => (
+                <motion.div key={`f-${item.id}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 + ii * 0.04 }}
                   className="flex items-center gap-3 px-4 py-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${iconTint[item.iconKey]}`}>
-                    <item.icon className="w-4 h-4" />
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary">
+                    <Scissors className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
                     <p className="text-xs font-medium text-foreground">{item.name}</p>
+                    <p className="text-[9px] text-muted-foreground uppercase">Fabric</p>
                   </div>
-                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary/10 text-primary">{item.qty}</span>
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary/10 text-primary">{item.amount} {item.unit}</span>
+                </motion.div>
+              ))}
+              {order.materialUse.map((item, ii) => (
+                <motion.div key={`m-${item.id}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15 + ii * 0.04 }}
+                  className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-green-400/10 text-green-400">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-foreground">{item.name}</p>
+                    <p className="text-[9px] text-muted-foreground uppercase">Material</p>
+                  </div>
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-green-400/10 text-green-400">{item.amount} {item.unit}</span>
                 </motion.div>
               ))}
             </div>
           </motion.div>
         ))}
+        {grouped.length === 0 && (
+          <EmptyState
+            icon={PackageOpen}
+            title="No materials assigned"
+            description="When the designer assigns you an order with fabric or accessories, they'll appear here."
+          />
+        )}
       </div>
     </div>
   );

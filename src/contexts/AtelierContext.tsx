@@ -9,6 +9,25 @@ export type DeliveryMethod = "pickup" | "delivery";
 export type DeliveryStatus = "pending" | "ready" | "out_for_delivery" | "received";
 export type ContactChannel = "sms" | "whatsapp" | "email";
 export type MeasurementUnit = "in" | "cm";
+export type TaskStatus = "not_started" | "in_progress" | "completed";
+export type TaskPriority = "normal" | "urgent";
+
+export interface WorkerTask {
+  id: string;
+  orderId: string;
+  workerId: string;
+  workerName: string;
+  workerAvatar: string;
+  title: string;
+  deadline: string;
+  stageIdx?: number; // links task to a production stage on the parent order
+  status: TaskStatus;
+  priority: TaskPriority;
+  images: string[]; // base64 data URLs of finished-work photos
+  createdAt: string;
+  flaggedAt?: string;
+  flagReason?: string;
+}
 
 export interface Client {
   id: string;
@@ -267,6 +286,7 @@ interface AtelierState {
   fabrics: Fabric[];
   materials: Material[];
   measurementTemplates: Record<string, string[]>;
+  tasks: WorkerTask[];
 
   addClient: (c: Omit<Client, "id" | "initials" | "joined"> & { id?: string; initials?: string; joined?: string }) => Client;
   updateClient: (id: string, patch: Partial<Client>) => void;
@@ -286,6 +306,15 @@ interface AtelierState {
 
   addTemplateField: (garment: string, field: string) => void;
   removeTemplateField: (garment: string, field: string) => void;
+
+  addTask: (t: Omit<WorkerTask, "id" | "createdAt" | "status" | "images" | "priority"> & {
+    status?: TaskStatus; priority?: TaskPriority; images?: string[];
+  }) => WorkerTask;
+  updateTask: (id: string, patch: Partial<WorkerTask>) => void;
+  deleteTask: (id: string) => void;
+  tasksByWorker: (workerId: string) => WorkerTask[];
+  tasksByOrder: (orderId: string) => WorkerTask[];
+  flagTask: (id: string, reason: string) => void;
 
   latestMeasurement: (clientId: string, garment: string) => Measurement | undefined;
   clientById: (id: string) => Client | undefined;
@@ -319,6 +348,24 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
     "stitchova.measurementTemplates.v1",
     {},
   );
+  const [tasks, setTasks] = useLS<WorkerTask[]>("stitchova.tasks.v1", [
+    // Seed a couple tasks so the worker dashboard is populated on first run.
+    {
+      id: "t-seed-1", orderId: "o-ama-serwaa", workerId: "w-tunde", workerName: "Tunde A.", workerAvatar: "TA",
+      title: "Sew bodice structure", deadline: "Mar 23", stageIdx: 1,
+      status: "in_progress", priority: "urgent", images: [], createdAt: new Date().toISOString(),
+    },
+    {
+      id: "t-seed-2", orderId: "o-kofi-mensah", workerId: "w-tunde", workerName: "Tunde A.", workerAvatar: "TA",
+      title: "Cut fabric pieces", deadline: "Mar 28", stageIdx: 0,
+      status: "not_started", priority: "normal", images: [], createdAt: new Date().toISOString(),
+    },
+    {
+      id: "t-seed-3", orderId: "o-abena-poku", workerId: "w-tunde", workerName: "Tunde A.", workerAvatar: "TA",
+      title: "Attach crystal beading", deadline: "Apr 2", stageIdx: 2,
+      status: "not_started", priority: "normal", images: [], createdAt: new Date().toISOString(),
+    },
+  ]);
 
   const addClient: AtelierState["addClient"] = useCallback((c) => {
     const id = c.id || slugId(c.name);
@@ -428,6 +475,37 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [setMeasurementTemplates]);
 
+  const addTask: AtelierState["addTask"] = useCallback((t) => {
+    const task: WorkerTask = {
+      id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      createdAt: new Date().toISOString(),
+      status: t.status || "not_started",
+      priority: t.priority || "normal",
+      images: t.images || [],
+      orderId: t.orderId, workerId: t.workerId, workerName: t.workerName, workerAvatar: t.workerAvatar,
+      title: t.title, deadline: t.deadline, stageIdx: t.stageIdx,
+    };
+    setTasks((prev) => [task, ...prev]);
+    return task;
+  }, [setTasks]);
+
+  const updateTask: AtelierState["updateTask"] = useCallback((id, patch) => {
+    setTasks((prev) => prev.map((t) => t.id === id ? { ...t, ...patch } : t));
+  }, [setTasks]);
+
+  const deleteTask: AtelierState["deleteTask"] = useCallback((id) => {
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }, [setTasks]);
+
+  const tasksByWorker = useCallback((wid: string) => tasks.filter((t) => t.workerId === wid), [tasks]);
+  const tasksByOrder = useCallback((oid: string) => tasks.filter((t) => t.orderId === oid), [tasks]);
+
+  const flagTask: AtelierState["flagTask"] = useCallback((id, reason) => {
+    setTasks((prev) => prev.map((t) => t.id === id
+      ? { ...t, flaggedAt: new Date().toISOString(), flagReason: reason, priority: "urgent" as TaskPriority }
+      : t));
+  }, [setTasks]);
+
   const clientById = useCallback((id: string) => clients.find(c => c.id === id), [clients]);
   const orderById = useCallback((id: string) => orders.find(o => o.id === id), [orders]);
   const ordersByClient = useCallback((cid: string) => orders.filter(o => o.clientId === cid), [orders]);
@@ -439,12 +517,13 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
   }, [measurements]);
 
   const value: AtelierState = useMemo(() => ({
-    clients, measurements, orders, fabrics, materials, measurementTemplates,
+    clients, measurements, orders, fabrics, materials, measurementTemplates, tasks,
     addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder,
     setFabrics, setMaterials, deductFabric, deductMaterial,
     addTemplateField, removeTemplateField,
+    addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask,
     latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient,
-  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
+  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, tasks, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
 
   return <AtelierContext.Provider value={value}>{children}</AtelierContext.Provider>;
 };

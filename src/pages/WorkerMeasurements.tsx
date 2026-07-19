@@ -1,65 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import ClientPicker from "@/components/ClientPicker";
+import { useAtelier } from "@/contexts/AtelierContext";
+import { useBrandInvoice } from "@/contexts/BrandInvoiceContext";
+import { categories, garmentTypes, defaultMeasurementFields } from "@/constants/garments";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
-const categories = [
-  { id: "men", label: "Men", emoji: "👔" },
-  { id: "women", label: "Women", emoji: "👗" },
-  { id: "children", label: "Children", emoji: "🧒" },
-];
-
-const garmentTypes: Record<string, { label: string; emoji: string }[]> = {
-  men: [{ label: "Agbada", emoji: "🥻" }, { label: "Senator", emoji: "👔" }, { label: "Suit", emoji: "🤵" }, { label: "Kaftan", emoji: "👕" }],
-  women: [{ label: "Gown", emoji: "👗" }, { label: "Blouse", emoji: "👚" }, { label: "Skirt", emoji: "🩱" }, { label: "Iro & Buba", emoji: "🥻" }],
-  children: [{ label: "Shirt", emoji: "👕" }, { label: "Dress", emoji: "👗" }, { label: "Shorts", emoji: "🩳" }],
-};
-
-const defaultFields: Record<string, string[]> = {
-  Agbada: ["Chest", "Shoulder", "Sleeve", "Length", "Neck"],
-  Senator: ["Chest", "Shoulder", "Sleeve", "Length", "Trouser Waist", "Trouser Length"],
-  Suit: ["Chest", "Shoulder", "Sleeve", "Back", "Trouser Waist", "Trouser Length", "Inseam"],
-  Kaftan: ["Chest", "Shoulder", "Sleeve", "Length"],
-  Gown: ["Bust", "Waist", "Hip", "Shoulder", "Length", "Sleeve"],
-  Blouse: ["Bust", "Waist", "Shoulder", "Sleeve", "Length"],
-  Skirt: ["Waist", "Hip", "Length"],
-  "Iro & Buba": ["Bust", "Waist", "Hip", "Shoulder", "Sleeve"],
-  Shirt: ["Chest", "Shoulder", "Sleeve", "Length"],
-  Dress: ["Chest", "Waist", "Length"],
-  Shorts: ["Waist", "Hip", "Length"],
-};
-
 const WorkerMeasurements = () => {
   const navigate = useNavigate();
+  const { addMeasurement, latestMeasurement, measurementTemplates, addTemplateField, clientById } = useAtelier();
+  const { brand } = useBrandInvoice();
+  const unit = brand.measurementUnit || "in";
   const [category, setCategory] = useState("");
   const [garment, setGarment] = useState("");
-  const [clientName, setClientName] = useState("");
+  const [clientId, setClientId] = useState<string | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
-  const [customFields, setCustomFields] = useState<string[]>([]);
   const [newField, setNewField] = useState("");
   const [showAddField, setShowAddField] = useState(false);
 
-  const allFields = [...(defaultFields[garment] || []), ...customFields];
+  const defaultFields = garment ? (defaultMeasurementFields[garment] || []) : [];
+  const templateFields = garment ? (measurementTemplates[garment] || []) : [];
+  const allFields = [...defaultFields, ...templateFields];
+  const selectedClient = clientId ? clientById(clientId) : undefined;
+
+  // Prefill from last measurement for same client + garment (shared with designer flow).
+  useEffect(() => {
+    if (!clientId || !garment) return;
+    const prior = latestMeasurement(clientId, garment);
+    if (prior) {
+      setValues(prior.fields);
+      toast.info(`Loaded prior ${garment} measurements from ${prior.createdAt}`);
+    } else {
+      setValues({});
+    }
+  }, [clientId, garment, latestMeasurement]);
 
   const handleAddField = () => {
     const name = newField.trim();
-    if (!name || allFields.includes(name)) return;
-    setCustomFields(prev => [...prev, name]);
+    if (!name || !garment || allFields.includes(name)) return;
+    addTemplateField(garment, name);
     setNewField("");
     setShowAddField(false);
-  };
-
-  const handleRemoveField = (f: string) => {
-    if ((defaultFields[garment] || []).includes(f)) return;
-    setCustomFields(prev => prev.filter(x => x !== f));
-    setValues(prev => { const c = { ...prev }; delete c[f]; return c; });
+    toast.success(`"${name}" added to ${garment} template`);
   };
 
   const handleSave = () => {
-    toast.success("Measurement saved successfully! ✅");
+    if (!clientId || !garment) {
+      toast.error("Pick a client and garment first");
+      return;
+    }
+    const filled = Object.values(values).filter((v) => v && String(v).trim()).length;
+    if (filled === 0) {
+      toast.error("Enter at least one measurement");
+      return;
+    }
+    const gender = selectedClient?.gender === "Male" ? "male" : selectedClient?.gender === "Female" ? "female" : "female";
+    addMeasurement({
+      clientId, garment, gender, ageGroup: "adult", category: category || "women",
+      fields: values, unit,
+    });
+    toast.success(`Measurement saved for ${selectedClient?.name} ✅`);
     navigate(-1);
   };
 
@@ -75,12 +79,9 @@ const WorkerMeasurements = () => {
       </div>
 
       <div className="px-5 pt-4 space-y-5">
-        {/* Client Name */}
+        {/* Client picker (shared roster) */}
         <motion.div {...fadeUp}>
-          <label className="text-xs font-semibold text-muted-foreground mb-2 block">Client Name</label>
-          <input type="text" placeholder="Enter client name" value={clientName}
-            onChange={e => setClientName(e.target.value)}
-            className="w-full glass-input py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow" />
+          <ClientPicker value={clientId} onChange={(id) => setClientId(id)} />
         </motion.div>
 
         {/* Category */}
@@ -104,7 +105,7 @@ const WorkerMeasurements = () => {
             <div className="flex flex-wrap gap-2">
               {garmentTypes[category]?.map(g => (
                 <motion.button key={g.label} whileTap={{ scale: 0.95 }}
-                  onClick={() => { setGarment(g.label); setCustomFields([]); setValues({}); }}
+                  onClick={() => { setGarment(g.label); }}
                   className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${garment === g.label ? "bg-primary text-primary-foreground glow-primary" : "card-glass text-foreground"}`}>
                   {g.emoji} {g.label}
                 </motion.button>
@@ -117,7 +118,7 @@ const WorkerMeasurements = () => {
         {garment && (
           <motion.div {...fadeUp} className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-muted-foreground">Measurements (inches)</label>
+              <label className="text-xs font-semibold text-muted-foreground">Measurements ({unit === "in" ? "inches" : "centimeters"})</label>
               <button onClick={() => setShowAddField(!showAddField)} className="text-xs text-primary font-medium flex items-center gap-1">
                 <Plus className="w-3 h-3" /> Add Field
               </button>
@@ -131,22 +132,20 @@ const WorkerMeasurements = () => {
               </div>
             )}
 
-            {allFields.map((f, i) => (
+            {allFields.map((f, i) => {
+              const isCustom = templateFields.includes(f);
+              return (
               <motion.div key={f} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.03 }} className="flex items-center gap-2">
                 <div className="flex-1 relative">
                   <input type="number" placeholder="0" value={values[f] || ""}
                     onChange={e => setValues({ ...values, [f]: e.target.value })}
                     className="w-full glass-input py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{f}</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{f}{isCustom ? " · custom" : ""}</span>
                 </div>
-                {!(defaultFields[garment] || []).includes(f) && (
-                  <button onClick={() => handleRemoveField(f)} className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center">
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </button>
-                )}
               </motion.div>
-            ))}
+              );
+            })}
 
             <motion.button whileTap={{ scale: 0.97 }} onClick={handleSave}
               className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm mt-4">
