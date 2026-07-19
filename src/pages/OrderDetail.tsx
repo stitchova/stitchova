@@ -490,7 +490,7 @@ const OrderDetail = () => {
             <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }} className="h-full bg-primary rounded-full" />
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2">{completedCount} of {tasks.length} tasks completed</p>
+          <p className="text-[10px] text-muted-foreground mt-2">{completedCount} of {orderTasks.length} tasks completed</p>
         </motion.div>
 
         {/* Tasks */}
@@ -503,15 +503,37 @@ const OrderDetail = () => {
             </motion.button>
           </div>
           <div className="space-y-2">
-            {tasks.map((task, i) => {
+            {orderTasks.length === 0 && (
+              <p className="text-[11px] text-muted-foreground text-center py-4">No tasks yet. Add one to assign work to your team.</p>
+            )}
+            {orderTasks.map((task, i) => {
               const sc = statusCfg[task.status];
+              const isUrgent = task.priority === "urgent";
+              const stageLabel = typeof task.stageIdx === "number" ? productionStages[task.stageIdx] : null;
               return (
                 <motion.div key={task.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }} className="card-surface p-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground">{task.title}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Due: {task.deadline}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-xs font-semibold text-foreground">{task.title}</p>
+                        {isUrgent && (
+                          <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[9px] font-bold">
+                            <Flame className="w-2.5 h-2.5" /> URGENT
+                          </span>
+                        )}
+                        {task.flaggedAt && (
+                          <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[9px] font-bold">
+                            <Flag className="w-2.5 h-2.5" /> FLAGGED
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        Due: {task.deadline}{stageLabel ? ` · Stage: ${stageLabel}` : ""}
+                      </p>
+                      {task.flagReason && (
+                        <p className="text-[10px] text-amber-400 mt-1">⚠ {task.flagReason}</p>
+                      )}
                     </div>
                     <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${task.status === "completed" ? "bg-status-completed/10" : task.status === "in_progress" ? "bg-primary/10" : "bg-secondary"}`}>
                       <sc.icon className={`w-3 h-3 ${sc.color}`} />
@@ -519,12 +541,12 @@ const OrderDetail = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between mt-3">
-                    {task.assignee ? (
+                    {task.workerName ? (
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
-                          <span className="text-[9px] font-bold text-foreground">{task.assigneeAvatar}</span>
+                          <span className="text-[9px] font-bold text-foreground">{task.workerAvatar}</span>
                         </div>
-                        <span className="text-[10px] text-foreground font-medium">{task.assignee}</span>
+                        <span className="text-[10px] text-foreground font-medium">{task.workerName}</span>
                       </div>
                     ) : (
                       <motion.button whileTap={{ scale: 0.95 }}
@@ -533,9 +555,13 @@ const OrderDetail = () => {
                         <UserPlus className="w-4 h-4" /><span className="text-xs font-bold">Assign Worker</span>
                       </motion.button>
                     )}
-                    {task.assignee && (
-                      <button onClick={() => { setAssigningTaskId(task.id); setShowAssign(true); }}
-                        className="text-[10px] text-muted-foreground">Reassign</button>
+                    {task.workerName && (
+                      <div className="flex gap-2">
+                        <button onClick={() => { setAssigningTaskId(task.id); setShowAssign(true); }}
+                          className="text-[10px] text-muted-foreground">Reassign</button>
+                        <button onClick={() => { deleteTask(task.id); toast("Task removed"); }}
+                          className="text-[10px] text-destructive">Remove</button>
+                      </div>
                     )}
                   </div>
                 </motion.div>
@@ -549,7 +575,7 @@ const OrderDetail = () => {
         <DialogContent className="max-w-sm mx-auto bg-card border-border">
           <DialogHeader><DialogTitle className="text-foreground">Assign Worker</DialogTitle></DialogHeader>
           <div className="space-y-2 mt-2">
-            {availableWorkers.map(w => (
+            {AVAILABLE_WORKERS.map(w => (
               <motion.button key={w.id} whileTap={{ scale: 0.97 }}
                 onClick={() => assigningTaskId && assignWorker(assigningTaskId, w)}
                 className="w-full flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors">
@@ -578,7 +604,50 @@ const OrderDetail = () => {
               <input value={newTaskDeadline} onChange={e => setNewTaskDeadline(e.target.value)} placeholder="e.g. Apr 10"
                 className="w-full bg-secondary rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none" />
             </div>
-            <motion.button whileTap={{ scale: 0.97 }} onClick={addTask}
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Assign to</label>
+              <div className="flex flex-wrap gap-1.5">
+                {AVAILABLE_WORKERS.map((w) => (
+                  <button key={w.id} onClick={() => setNewTaskWorker(w)}
+                    className={cn("px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-colors",
+                      (newTaskWorker?.id || AVAILABLE_WORKERS[0].id) === w.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
+                    {w.avatar} · {w.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Link to production stage (optional)</label>
+              <div className="flex flex-wrap gap-1.5">
+                <button onClick={() => setNewTaskStageIdx("")}
+                  className={cn("px-2.5 py-1 rounded-lg text-[10px] font-medium border",
+                    newTaskStageIdx === "" ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
+                  None
+                </button>
+                {productionStages.map((s, i) => (
+                  <button key={s} onClick={() => setNewTaskStageIdx(i)}
+                    className={cn("px-2.5 py-1 rounded-lg text-[10px] font-medium border",
+                      newTaskStageIdx === i ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Priority</label>
+              <div className="flex gap-2">
+                {(["normal", "urgent"] as const).map((p) => (
+                  <button key={p} onClick={() => setNewTaskPriority(p)}
+                    className={cn("flex-1 py-2 rounded-lg text-[11px] font-bold border capitalize",
+                      newTaskPriority === p
+                        ? p === "urgent" ? "border-red-500 bg-red-500/10 text-red-400" : "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-card text-muted-foreground")}>
+                    {p === "urgent" ? "🔥 Urgent" : "Normal"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={submitNewTask}
               className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold">Add Task</motion.button>
           </div>
         </DialogContent>
