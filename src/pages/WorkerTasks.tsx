@@ -1,34 +1,14 @@
-import { useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, CheckCircle2, PlayCircle, Camera, X, ImagePlus, ClipboardList, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle2, PlayCircle, X, ImagePlus, ClipboardList, Loader2, AlertTriangle, Flame, Flag } from "lucide-react";
 import { toast } from "sonner";
 import EmptyState from "@/components/EmptyState";
+import { useAtelier, WorkerTask, TaskStatus } from "@/contexts/AtelierContext";
+import { useWorkshopChat } from "@/contexts/WorkshopChatContext";
+import { CURRENT_WORKER } from "@/lib/workers";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
-
-type TaskStatus = "not_started" | "in_progress" | "completed";
-
-interface Task {
-  id: number;
-  client: string;
-  garment: string;
-  status: TaskStatus;
-  deadline: string;
-  description: string;
-  stage: number; // 0-3
-  images: string[];
-}
-
-const initialTasks: Task[] = [
-  { id: 1, client: "Mrs. Adebayo", garment: "Ankara Gown", status: "in_progress", deadline: "Apr 5", description: "Sew bodice and attach skirt. Use Ankara fabric #12.", stage: 1, images: [] },
-  { id: 2, client: "Mr. Okafor", garment: "Agbada Set", status: "not_started", deadline: "Apr 8", description: "Cut agbada, sokoto, and fila. Pattern ready on shelf.", stage: 0, images: [] },
-  { id: 3, client: "Chioma E.", garment: "Blouse", status: "completed", deadline: "Apr 2", description: "Finish hemming and add buttons.", stage: 3, images: [] },
-  { id: 4, client: "Bola T.", garment: "Senator Suit", status: "not_started", deadline: "Apr 10", description: "Cut and sew senator top and trousers. Guinea brocade.", stage: 0, images: [] },
-  { id: 5, client: "Kemi O.", garment: "Bridesmaid Dress", status: "in_progress", deadline: "Apr 6", description: "Attach lace overlay and fit bodice.", stage: 2, images: [] },
-];
-
-const stages = ["Cutting", "Sewing", "Finishing", "Done"];
 
 const statusConfig: Record<TaskStatus, { label: string; color: string; bg: string; border: string; icon: typeof Clock }> = {
   not_started: { label: "Not Started", color: "text-muted-foreground", bg: "bg-secondary", border: "border-l-muted", icon: Clock },
@@ -41,22 +21,36 @@ const filterLabels: Record<string, string> = { all: "All", not_started: "Not Sta
 
 const WorkerTasks = () => {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const { tasks: allTasks, tasksByWorker, updateTask, orderById, advanceStage, flagTask } = useAtelier();
+  const { sendMessage, setCurrentUserId, dmChatId } = useWorkshopChat();
+  const tasks = useMemo(() => tasksByWorker(CURRENT_WORKER.id), [allTasks, tasksByWorker]);
+
   const [activeFilter, setActiveFilter] = useState<TaskStatus | "all">("all");
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingTaskId, setUploadingTaskId] = useState<number | null>(null);
-  const [pendingStatusId, setPendingStatusId] = useState<number | null>(null);
+  const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
+  const [pendingStatusId, setPendingStatusId] = useState<string | null>(null);
   const [pendingRemoveKey, setPendingRemoveKey] = useState<string | null>(null);
   const [filterPending, setFilterPending] = useState(false);
+  const [flaggingId, setFlaggingId] = useState<string | null>(null);
+  const [flagText, setFlagText] = useState("");
 
   const filtered = activeFilter === "all" ? tasks : tasks.filter(t => t.status === activeFilter);
 
-  const updateStatus = async (id: number, newStatus: TaskStatus) => {
+  const updateStatus = async (task: WorkerTask, newStatus: TaskStatus) => {
+    const id = task.id;
     if (pendingStatusId === id) return;
     setPendingStatusId(id);
     await new Promise((r) => setTimeout(r, 450));
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus, stage: newStatus === "completed" ? 3 : newStatus === "in_progress" ? Math.max(t.stage, 1) : t.stage } : t));
+    updateTask(id, { status: newStatus });
+    // When the worker finishes a task tied to a production stage, advance
+    // the parent order so the designer's stage tracker stays in sync.
+    if (newStatus === "completed" && typeof task.stageIdx === "number") {
+      const order = orderById(task.orderId);
+      if (order && task.stageIdx > order.currentStage) {
+        advanceStage(task.orderId, task.stageIdx);
+      }
+    }
     const labels: Record<TaskStatus, string> = { not_started: "Not Started", in_progress: "In Progress", completed: "Completed 🎉" };
     toast.success(`Task marked as ${labels[newStatus]}`);
     setPendingStatusId(null);
@@ -68,7 +62,7 @@ const WorkerTasks = () => {
     completed: null,
   };
 
-  const handleImageUpload = (taskId: number) => {
+  const handleImageUpload = (taskId: string) => {
     setUploadingTaskId(taskId);
     fileInputRef.current?.click();
   };
@@ -76,16 +70,14 @@ const WorkerTasks = () => {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || !uploadingTaskId) return;
-
+    const target = tasks.find((t) => t.id === uploadingTaskId);
+    if (!target) { e.target.value = ""; return; }
     Array.from(files).slice(0, 4).forEach(file => {
       const reader = new FileReader();
       reader.onload = (ev) => {
         const dataUrl = ev.target?.result as string;
-        setTasks(prev => prev.map(t =>
-          t.id === uploadingTaskId
-            ? { ...t, images: [...t.images.slice(0, 3), dataUrl] }
-            : t
-        ));
+        const current = tasksByWorker(CURRENT_WORKER.id).find((t) => t.id === uploadingTaskId)?.images || target.images;
+        updateTask(uploadingTaskId, { images: [...current.slice(0, 3), dataUrl] });
         toast.success("Image uploaded successfully! 🎉");
       };
       reader.readAsDataURL(file);
@@ -93,14 +85,13 @@ const WorkerTasks = () => {
     e.target.value = "";
   };
 
-  const removeImage = async (taskId: number, idx: number) => {
+  const removeImage = async (taskId: string, idx: number) => {
     const key = `${taskId}-${idx}`;
     if (pendingRemoveKey === key) return;
     setPendingRemoveKey(key);
     await new Promise((r) => setTimeout(r, 300));
-    setTasks(prev => prev.map(t =>
-      t.id === taskId ? { ...t, images: t.images.filter((_, i) => i !== idx) } : t
-    ));
+    const target = tasks.find((t) => t.id === taskId);
+    if (target) updateTask(taskId, { images: target.images.filter((_, i) => i !== idx) });
     toast("Photo removed");
     setPendingRemoveKey(null);
   };
@@ -110,6 +101,21 @@ const WorkerTasks = () => {
     setFilterPending(true);
     setActiveFilter(f);
     setTimeout(() => setFilterPending(false), 250);
+  };
+
+  const submitFlag = () => {
+    if (!flaggingId) return;
+    const task = tasks.find((t) => t.id === flaggingId);
+    if (!task) return;
+    const reason = flagText.trim() || "Blocker reported";
+    flagTask(flaggingId, reason);
+    // Also drop a DM to the designer so it lands in Workshop Chat.
+    setCurrentUserId(CURRENT_WORKER.id);
+    const chat = dmChatId(CURRENT_WORKER.id, "designer");
+    sendMessage(chat, `🚩 Issue on "${task.title}" (${task.orderId}): ${reason}`);
+    toast.warning("Designer notified in Workshop Chat");
+    setFlaggingId(null);
+    setFlagText("");
   };
 
   return (
@@ -150,16 +156,34 @@ const WorkerTasks = () => {
             const sc = statusConfig[task.status];
             const next = nextStatus[task.status];
             const isExpanded = expandedId === task.id;
+            const order = orderById(task.orderId);
+            const stages = order?.stages || ["Cutting", "Sewing", "Finishing", "Quality Check"];
+            const stageIdx = typeof task.stageIdx === "number" ? task.stageIdx : (order?.currentStage ?? 0);
+            const client = order?.client || "—";
+            const garmentLabel = order?.type || task.title;
+            const isUrgent = task.priority === "urgent";
 
             return (
-              <motion.div key={task.id} layout {...fadeUp} transition={{ delay: i * 0.04 }}
+              <motion.div key={task.id} layout {...fadeUp} transition={{ delay: Math.min(i, 6) * 0.04 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className={`card-glass overflow-hidden border-l-[3px] ${sc.border}`}>
+                className={`card-glass overflow-hidden border-l-[3px] ${isUrgent ? "border-l-red-400" : sc.border}`}>
                 <button onClick={() => setExpandedId(isExpanded ? null : task.id)} className="w-full p-4 text-left">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-bold text-foreground">{task.garment}</p>
-                      <p className="text-xs text-muted-foreground">{task.client}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-bold text-foreground">{garmentLabel}</p>
+                        {isUrgent && (
+                          <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[9px] font-bold">
+                            <Flame className="w-2.5 h-2.5" /> URGENT
+                          </span>
+                        )}
+                        {task.flaggedAt && (
+                          <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[9px] font-bold">
+                            <Flag className="w-2.5 h-2.5" /> FLAGGED
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{client} · {task.title}</p>
                     </div>
                     <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${sc.bg}`}>
                       {task.status === "in_progress" && (
@@ -179,7 +203,15 @@ const WorkerTasks = () => {
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                       className="px-4 pb-4 border-t border-border/20 pt-3 overflow-hidden">
-                      <p className="text-xs text-muted-foreground mb-4">{task.description}</p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        {order?.styleDesc || task.title}
+                      </p>
+                      {task.flagReason && (
+                        <div className="mb-3 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+                          <p className="text-[10px] text-amber-300">Flagged: {task.flagReason}</p>
+                        </div>
+                      )}
 
                       {/* Production Stage Tracker */}
                       <div className="mb-4">
@@ -188,17 +220,17 @@ const WorkerTasks = () => {
                           {stages.map((s, si) => (
                             <div key={s} className="flex items-center flex-1">
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0 transition-colors ${
-                                si <= task.stage ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+                                si <= stageIdx ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
                               }`}>{si + 1}</div>
                               {si < stages.length - 1 && (
-                                <div className={`flex-1 h-0.5 mx-1 ${si < task.stage ? "bg-primary" : "bg-border"}`} />
+                                <div className={`flex-1 h-0.5 mx-1 ${si < stageIdx ? "bg-primary" : "bg-border"}`} />
                               )}
                             </div>
                           ))}
                         </div>
                         <div className="flex justify-between mt-1">
                           {stages.map((s, si) => (
-                            <span key={s} className={`text-[8px] flex-1 text-center ${si <= task.stage ? "text-primary" : "text-muted-foreground"}`}>{s}</span>
+                            <span key={s} className={`text-[8px] flex-1 text-center ${si <= stageIdx ? "text-primary" : "text-muted-foreground"}`}>{s}</span>
                           ))}
                         </div>
                       </div>
@@ -233,9 +265,20 @@ const WorkerTasks = () => {
                         </div>
                       </div>
 
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <button onClick={() => setFlaggingId(task.id)}
+                          className="py-2 rounded-xl bg-amber-500/10 text-amber-400 text-[11px] font-bold flex items-center justify-center gap-1.5 border border-amber-500/30">
+                          <Flag className="w-3.5 h-3.5" /> Flag Issue
+                        </button>
+                        <button onClick={() => updateTask(task.id, { priority: isUrgent ? "normal" : "urgent" })}
+                          className={`py-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 border ${isUrgent ? "bg-secondary text-muted-foreground border-border" : "bg-red-500/10 text-red-400 border-red-500/30"}`}>
+                          <Flame className="w-3.5 h-3.5" /> {isUrgent ? "Clear Urgent" : "Mark Urgent"}
+                        </button>
+                      </div>
+
                       {next && (
                         <motion.button whileTap={{ scale: 0.97 }}
-                          onClick={() => updateStatus(task.id, next)}
+                          onClick={() => updateStatus(task, next)}
                           disabled={pendingStatusId === task.id}
                           className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
                           {pendingStatusId === task.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
@@ -257,6 +300,33 @@ const WorkerTasks = () => {
           />
         )}
       </div>
+
+      {/* Flag issue sheet */}
+      <AnimatePresence>
+        {flaggingId && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[90] bg-background/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
+            onClick={() => setFlaggingId(null)}>
+            <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-card rounded-t-3xl sm:rounded-3xl border border-border p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Flag className="w-4 h-4 text-amber-400" /> Flag Issue to Designer
+                </p>
+                <button onClick={() => setFlaggingId(null)}><X className="w-4 h-4 text-muted-foreground" /></button>
+              </div>
+              <textarea value={flagText} onChange={(e) => setFlagText(e.target.value)} rows={3}
+                placeholder="What's blocking you? (e.g. fabric shortage, unclear measurement)"
+                className="w-full bg-secondary/50 border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary resize-none" />
+              <button onClick={submitFlag}
+                className="mt-3 w-full py-3 rounded-xl bg-amber-500 text-white text-sm font-bold">
+                Notify Designer
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
