@@ -749,13 +749,15 @@ const Workers = () => {
           <h2 className="text-sm font-semibold text-foreground">Your Team</h2>
           <span className="text-[10px] text-muted-foreground">{workers.length} workers</span>
         </div>
-        {workers.map((w, i) => (
+        {workers.map((raw, i) => {
+          const w = enrichWorker(raw);
+          return (
           <motion.div
             key={w.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            onClick={() => setViewingWorker(w)}
+            onClick={() => setViewingWorker(raw)}
             className="card-surface p-4 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform"
           >
             <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
@@ -789,7 +791,8 @@ const Workers = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
             </div>
           </motion.div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
