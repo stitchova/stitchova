@@ -439,6 +439,39 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, [setOrders]);
 
+  const setStage: AtelierState["setStage"] = useCallback((orderId, stageIdx, opts = {}) => {
+    setOrders((prev) => prev.map(o => {
+      if (o.id !== orderId) return o;
+      const stageName = o.stages[stageIdx];
+      if (!stageName) return o;
+      const entry: StageHistoryEntry = {
+        stageIdx,
+        stage: stageName,
+        timestamp: Date.now(),
+        photoUrl: opts.photoUrl,
+        workerId: opts.workerId,
+        workerName: opts.workerName,
+      };
+      const stageHistory = [...(o.stageHistory || []), entry];
+      const status: OrderStatus = stageIdx >= o.stages.length - 1
+        ? "completed"
+        : o.status === "requested" ? "active" : o.status;
+      return { ...o, currentStage: stageIdx, stageHistory, status };
+    }));
+  }, [setOrders]);
+
+  const undoLastStage: AtelierState["undoLastStage"] = useCallback((orderId) => {
+    setOrders((prev) => prev.map(o => {
+      if (o.id !== orderId) return o;
+      const history = [...(o.stageHistory || [])];
+      if (history.length === 0) return o;
+      history.pop();
+      const prevIdx = history.length > 0 ? history[history.length - 1].stageIdx : 0;
+      const status: OrderStatus = o.status === "completed" && prevIdx < o.stages.length - 1 ? "active" : o.status;
+      return { ...o, currentStage: prevIdx, stageHistory: history, status };
+    }));
+  }, [setOrders]);
+
   const addPayment: AtelierState["addPayment"] = useCallback((orderId, p) => {
     setOrders((prev) => prev.map(o => o.id === orderId
       ? { ...o, payments: [...o.payments, { ...p, id: `pay-${Date.now()}` }] } : o));
@@ -534,12 +567,12 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
 
   const value: AtelierState = useMemo(() => ({
     clients, measurements, orders, fabrics, materials, measurementTemplates, tasks,
-    addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder,
+    addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, setStage, undoLastStage, addPayment, confirmOrder, declineOrder,
     setFabrics, setMaterials, deductFabric, deductMaterial,
     addTemplateField, removeTemplateField,
     addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask,
     latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient,
-  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, tasks, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
+  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, tasks, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, setStage, undoLastStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
 
   return <AtelierContext.Provider value={value}>{children}</AtelierContext.Provider>;
 };
