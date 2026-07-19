@@ -175,14 +175,14 @@ const WorkerTasks = () => {
         <AnimatePresence mode="popLayout">
           {filtered.map((task, i) => {
             const sc = statusConfig[task.status];
-            const next = nextStatus[task.status];
             const isExpanded = expandedId === task.id;
             const order = orderById(task.orderId);
             const stages = order?.stages || ["Cutting", "Sewing", "Finishing", "Quality Check"];
-            const stageIdx = typeof task.stageIdx === "number" ? task.stageIdx : (order?.currentStage ?? 0);
+            const currentStageIdx = order?.currentStage ?? 0;
             const client = order?.client || "—";
             const garmentLabel = order?.type || task.title;
             const isUrgent = task.priority === "urgent";
+            const isAdvancing = pendingStatusId === task.id;
 
             return (
               <motion.div key={task.id} layout {...fadeUp} transition={{ delay: Math.min(i, 6) * 0.04 }}
@@ -236,24 +236,17 @@ const WorkerTasks = () => {
 
                       {/* Production Stage Tracker */}
                       <div className="mb-4">
-                        <p className="text-[10px] font-semibold text-muted-foreground mb-2">Production Stage</p>
-                        <div className="flex items-center gap-1">
-                          {stages.map((s, si) => (
-                            <div key={s} className="flex items-center flex-1">
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0 transition-colors ${
-                                si <= stageIdx ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                              }`}>{si + 1}</div>
-                              {si < stages.length - 1 && (
-                                <div className={`flex-1 h-0.5 mx-1 ${si < stageIdx ? "bg-primary" : "bg-border"}`} />
-                              )}
-                            </div>
-                          ))}
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-[10px] font-semibold text-muted-foreground">Production Stage</p>
+                          <p className="text-[9px] text-muted-foreground">Tap a stage to jump to it</p>
                         </div>
-                        <div className="flex justify-between mt-1">
-                          {stages.map((s, si) => (
-                            <span key={s} className={`text-[8px] flex-1 text-center ${si <= stageIdx ? "text-primary" : "text-muted-foreground"}`}>{s}</span>
-                          ))}
-                        </div>
+                        <StageTracker
+                          stages={stages}
+                          currentIdx={currentStageIdx}
+                          size="sm"
+                          disabled={isAdvancing || !order}
+                          onSelect={(idx) => handleStageTap(task, idx)}
+                        />
                       </div>
 
                       {/* Image Upload Section */}
@@ -297,14 +290,10 @@ const WorkerTasks = () => {
                         </button>
                       </div>
 
-                      {next && (
-                        <motion.button whileTap={{ scale: 0.97 }}
-                          onClick={() => updateStatus(task, next)}
-                          disabled={pendingStatusId === task.id}
-                          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                          {pendingStatusId === task.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                          {pendingStatusId === task.id ? "Updating..." : `Mark as ${statusConfig[next].label}`}
-                        </motion.button>
+                      {isAdvancing && (
+                        <div className="w-full py-2.5 rounded-xl bg-secondary text-muted-foreground text-xs font-medium flex items-center justify-center gap-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Advancing stage...
+                        </div>
                       )}
                     </motion.div>
                   )}
