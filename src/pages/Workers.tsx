@@ -261,7 +261,7 @@ const Workers = () => {
 
   // ── WORKER PROFILE VIEW ──
   if (viewingWorker) {
-    const w = viewingWorker;
+    const w = enrichWorker(viewingWorker);
     const profileTabs = [
       { key: "overview", label: "Overview" },
       { key: "performance", label: "Performance" },
