@@ -12,6 +12,15 @@ export type MeasurementUnit = "in" | "cm";
 export type TaskStatus = "not_started" | "in_progress" | "completed";
 export type TaskPriority = "normal" | "urgent";
 
+export interface StageHistoryEntry {
+  stageIdx: number;
+  stage: string;
+  timestamp: number;
+  photoUrl?: string;
+  workerId?: string;
+  workerName?: string;
+}
+
 export interface WorkerTask {
   id: string;
   orderId: string;
@@ -97,6 +106,7 @@ export interface Order {
   deliveryDate?: string; // ISO date-time
   deliveryStatus?: DeliveryStatus;
   costs?: { fabric?: number; materials?: number; labor?: number };
+  stageHistory?: StageHistoryEntry[];
 }
 
 export interface Fabric {
@@ -295,6 +305,12 @@ interface AtelierState {
   updateOrder: (id: string, patch: Partial<Order>) => void;
   setDeliveryStatus: (orderId: string, status: DeliveryStatus) => void;
   advanceStage: (orderId: string, stageIdx: number) => void;
+  setStage: (
+    orderId: string,
+    stageIdx: number,
+    opts?: { photoUrl?: string; workerId?: string; workerName?: string }
+  ) => void;
+  undoLastStage: (orderId: string) => void;
   addPayment: (orderId: string, p: Omit<OrderPayment, "id">) => void;
   confirmOrder: (orderId: string) => void;
   declineOrder: (orderId: string) => void;
