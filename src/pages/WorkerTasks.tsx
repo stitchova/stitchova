@@ -7,6 +7,7 @@ import EmptyState from "@/components/EmptyState";
 import { useAtelier, WorkerTask, TaskStatus } from "@/contexts/AtelierContext";
 import { useWorkshopChat } from "@/contexts/WorkshopChatContext";
 import { CURRENT_WORKER } from "@/lib/workers";
+import StageTracker from "@/components/StageTracker";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
@@ -21,7 +22,7 @@ const filterLabels: Record<string, string> = { all: "All", not_started: "Not Sta
 
 const WorkerTasks = () => {
   const navigate = useNavigate();
-  const { tasks: allTasks, tasksByWorker, updateTask, orderById, advanceStage, flagTask } = useAtelier();
+  const { tasks: allTasks, tasksByWorker, updateTask, orderById, setStage, undoLastStage, flagTask } = useAtelier();
   const { sendMessage, setCurrentUserId, dmChatId } = useWorkshopChat();
   const tasks = useMemo(() => tasksByWorker(CURRENT_WORKER.id), [allTasks, tasksByWorker]);
 
@@ -37,29 +38,49 @@ const WorkerTasks = () => {
 
   const filtered = activeFilter === "all" ? tasks : tasks.filter(t => t.status === activeFilter);
 
-  const updateStatus = async (task: WorkerTask, newStatus: TaskStatus) => {
-    const id = task.id;
-    if (pendingStatusId === id) return;
-    setPendingStatusId(id);
-    await new Promise((r) => setTimeout(r, 450));
-    updateTask(id, { status: newStatus });
-    // When the worker finishes a task tied to a production stage, advance
-    // the parent order so the designer's stage tracker stays in sync.
-    if (newStatus === "completed" && typeof task.stageIdx === "number") {
-      const order = orderById(task.orderId);
-      if (order && task.stageIdx > order.currentStage) {
-        advanceStage(task.orderId, task.stageIdx);
-      }
-    }
-    const labels: Record<TaskStatus, string> = { not_started: "Not Started", in_progress: "In Progress", completed: "Completed 🎉" };
-    toast.success(`Task marked as ${labels[newStatus]}`);
-    setPendingStatusId(null);
-  };
+  // Advance the parent order to the tapped production stage. Prior stages are
+  // implicitly marked complete because currentStage is a single index. Also
+  // syncs task status so the filter tabs/badges keep matching stage reality.
+  const handleStageTap = async (task: WorkerTask, targetIdx: number) => {
+    const order = orderById(task.orderId);
+    if (!order) return;
+    if (targetIdx === order.currentStage) return;
+    if (pendingStatusId === task.id) return;
 
-  const nextStatus: Record<TaskStatus, TaskStatus | null> = {
-    not_started: "in_progress",
-    in_progress: "completed",
-    completed: null,
+    const isFinal = targetIdx === order.stages.length - 1;
+    if (isFinal && task.images.length === 0) {
+      toast.error("Attach at least one finished-work photo before completing the final stage.");
+      return;
+    }
+
+    setPendingStatusId(task.id);
+    await new Promise((r) => setTimeout(r, 250));
+    const stageName = order.stages[targetIdx];
+    const photoUrl = isFinal ? task.images[task.images.length - 1] : undefined;
+    setStage(order.id, targetIdx, {
+      photoUrl,
+      workerId: task.workerId,
+      workerName: task.workerName,
+    });
+    // Derive a sensible task status from the tapped stage.
+    const nextTaskStatus: TaskStatus =
+      typeof task.stageIdx === "number"
+        ? targetIdx > task.stageIdx ? "completed"
+          : targetIdx === task.stageIdx ? "in_progress" : "not_started"
+        : isFinal ? "completed" : "in_progress";
+    updateTask(task.id, { status: nextTaskStatus });
+
+    toast.success(`Advanced to ${stageName}`, {
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          undoLastStage(order.id);
+          toast("Stage change reverted");
+        },
+      },
+    });
+    setPendingStatusId(null);
   };
 
   const handleImageUpload = (taskId: string) => {
@@ -154,14 +175,14 @@ const WorkerTasks = () => {
         <AnimatePresence mode="popLayout">
           {filtered.map((task, i) => {
             const sc = statusConfig[task.status];
-            const next = nextStatus[task.status];
             const isExpanded = expandedId === task.id;
             const order = orderById(task.orderId);
             const stages = order?.stages || ["Cutting", "Sewing", "Finishing", "Quality Check"];
-            const stageIdx = typeof task.stageIdx === "number" ? task.stageIdx : (order?.currentStage ?? 0);
+            const currentStageIdx = order?.currentStage ?? 0;
             const client = order?.client || "—";
             const garmentLabel = order?.type || task.title;
             const isUrgent = task.priority === "urgent";
+            const isAdvancing = pendingStatusId === task.id;
 
             return (
               <motion.div key={task.id} layout {...fadeUp} transition={{ delay: Math.min(i, 6) * 0.04 }}
@@ -215,24 +236,17 @@ const WorkerTasks = () => {
 
                       {/* Production Stage Tracker */}
                       <div className="mb-4">
-                        <p className="text-[10px] font-semibold text-muted-foreground mb-2">Production Stage</p>
-                        <div className="flex items-center gap-1">
-                          {stages.map((s, si) => (
-                            <div key={s} className="flex items-center flex-1">
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0 transition-colors ${
-                                si <= stageIdx ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                              }`}>{si + 1}</div>
-                              {si < stages.length - 1 && (
-                                <div className={`flex-1 h-0.5 mx-1 ${si < stageIdx ? "bg-primary" : "bg-border"}`} />
-                              )}
-                            </div>
-                          ))}
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-[10px] font-semibold text-muted-foreground">Production Stage</p>
+                          <p className="text-[9px] text-muted-foreground">Tap a stage to jump to it</p>
                         </div>
-                        <div className="flex justify-between mt-1">
-                          {stages.map((s, si) => (
-                            <span key={s} className={`text-[8px] flex-1 text-center ${si <= stageIdx ? "text-primary" : "text-muted-foreground"}`}>{s}</span>
-                          ))}
-                        </div>
+                        <StageTracker
+                          stages={stages}
+                          currentIdx={currentStageIdx}
+                          size="sm"
+                          disabled={isAdvancing || !order}
+                          onSelect={(idx) => handleStageTap(task, idx)}
+                        />
                       </div>
 
                       {/* Image Upload Section */}
@@ -276,14 +290,10 @@ const WorkerTasks = () => {
                         </button>
                       </div>
 
-                      {next && (
-                        <motion.button whileTap={{ scale: 0.97 }}
-                          onClick={() => updateStatus(task, next)}
-                          disabled={pendingStatusId === task.id}
-                          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                          {pendingStatusId === task.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                          {pendingStatusId === task.id ? "Updating..." : `Mark as ${statusConfig[next].label}`}
-                        </motion.button>
+                      {isAdvancing && (
+                        <div className="w-full py-2.5 rounded-xl bg-secondary text-muted-foreground text-xs font-medium flex items-center justify-center gap-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Advancing stage...
+                        </div>
                       )}
                     </motion.div>
                   )}

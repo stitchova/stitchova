@@ -10,6 +10,14 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import WorkerProgressTracker from "@/components/WorkerProgressTracker";
+import { useAtelier } from "@/contexts/AtelierContext";
+
+// Map the demo worker roster (Workers.tsx) to shared workshop IDs so real
+// stage-history / task activity can flow into their performance numbers.
+const WORKER_ID_BY_NAME: Record<string, string> = {
+  "Kwame Asante": "w-kwame",
+  "Esi Darkwa": "w-esi",
+};
 
 interface EmergencyContact {
   name: string;
@@ -111,6 +119,47 @@ const Workers = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [workers, setWorkers] = useState<Worker[]>(defaultWorkers);
+  const { orders, tasks } = useAtelier();
+
+  // Derive live counters from real stage history + task completions so newly
+  // advanced stages actually move a worker's numbers beyond the seed baseline.
+  const liveStatsFor = (w: Worker) => {
+    const wid = WORKER_ID_BY_NAME[w.fullName];
+    if (!wid) return { tasksCompleted: w.tasksCompleted, ordersWorkedOn: w.ordersWorkedOn, completionRate: w.completionRate, onTimeRate: w.onTimeRate };
+    const workerTasks = tasks.filter((t) => t.workerId === wid);
+    const doneTasks = workerTasks.filter((t) => t.status === "completed");
+    const historyEntries = orders.flatMap((o) =>
+      (o.stageHistory || []).filter((h) => h.workerId === wid).map((h) => ({ o, h }))
+    );
+    const extraCompleted = doneTasks.length;
+    const extraOrders = new Set([
+      ...workerTasks.map((t) => t.orderId),
+      ...historyEntries.map((x) => x.o.id),
+    ]).size;
+    // On-time = stage history timestamp before today (proxy: always on-time for
+    // demo unless the parent order is past dueDate at completion).
+    const onTimeExtras = historyEntries.filter((x) => {
+      if (x.h.stageIdx !== x.o.stages.length - 1) return true;
+      return true; // simplified: prototype has no absolute due timestamp
+    }).length;
+    const onTimeFails = historyEntries.length - onTimeExtras;
+    const totalOnTime = Math.round((w.onTimeRate * 100 + onTimeExtras * 100) / Math.max(1, 100 + historyEntries.length));
+    const totalCompletion = Math.round((w.completionRate * 100 + extraCompleted * 100) / Math.max(1, 100 + workerTasks.length));
+    return {
+      tasksCompleted: w.tasksCompleted + extraCompleted,
+      ordersWorkedOn: Math.max(w.ordersWorkedOn, w.ordersWorkedOn + extraOrders - (WORKER_ID_BY_NAME[w.fullName] ? 0 : 0)),
+      completionRate: workerTasks.length ? totalCompletion : w.completionRate,
+      onTimeRate: historyEntries.length ? totalOnTime : w.onTimeRate,
+      _onTimeFails: onTimeFails,
+    };
+  };
+
+  // Wrap the raw worker with live-derived stats for display.
+  const enrichWorker = (w: Worker): Worker => {
+    const s = liveStatsFor(w);
+    return { ...w, tasksCompleted: s.tasksCompleted, ordersWorkedOn: s.ordersWorkedOn, completionRate: s.completionRate, onTimeRate: s.onTimeRate };
+  };
+
   const [showForm, setShowForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [viewingWorker, setViewingWorker] = useState<Worker | null>(null);
@@ -212,7 +261,7 @@ const Workers = () => {
 
   // ── WORKER PROFILE VIEW ──
   if (viewingWorker) {
-    const w = viewingWorker;
+    const w = enrichWorker(viewingWorker);
     const profileTabs = [
       { key: "overview", label: "Overview" },
       { key: "performance", label: "Performance" },
@@ -700,13 +749,15 @@ const Workers = () => {
           <h2 className="text-sm font-semibold text-foreground">Your Team</h2>
           <span className="text-[10px] text-muted-foreground">{workers.length} workers</span>
         </div>
-        {workers.map((w, i) => (
+        {workers.map((raw, i) => {
+          const w = enrichWorker(raw);
+          return (
           <motion.div
             key={w.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            onClick={() => setViewingWorker(w)}
+            onClick={() => setViewingWorker(raw)}
             className="card-surface p-4 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform"
           >
             <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
@@ -740,7 +791,8 @@ const Workers = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
             </div>
           </motion.div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
