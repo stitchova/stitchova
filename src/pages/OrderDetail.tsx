@@ -24,7 +24,7 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const { orderById, orders, advanceStage, setStage, undoLastStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials,
+  const { orderById, orders, setStage, undoLastStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials,
     tasksByOrder, addTask, updateTask, deleteTask, measurementsByClient } = useAtelier();
   // clientId param may be an order id (new format) or legacy demo clientId
   const order =
