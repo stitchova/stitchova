@@ -24,7 +24,7 @@ const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
   const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials,
-    tasksByOrder, addTask, updateTask, deleteTask } = useAtelier();
+    tasksByOrder, addTask, updateTask, deleteTask, measurementsByClient } = useAtelier();
   // clientId param may be an order id (new format) or legacy demo clientId
   const order =
     orderById(clientId || "") ||
@@ -568,6 +568,95 @@ const OrderDetail = () => {
               );
             })}
           </div>
+        </motion.div>
+
+        {/* Worker Activity Timeline */}
+        <motion.div {...fadeUp} transition={{ delay: 0.13 }}>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-foreground">Worker Activity</h2>
+            <span className="text-[10px] text-muted-foreground">Live</span>
+          </div>
+          {(() => {
+            type Ev = { id: string; kind: "stage" | "photo" | "measurement"; title: string; sub: string; time: number; who?: string; avatar?: string; image?: string };
+            const events: Ev[] = [];
+            for (const t of orderTasks) {
+              const created = new Date(t.createdAt).getTime() || Date.now();
+              if (t.status === "completed") {
+                const stageLabel = typeof t.stageIdx === "number" ? productionStages[t.stageIdx] : null;
+                events.push({
+                  id: `s-${t.id}`, kind: "stage",
+                  title: stageLabel ? `Completed stage: ${stageLabel}` : `Completed: ${t.title}`,
+                  sub: t.title, time: created, who: t.workerName, avatar: t.workerAvatar,
+                });
+              }
+              t.images.forEach((img, idx) => events.push({
+                id: `p-${t.id}-${idx}`, kind: "photo",
+                title: "Finished-work photo uploaded", sub: t.title,
+                time: created + idx, who: t.workerName, avatar: t.workerAvatar, image: img,
+              }));
+            }
+            for (const m of measurementsByClient(order.clientId)) {
+              const t = new Date(m.createdAt).getTime() || Date.now();
+              events.push({
+                id: `m-${m.id}`, kind: "measurement",
+                title: `Measurement submitted: ${m.garment}`,
+                sub: `${Object.keys(m.fields).length} fields recorded${m.unit ? ` (${m.unit})` : ""}`,
+                time: t,
+              });
+            }
+            events.sort((a, b) => b.time - a.time);
+            if (events.length === 0) {
+              return (
+                <div className="card-surface p-4">
+                  <p className="text-[11px] text-muted-foreground text-center">No worker activity yet. Completed stages, photo uploads, and measurement submissions will appear here.</p>
+                </div>
+              );
+            }
+            const iconFor = (k: Ev["kind"]) =>
+              k === "stage" ? { Icon: CheckCircle2, color: "text-status-completed", bg: "bg-status-completed/10" }
+              : k === "photo" ? { Icon: ImageIcon, color: "text-primary", bg: "bg-primary/10" }
+              : { Icon: User, color: "text-amber-400", bg: "bg-amber-400/10" };
+            const rel = (t: number) => {
+              const diff = Date.now() - t;
+              const m = Math.floor(diff / 60000);
+              if (m < 1) return "just now";
+              if (m < 60) return `${m}m ago`;
+              const h = Math.floor(m / 60);
+              if (h < 24) return `${h}h ago`;
+              const d = Math.floor(h / 24);
+              return `${d}d ago`;
+            };
+            return (
+              <div className="card-surface divide-y divide-border">
+                {events.slice(0, 12).map((e) => {
+                  const { Icon, color, bg } = iconFor(e.kind);
+                  return (
+                    <div key={e.id} className="flex items-start gap-3 p-3">
+                      <div className={`w-8 h-8 rounded-full ${bg} flex items-center justify-center flex-shrink-0`}>
+                        <Icon className={`w-4 h-4 ${color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-foreground truncate">{e.title}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{e.sub}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {e.who && (
+                            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                              <span className="w-4 h-4 rounded-full bg-secondary flex items-center justify-center text-[8px] font-bold text-foreground">{e.avatar}</span>
+                              {e.who}
+                            </span>
+                          )}
+                          <span className="text-[10px] text-muted-foreground">· {rel(e.time)}</span>
+                        </div>
+                      </div>
+                      {e.image && (
+                        <img src={e.image} alt="upload" className="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-border" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </motion.div>
       </div>
 
