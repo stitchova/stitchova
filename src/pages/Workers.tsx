@@ -10,6 +10,14 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import WorkerProgressTracker from "@/components/WorkerProgressTracker";
+import { useAtelier } from "@/contexts/AtelierContext";
+
+// Map the demo worker roster (Workers.tsx) to shared workshop IDs so real
+// stage-history / task activity can flow into their performance numbers.
+const WORKER_ID_BY_NAME: Record<string, string> = {
+  "Kwame Asante": "w-kwame",
+  "Esi Darkwa": "w-esi",
+};
 
 interface EmergencyContact {
   name: string;
