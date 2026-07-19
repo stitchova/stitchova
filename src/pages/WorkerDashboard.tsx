@@ -1,26 +1,17 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, Ruler, Package, Clock, CheckCircle2, AlertTriangle, Camera, ChevronRight, MessagesSquare } from "lucide-react";
+import { ClipboardList, Ruler, Package, Clock, CheckCircle2, AlertTriangle, Camera, ChevronRight, MessagesSquare, Flame } from "lucide-react";
+import { useAtelier } from "@/contexts/AtelierContext";
+import { CURRENT_WORKER } from "@/lib/workers";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
-
-const tasks = [
-  { id: 1, client: "Mrs. Adebayo", garment: "Ankara Gown", status: "in_progress", deadline: "Apr 5", daysLeft: 2 },
-  { id: 2, client: "Mr. Okafor", garment: "Agbada Set", status: "not_started", deadline: "Apr 8", daysLeft: 5 },
-  { id: 3, client: "Chioma E.", garment: "Blouse", status: "completed", deadline: "Apr 2", daysLeft: 0 },
-];
 
 const statusConfig: Record<string, { label: string; color: string; border: string; icon: typeof Clock }> = {
   not_started: { label: "Not Started", color: "text-muted-foreground", border: "border-l-muted", icon: Clock },
   in_progress: { label: "In Progress", color: "text-primary", border: "border-l-primary", icon: AlertTriangle },
   completed: { label: "Completed", color: "text-green-400", border: "border-l-green-400", icon: CheckCircle2 },
 };
-
-const recentUploads = [
-  { id: 1, name: "Ankara Gown", image: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=200&h=200&fit=crop" },
-  { id: 2, name: "Senator Suit", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" },
-  { id: 3, name: "Bridal Dress", image: "https://images.unsplash.com/photo-1594463750939-ebb28c3f7f75?w=200&h=200&fit=crop" },
-];
 
 const getGreeting = () => {
   const h = new Date().getHours();
@@ -31,15 +22,58 @@ const getGreeting = () => {
 
 const WorkerDashboard = () => {
   const navigate = useNavigate();
-  const completedTasks = 3;
-  const totalTasks = 5;
+  const { tasksByWorker, measurements, orderById } = useAtelier();
+  const myTasks = useMemo(() => tasksByWorker(CURRENT_WORKER.id), [tasksByWorker]);
+
+  const completedTasks = myTasks.filter((t) => t.status === "completed").length;
+  const activeCount = myTasks.filter((t) => t.status !== "completed").length;
+  const totalTasks = Math.max(myTasks.length, 1);
   const completionPct = Math.round((completedTasks / totalTasks) * 100);
 
+  // Recent finished-work photos across the worker's own uploads.
+  const recentUploads = useMemo(() => {
+    const items: { id: string; name: string; image: string }[] = [];
+    for (const t of myTasks) {
+      for (const img of t.images) {
+        const order = orderById(t.orderId);
+        items.push({ id: `${t.id}-${img.slice(0, 8)}`, name: order?.type || t.title, image: img });
+      }
+    }
+    return items.slice(0, 6);
+  }, [myTasks, orderById]);
+
+  const materialsOrderCount = useMemo(() => {
+    const s = new Set<string>();
+    for (const t of myTasks) if (t.status !== "completed") s.add(t.orderId);
+    return s.size;
+  }, [myTasks]);
+
   const stats = [
-    { label: "Active Tasks", value: "4", icon: ClipboardList, path: "/worker-tasks" },
-    { label: "Measurements", value: "12", icon: Ruler, path: "/worker-measurements" },
-    { label: "Materials", value: "8", icon: Package, path: "/worker-materials" },
+    { label: "Active Tasks", value: String(activeCount), icon: ClipboardList, path: "/worker-tasks" },
+    { label: "Measurements", value: String(measurements.length), icon: Ruler, path: "/worker-measurements" },
+    { label: "Materials", value: String(materialsOrderCount), icon: Package, path: "/worker-materials" },
   ];
+
+  const daysUntil = (deadline: string) => {
+    // Deadlines are formatted like "Apr 5" or ISO — best-effort parse.
+    const now = new Date();
+    const parsed = new Date(deadline + (deadline.length <= 6 ? ` ${now.getFullYear()}` : ""));
+    if (Number.isNaN(parsed.getTime())) return null;
+    const diff = Math.ceil((parsed.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diff;
+  };
+
+  // "Today's tasks" = most urgent-first, top 3
+  const todaysTasks = useMemo(() => {
+    return [...myTasks]
+      .sort((a, b) => {
+        if (a.status === "completed" && b.status !== "completed") return 1;
+        if (a.status !== "completed" && b.status === "completed") return -1;
+        if (a.priority !== b.priority) return a.priority === "urgent" ? -1 : 1;
+        return 0;
+      })
+      .slice(0, 3);
+  }, [myTasks]);
 
   // SVG ring params
   const ringR = 38;
@@ -52,8 +86,8 @@ const WorkerDashboard = () => {
       <div className="px-5 pt-14 pb-6">
         <motion.div {...fadeUp}>
           <p className="text-muted-foreground text-sm">{getGreeting()},</p>
-          <h1 className="text-2xl font-bold shimmer-text">Tunde A.</h1>
-          <p className="text-xs text-muted-foreground mt-1">Tailor • Ade Designs Studio</p>
+          <h1 className="text-2xl font-bold shimmer-text">{CURRENT_WORKER.name}</h1>
+          <p className="text-xs text-muted-foreground mt-1">{CURRENT_WORKER.role} • Ade Designs Studio</p>
         </motion.div>
       </div>
 
@@ -77,7 +111,7 @@ const WorkerDashboard = () => {
           </div>
           <div>
             <p className="text-sm font-bold text-foreground mb-1">Task Completion</p>
-            <p className="text-xs text-muted-foreground">{completedTasks} of {totalTasks} tasks completed this week</p>
+            <p className="text-xs text-muted-foreground">{completedTasks} of {myTasks.length} tasks completed</p>
           </div>
         </motion.div>
 
@@ -122,17 +156,23 @@ const WorkerDashboard = () => {
           </button>
         </div>
         <div className="space-y-3">
-          {tasks.map((task, i) => {
+          {todaysTasks.map((task, i) => {
             const sc = statusConfig[task.status];
+            const order = orderById(task.orderId);
+            const days = daysUntil(task.deadline);
+            const isUrgent = task.priority === "urgent";
             return (
               <motion.button key={task.id} {...fadeUp} transition={{ delay: 0.15 + i * 0.04 }}
                 onClick={() => navigate("/worker-tasks")}
                 whileTap={{ scale: 0.98 }}
-                className={`w-full card-glass p-4 text-left border-l-[3px] ${sc.border}`}>
+                className={`w-full card-glass p-4 text-left border-l-[3px] ${isUrgent ? "border-l-red-400" : sc.border}`}>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-bold text-foreground">{task.garment}</p>
-                    <p className="text-xs text-muted-foreground">{task.client}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-bold text-foreground">{order?.type || task.title}</p>
+                      {isUrgent && <Flame className="w-3 h-3 text-red-400" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{order?.client || "—"}</p>
                   </div>
                   <div className={`flex items-center gap-1 px-2 py-1 rounded-full bg-card/60 ${sc.color}`}>
                     <sc.icon className="w-3 h-3" />
@@ -141,15 +181,21 @@ const WorkerDashboard = () => {
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-[10px] text-muted-foreground">Due: {task.deadline}</p>
-                  {task.status !== "completed" && task.daysLeft > 0 && (
-                    <span className={`text-[10px] font-medium ${task.daysLeft <= 2 ? "text-red-400" : "text-muted-foreground"}`}>
-                      {task.daysLeft} day{task.daysLeft > 1 ? "s" : ""} left
+                  {task.status !== "completed" && days !== null && days > 0 && (
+                    <span className={`text-[10px] font-medium ${days <= 2 ? "text-red-400" : "text-muted-foreground"}`}>
+                      {days} day{days > 1 ? "s" : ""} left
                     </span>
+                  )}
+                  {task.status !== "completed" && days !== null && days <= 0 && (
+                    <span className="text-[10px] font-medium text-red-400">Overdue</span>
                   )}
                 </div>
               </motion.button>
             );
           })}
+          {todaysTasks.length === 0 && (
+            <p className="text-center text-xs text-muted-foreground py-4">No tasks assigned yet.</p>
+          )}
         </div>
       </div>
 
@@ -159,17 +205,21 @@ const WorkerDashboard = () => {
           <h2 className="text-sm font-bold text-foreground">Recent Uploads</h2>
           <Camera className="w-4 h-4 text-muted-foreground" />
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {recentUploads.map((u, i) => (
-            <motion.div key={u.id} {...fadeUp} transition={{ delay: 0.2 + i * 0.05 }}
-              className="flex-shrink-0 w-28">
-              <div className="w-28 h-28 rounded-2xl overflow-hidden border border-border/20 mb-1.5">
-                <img src={u.image} alt={u.name} className="w-full h-full object-cover" />
-              </div>
-              <p className="text-[10px] text-muted-foreground text-center truncate">{u.name}</p>
-            </motion.div>
-          ))}
-        </div>
+        {recentUploads.length === 0 ? (
+          <p className="text-[11px] text-muted-foreground">Upload finished-work photos from a task to see them here.</p>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {recentUploads.map((u, i) => (
+              <motion.div key={u.id} {...fadeUp} transition={{ delay: 0.2 + i * 0.05 }}
+                className="flex-shrink-0 w-28">
+                <div className="w-28 h-28 rounded-2xl overflow-hidden border border-border/20 mb-1.5">
+                  <img src={u.image} alt={u.name} className="w-full h-full object-cover" />
+                </div>
+                <p className="text-[10px] text-muted-foreground text-center truncate">{u.name}</p>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
