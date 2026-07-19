@@ -1,31 +1,18 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt, Send, Sparkles, PackageCheck, Truck, MapPin, ChevronDown, ChevronUp, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Calendar, User, Scissors, ChevronRight, Plus, CheckCircle2, Clock, AlertTriangle, UserPlus, Package, FileText, Receipt, Send, Sparkles, PackageCheck, Truck, MapPin, ChevronDown, ChevronUp, Image as ImageIcon, Flame, Flag } from "lucide-react";
 import { useBrandInvoice, money, computeTotals } from "@/contexts/BrandInvoiceContext";
 import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/contexts/NotificationsContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useAtelier, PAYMENT_METHODS, DeliveryStatus, costFromFabricUse, costFromMaterialUse } from "@/contexts/AtelierContext";
+import { useAtelier, PAYMENT_METHODS, DeliveryStatus, costFromFabricUse, costFromMaterialUse, TaskStatus } from "@/contexts/AtelierContext";
 import { useReviews } from "@/contexts/ReviewsContext";
+import { AVAILABLE_WORKERS, WorkerRef } from "@/lib/workers";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } };
-
-const availableWorkers = [
-  { id: "w1", name: "Tunde A.", role: "Tailor", avatar: "TA" },
-  { id: "w2", name: "Amina K.", role: "Cutter", avatar: "AK" },
-  { id: "w3", name: "Kwesi B.", role: "Finisher", avatar: "KB" },
-  { id: "w4", name: "Esi M.", role: "Beader", avatar: "EM" },
-];
-
-type TaskStatus = "not_started" | "in_progress" | "completed";
-
-interface OrderTask {
-  id: number; title: string; assignee: string | null; assigneeAvatar: string | null;
-  status: TaskStatus; deadline: string;
-}
 
 const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof Clock }> = {
   not_started: { label: "Not Started", color: "text-muted-foreground", icon: Clock },
@@ -36,7 +23,8 @@ const statusCfg: Record<TaskStatus, { label: string; color: string; icon: typeof
 const OrderDetail = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
-  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials } = useAtelier();
+  const { orderById, orders, advanceStage, addPayment, updateOrder, setDeliveryStatus, clientById, fabrics, materials,
+    tasksByOrder, addTask, updateTask, deleteTask } = useAtelier();
   // clientId param may be an order id (new format) or legacy demo clientId
   const order =
     orderById(clientId || "") ||
@@ -100,32 +88,41 @@ const OrderDetail = () => {
   const { byOrder: reviewByOrder } = useReviews();
   const orderReview = reviewByOrder(order.id);
 
-  const [tasks, setTasks] = useState<OrderTask[]>([
-    { id: 1, title: "Cut fabric pieces", assignee: "Amina K.", assigneeAvatar: "AK", status: "completed", deadline: "Mar 20" },
-    { id: 2, title: "Sew bodice structure", assignee: "Tunde A.", assigneeAvatar: "TA", status: "in_progress", deadline: "Mar 23" },
-    { id: 3, title: "Attach skirt panels", assignee: null, assigneeAvatar: null, status: "not_started", deadline: "Mar 25" },
-    { id: 4, title: "Lace overlay & finishing", assignee: null, assigneeAvatar: null, status: "not_started", deadline: "Mar 27" },
-  ]);
+  const orderTasks = tasksByOrder(order.id);
 
   const [showAssign, setShowAssign] = useState(false);
-  const [assigningTaskId, setAssigningTaskId] = useState<number | null>(null);
+  const [assigningTaskId, setAssigningTaskId] = useState<string | null>(null);
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDeadline, setNewTaskDeadline] = useState("");
+  const [newTaskStageIdx, setNewTaskStageIdx] = useState<number | "">("");
+  const [newTaskPriority, setNewTaskPriority] = useState<"normal" | "urgent">("normal");
+  const [newTaskWorker, setNewTaskWorker] = useState<WorkerRef | null>(null);
 
-  const assignWorker = (taskId: number, worker: typeof availableWorkers[0]) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignee: worker.name, assigneeAvatar: worker.avatar } : t));
+  const assignWorker = (taskId: string, worker: WorkerRef) => {
+    updateTask(taskId, { workerId: worker.id, workerName: worker.name, workerAvatar: worker.avatar });
     setShowAssign(false); setAssigningTaskId(null);
+    toast.success(`Assigned to ${worker.name}`);
   };
 
-  const addTask = () => {
+  const submitNewTask = () => {
     if (!newTaskTitle.trim()) return;
-    setTasks(prev => [...prev, { id: Date.now(), title: newTaskTitle.trim(), assignee: null, assigneeAvatar: null, status: "not_started", deadline: newTaskDeadline || "TBD" }]);
-    setNewTaskTitle(""); setNewTaskDeadline(""); setShowAddTask(false);
+    const w = newTaskWorker || AVAILABLE_WORKERS[0];
+    addTask({
+      orderId: order.id,
+      workerId: w.id, workerName: w.name, workerAvatar: w.avatar,
+      title: newTaskTitle.trim(),
+      deadline: newTaskDeadline || "TBD",
+      stageIdx: newTaskStageIdx === "" ? undefined : Number(newTaskStageIdx),
+      priority: newTaskPriority,
+    });
+    setNewTaskTitle(""); setNewTaskDeadline(""); setNewTaskStageIdx(""); setNewTaskPriority("normal"); setNewTaskWorker(null);
+    setShowAddTask(false);
+    toast.success(`Task assigned to ${w.name}`);
   };
 
-  const completedCount = tasks.filter(t => t.status === "completed").length;
-  const progress = Math.round((completedCount / tasks.length) * 100);
+  const completedCount = orderTasks.filter(t => t.status === "completed").length;
+  const progress = orderTasks.length === 0 ? 0 : Math.round((completedCount / orderTasks.length) * 100);
 
   const notifyStage = (stageIdx: number) => {
     if (stageIdx < 0 || stageIdx >= productionStages.length) return;
