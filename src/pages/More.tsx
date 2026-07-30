@@ -30,6 +30,7 @@ const More = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("fashionos-role");
+    localStorage.removeItem("fashionos-authenticated");
     localStorage.removeItem("stitchova-lock-unlocked");
     toast.success("Logged out");
     navigate("/auth");
