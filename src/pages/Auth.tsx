@@ -76,9 +76,9 @@ const Auth = () => {
       ? "/client-home"
       : "/worker-dashboard";
 
-    const onboarded = localStorage.getItem("fashionos-onboarded") === "1";
+    const onboarded = localStorage.getItem(`fashionos-onboarded-${selectedRole}`) === "1";
     if (!onboarded) {
-      navigate("/onboarding");
+      navigate("/onboarding", { state: { next: home } });
     } else if (!hasPasscode) {
       navigate("/set-passcode", { state: { next: home } });
     } else {
