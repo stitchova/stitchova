@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useEmblaCarousel from "embla-carousel-react";
 import heroImage from "@/assets/onboarding-hero.jpg";
 import slide2Image from "@/assets/onboarding-slide2.jpg";
@@ -34,6 +34,7 @@ const AUTO_ADVANCE_MS = 4000;
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { role } = useRole();
   const { hasPasscode } = useLock();
   const [current, setCurrent] = useState(0);
@@ -45,7 +46,8 @@ const Onboarding = () => {
     }
   }, [navigate]);
 
-  const home = role === "designer" ? "/" : role === "client" ? "/client-home" : "/worker-dashboard";
+  const roleHome = role === "designer" ? "/" : role === "client" ? "/client-home" : "/worker-dashboard";
+  const home = (location.state as { next?: string } | null)?.next || roleHome;
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -137,7 +139,7 @@ const Onboarding = () => {
           whileTap={{ scale: 0.97 }}
           onClick={() => {
             if (isLast) {
-              localStorage.setItem("fashionos-onboarded", "1");
+              localStorage.setItem(`fashionos-onboarded-${role}`, "1");
               if (hasPasscode) {
                 navigate(home, { replace: true });
               } else {
