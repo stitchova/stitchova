@@ -11,6 +11,7 @@ type Step = "enter" | "confirm";
 
 const SetPasscode = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { role } = useRole();
   const { setPasscode, hasPasscode, clearPasscode } = useLock();
   const [step, setStep] = useState<Step>("enter");
