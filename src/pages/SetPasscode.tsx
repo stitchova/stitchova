@@ -11,11 +11,20 @@ type Step = "enter" | "confirm";
 
 const SetPasscode = () => {
   const navigate = useNavigate();
+  const { role } = useRole();
   const { setPasscode, hasPasscode, clearPasscode } = useLock();
   const [step, setStep] = useState<Step>("enter");
   const [first, setFirst] = useState("");
   const [code, setCode] = useState("");
   const [shake, setShake] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem("fashionos-authenticated") !== "1") {
+      navigate("/auth", { replace: true });
+    }
+  }, [navigate]);
+
+  const home = role === "designer" ? "/" : role === "client" ? "/client-home" : "/worker-dashboard";
 
   const onComplete = async (value: string) => {
     if (step === "enter") {
