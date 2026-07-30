@@ -138,7 +138,11 @@ const Onboarding = () => {
           onClick={() => {
             if (isLast) {
               localStorage.setItem("fashionos-onboarded", "1");
-              navigate("/auth");
+              if (hasPasscode) {
+                navigate(home, { replace: true });
+              } else {
+                navigate("/set-passcode", { state: { next: home }, replace: true });
+              }
             } else {
               emblaApi?.scrollNext();
             }
