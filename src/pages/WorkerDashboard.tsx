@@ -22,6 +22,13 @@ const getGreeting = () => {
 
 const WorkerDashboard = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (localStorage.getItem("fashionos-authenticated") !== "1") {
+      navigate("/auth", { replace: true });
+    }
+  }, [navigate]);
+
   const { tasksByWorker, measurements, orderById } = useAtelier();
   const myTasks = useMemo(() => tasksByWorker(CURRENT_WORKER.id), [tasksByWorker]);
 
