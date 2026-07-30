@@ -63,6 +63,7 @@ const Auth = () => {
     }
 
     setRole(selectedRole);
+    localStorage.setItem("fashionos-authenticated", "1");
 
     // Honor OAuth consent redirect if present.
     const nextParam = searchParams.get("next");
@@ -74,7 +75,11 @@ const Auth = () => {
       : selectedRole === "client"
       ? "/client-home"
       : "/worker-dashboard";
-    if (!hasPasscode) {
+
+    const onboarded = localStorage.getItem("fashionos-onboarded") === "1";
+    if (!onboarded) {
+      navigate("/onboarding");
+    } else if (!hasPasscode) {
       navigate("/set-passcode", { state: { next: home } });
     } else {
       navigate(home);

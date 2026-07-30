@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Lock, Delete } from "lucide-react";
 import { useLock } from "@/contexts/LockContext";
+import { useRole } from "@/contexts/RoleContext";
 import { toast } from "sonner";
 
 const LENGTH = 4;
@@ -10,11 +11,21 @@ type Step = "enter" | "confirm";
 
 const SetPasscode = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { role } = useRole();
   const { setPasscode, hasPasscode, clearPasscode } = useLock();
   const [step, setStep] = useState<Step>("enter");
   const [first, setFirst] = useState("");
   const [code, setCode] = useState("");
   const [shake, setShake] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem("fashionos-authenticated") !== "1") {
+      navigate("/auth", { replace: true });
+    }
+  }, [navigate]);
+
+  const home = role === "designer" ? "/" : role === "client" ? "/client-home" : "/worker-dashboard";
 
   const onComplete = async (value: string) => {
     if (step === "enter") {
@@ -26,7 +37,8 @@ const SetPasscode = () => {
     if (value === first) {
       await setPasscode(value);
       toast.success("Passcode set");
-      navigate(-1);
+      const next = (location.state as { next?: string } | null)?.next;
+      navigate(next || home, { replace: true });
     } else {
       setShake(true);
       setTimeout(() => setShake(false), 450);

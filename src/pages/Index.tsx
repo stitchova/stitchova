@@ -94,8 +94,8 @@ const Index = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem("fashionos-onboarded")) {
-      navigate("/onboarding", { replace: true });
+    if (localStorage.getItem("fashionos-authenticated") !== "1") {
+      navigate("/auth", { replace: true });
     }
   }, [navigate]);
 

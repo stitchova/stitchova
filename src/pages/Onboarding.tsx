@@ -6,6 +6,8 @@ import heroImage from "@/assets/onboarding-hero.jpg";
 import slide2Image from "@/assets/onboarding-slide2.jpg";
 import slide3Image from "@/assets/onboarding-slide3.jpg";
 import Logo from "@/components/Logo";
+import { useRole } from "@/contexts/RoleContext";
+import { useLock } from "@/contexts/LockContext";
 
 const slides = [
   {
@@ -32,8 +34,18 @@ const AUTO_ADVANCE_MS = 4000;
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { role } = useRole();
+  const { hasPasscode } = useLock();
   const [current, setCurrent] = useState(0);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, dragFree: false });
+
+  useEffect(() => {
+    if (localStorage.getItem("fashionos-authenticated") !== "1") {
+      navigate("/auth", { replace: true });
+    }
+  }, [navigate]);
+
+  const home = role === "designer" ? "/" : role === "client" ? "/client-home" : "/worker-dashboard";
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -126,7 +138,11 @@ const Onboarding = () => {
           onClick={() => {
             if (isLast) {
               localStorage.setItem("fashionos-onboarded", "1");
-              navigate("/auth");
+              if (hasPasscode) {
+                navigate(home, { replace: true });
+              } else {
+                navigate("/set-passcode", { state: { next: home }, replace: true });
+              }
             } else {
               emblaApi?.scrollNext();
             }

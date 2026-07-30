@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ClipboardList, Ruler, Package, Clock, CheckCircle2, AlertTriangle, Camera, ChevronRight, MessagesSquare, Flame } from "lucide-react";
@@ -22,6 +22,13 @@ const getGreeting = () => {
 
 const WorkerDashboard = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (localStorage.getItem("fashionos-authenticated") !== "1") {
+      navigate("/auth", { replace: true });
+    }
+  }, [navigate]);
+
   const { tasksByWorker, measurements, orderById } = useAtelier();
   const myTasks = useMemo(() => tasksByWorker(CURRENT_WORKER.id), [tasksByWorker]);
 
