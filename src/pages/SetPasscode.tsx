@@ -37,7 +37,8 @@ const SetPasscode = () => {
     if (value === first) {
       await setPasscode(value);
       toast.success("Passcode set");
-      navigate(-1);
+      const next = (location.state as { next?: string } | null)?.next;
+      navigate(next || home, { replace: true });
     } else {
       setShake(true);
       setTimeout(() => setShake(false), 450);
