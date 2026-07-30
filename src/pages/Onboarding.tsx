@@ -34,8 +34,18 @@ const AUTO_ADVANCE_MS = 4000;
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { role } = useRole();
+  const { hasPasscode } = useLock();
   const [current, setCurrent] = useState(0);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, dragFree: false });
+
+  useEffect(() => {
+    if (localStorage.getItem("fashionos-authenticated") !== "1") {
+      navigate("/auth", { replace: true });
+    }
+  }, [navigate]);
+
+  const home = role === "designer" ? "/" : role === "client" ? "/client-home" : "/worker-dashboard";
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
