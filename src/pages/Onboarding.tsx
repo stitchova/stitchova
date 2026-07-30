@@ -6,6 +6,8 @@ import heroImage from "@/assets/onboarding-hero.jpg";
 import slide2Image from "@/assets/onboarding-slide2.jpg";
 import slide3Image from "@/assets/onboarding-slide3.jpg";
 import Logo from "@/components/Logo";
+import { useRole } from "@/contexts/RoleContext";
+import { useLock } from "@/contexts/LockContext";
 
 const slides = [
   {
