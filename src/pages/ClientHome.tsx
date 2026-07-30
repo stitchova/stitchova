@@ -56,6 +56,13 @@ const quickActions = [
 
 const ClientHome = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (localStorage.getItem("fashionos-authenticated") !== "1") {
+      navigate("/auth", { replace: true });
+    }
+  }, [navigate]);
+
   const heroSlides = [
     { img: portfolio1, tag: "New Season", title: "Spring Collection", subtitle: "is Here" },
     { img: portfolio3, tag: "Trending", title: "Modern Agbada", subtitle: "Reimagined" },
