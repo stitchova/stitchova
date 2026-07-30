@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Lock, Delete } from "lucide-react";
 import { useLock } from "@/contexts/LockContext";
+import { useRole } from "@/contexts/RoleContext";
 import { toast } from "sonner";
 
 const LENGTH = 4;
