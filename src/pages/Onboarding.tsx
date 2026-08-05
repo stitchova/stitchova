@@ -8,7 +8,6 @@ import slide2Image from "@/assets/onboarding-slide2.jpg";
 import slide3Image from "@/assets/onboarding-slide3.jpg";
 import Logo from "@/components/Logo";
 import { useRole } from "@/contexts/RoleContext";
-import { useLock } from "@/contexts/LockContext";
 
 const slides = [
   {
@@ -39,7 +38,6 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { role } = useRole();
-  const { hasPasscode } = useLock();
   const [current, setCurrent] = useState(0);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, dragFree: false });
 
@@ -80,7 +78,7 @@ const Onboarding = () => {
   return (
     <div className="relative min-h-screen flex flex-col bg-background">
       {/* Carousel */}
-      <div ref={emblaRef} className="absolute inset-0 overflow-hidden z-0 pointer-events-none">
+      <div ref={emblaRef} className="absolute inset-0 overflow-hidden z-0">
         <div className="flex h-full">
           {slides.map((slide, i) => (
             <div key={i} className="min-w-0 shrink-0 grow-0 basis-full h-full relative">
