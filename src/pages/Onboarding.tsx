@@ -6,6 +6,8 @@ import heroVideoAsset from "@/assets/onboarding-hero.mp4.asset.json";
 import heroPosterAsset from "@/assets/onboarding-hero-poster.jpg.asset.json";
 import slide2Image from "@/assets/onboarding-slide2.jpg";
 import slide3Image from "@/assets/onboarding-slide3.jpg";
+import slide2Video from "@/assets/onboarding-slide2.mp4.asset.json";
+import slide3Video from "@/assets/onboarding-slide3.mp4.asset.json";
 import Logo from "@/components/Logo";
 import { useRole } from "@/contexts/RoleContext";
 
@@ -19,12 +21,16 @@ const slides = [
     alt: "Fashion designer at work",
   },
   {
+    video: slide2Video.url,
+    poster: slide2Image,
     image: slide2Image,
     title: "Manage Clients &",
     highlight: "Orders Seamlessly",
     alt: "Designer measuring fabric on mannequin",
   },
   {
+    video: slide3Video.url,
+    poster: slide3Image,
     image: slide3Image,
     title: "Track Payments &",
     highlight: "Grow Revenue",
