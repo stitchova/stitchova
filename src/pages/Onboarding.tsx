@@ -123,49 +123,75 @@ const Onboarding = () => {
                   className="w-full h-full object-cover"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-transparent to-transparent" />
             </div>
           ))}
         </div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end pb-10 px-6">
-        {/* Logo */}
+      <div className="relative z-10 flex-1 flex flex-col px-6 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))]">
+        {/* Logo — pinned to the top so captions own the lower third */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex justify-center mb-5"
+          className="flex justify-center"
         >
-          <Logo size={72} />
+          <Logo size={56} />
         </motion.div>
 
-        {/* Headline — animates on slide change */}
+        <div className="flex-1" />
+
+        {/* Caption block — editorial, left-aligned, glass panel */}
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="text-center mb-8"
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="relative mb-7 max-w-md rounded-3xl border border-border/40 bg-background/30 p-5 backdrop-blur-xl"
           >
-            <h1 className="text-4xl font-extrabold text-foreground leading-tight">
+            <span className="absolute left-0 top-6 h-8 w-1 rounded-r-full bg-primary" />
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08, duration: 0.35 }}
+              className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary"
+            >
+              {slides[current].eyebrow}
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.14, duration: 0.4 }}
+              className="mt-2 text-[2rem] font-extrabold leading-[1.1] tracking-tight text-foreground"
+            >
               {slides[current].title}{" "}
               <span className="text-gradient-gold">{slides[current].highlight}</span>
-            </h1>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22, duration: 0.4 }}
+              className="mt-3 text-sm leading-relaxed text-muted-foreground"
+            >
+              {slides[current].subtitle}
+            </motion.p>
           </motion.div>
         </AnimatePresence>
 
         {/* Dots */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex gap-2 mb-6 px-1">
           {slides.map((_, i) => (
             <button
               key={i}
+              aria-label={`Go to slide ${i + 1}`}
               onClick={() => emblaApi?.scrollTo(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === current ? "w-6 bg-foreground" : "w-2 bg-muted-foreground/40"
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                i === current ? "w-8 bg-primary" : "w-2 bg-muted-foreground/40"
               }`}
             />
           ))}
