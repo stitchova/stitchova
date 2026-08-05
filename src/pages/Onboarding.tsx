@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import useEmblaCarousel from "embla-carousel-react";
-import heroImage from "@/assets/onboarding-hero.jpg";
+import heroVideoAsset from "@/assets/onboarding-hero.mp4.asset.json";
+import heroPosterAsset from "@/assets/onboarding-hero-poster.jpg.asset.json";
 import slide2Image from "@/assets/onboarding-slide2.jpg";
 import slide3Image from "@/assets/onboarding-slide3.jpg";
 import Logo from "@/components/Logo";
@@ -11,7 +12,9 @@ import { useLock } from "@/contexts/LockContext";
 
 const slides = [
   {
-    image: heroImage,
+    video: heroVideoAsset.url,
+    poster: heroPosterAsset.url,
+    image: heroPosterAsset.url,
     title: "Your Fashion Business,",
     highlight: "Simplified",
     alt: "Fashion designer at work",
@@ -28,7 +31,7 @@ const slides = [
     highlight: "Grow Revenue",
     alt: "Hands sewing luxurious fabric",
   },
-];
+] as Array<{ image: string; video?: string; poster?: string; title: string; highlight: string; alt: string }>;
 
 const AUTO_ADVANCE_MS = 4000;
 
@@ -77,15 +80,30 @@ const Onboarding = () => {
   return (
     <div className="relative min-h-screen flex flex-col bg-background">
       {/* Carousel */}
-      <div ref={emblaRef} className="absolute inset-0 overflow-hidden">
+      <div ref={emblaRef} className="absolute inset-0 overflow-hidden z-0 pointer-events-none">
         <div className="flex h-full">
           {slides.map((slide, i) => (
             <div key={i} className="min-w-0 shrink-0 grow-0 basis-full h-full relative">
-              <img
-                src={slide.image}
-                alt={slide.alt}
-                className="w-full h-full object-cover"
-              />
+              {slide.video ? (
+                <video
+                  src={slide.video}
+                  poster={slide.poster}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  aria-label={slide.alt}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <img
+                  src={slide.image}
+                  alt={slide.alt}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
             </div>
           ))}
@@ -140,11 +158,7 @@ const Onboarding = () => {
           onClick={() => {
             if (isLast) {
               localStorage.setItem(`fashionos-onboarded-${role}`, "1");
-              if (hasPasscode) {
-                navigate(home, { replace: true });
-              } else {
-                navigate("/set-passcode", { state: { next: home }, replace: true });
-              }
+              navigate(home, { replace: true });
             } else {
               emblaApi?.scrollNext();
             }
