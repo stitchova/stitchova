@@ -18,6 +18,8 @@ const slides = [
     image: heroPosterAsset.url,
     title: "Your Fashion Business,",
     highlight: "Simplified",
+    eyebrow: "Welcome",
+    subtitle: "Run your atelier from one calm, beautiful place.",
     alt: "Fashion designer at work",
   },
   {
@@ -26,6 +28,8 @@ const slides = [
     image: slide2Image,
     title: "Manage Clients &",
     highlight: "Orders Seamlessly",
+    eyebrow: "Workflow",
+    subtitle: "Measurements, orders and production stages — always in sync.",
     alt: "Designer measuring fabric on mannequin",
   },
   {
@@ -34,9 +38,20 @@ const slides = [
     image: slide3Image,
     title: "Track Payments &",
     highlight: "Grow Revenue",
+    eyebrow: "Growth",
+    subtitle: "See what you earn, what's owed and what's next at a glance.",
     alt: "Hands sewing luxurious fabric",
   },
-] as Array<{ image: string; video?: string; poster?: string; title: string; highlight: string; alt: string }>;
+] as Array<{
+  image: string;
+  video?: string;
+  poster?: string;
+  title: string;
+  highlight: string;
+  eyebrow: string;
+  subtitle: string;
+  alt: string;
+}>;
 
 const AUTO_ADVANCE_MS = 4000;
 
