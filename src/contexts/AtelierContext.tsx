@@ -572,6 +572,63 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
     setOrders((prev) => prev.map(o => o.id === orderId ? { ...o, status: "declined" } : o));
   }, [setOrders]);
 
+  // ---------- Per-order materials ----------
+  const patchMaterial = useCallback((orderId: string, materialId: string, fn: (m: OrderMaterial) => OrderMaterial) => {
+    setOrders((prev) => prev.map(o => o.id === orderId
+      ? { ...o, materialsList: (o.materialsList || []).map(m => m.id === materialId ? fn(m) : m) }
+      : o));
+  }, [setOrders]);
+
+  const addOrderMaterial: AtelierState["addOrderMaterial"] = useCallback((orderId, m) => {
+    setOrders((prev) => prev.map(o => {
+      if (o.id !== orderId) return o;
+      const list = o.materialsList || [];
+      const entry: OrderMaterial = {
+        id: `omat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: m.name.trim(),
+        source: m.source,
+        neededBy: m.neededBy,
+        // First material on an order is the main fabric → required to start by default.
+        requiredToStart: m.requiredToStart ?? list.length === 0,
+        status: "needed",
+        createdAt: Date.now(),
+      };
+      return { ...o, materialsList: [...list, entry], awaitingMaterials: o.awaitingMaterials ?? true };
+    }));
+  }, [setOrders]);
+
+  const updateOrderMaterial: AtelierState["updateOrderMaterial"] = useCallback((orderId, materialId, patch) => {
+    patchMaterial(orderId, materialId, (m) => ({ ...m, ...patch }));
+  }, [patchMaterial]);
+
+  const removeOrderMaterial: AtelierState["removeOrderMaterial"] = useCallback((orderId, materialId) => {
+    setOrders((prev) => prev.map(o => o.id === orderId
+      ? { ...o, materialsList: (o.materialsList || []).filter(m => m.id !== materialId) }
+      : o));
+  }, [setOrders]);
+
+  const setMaterialStatus: AtelierState["setMaterialStatus"] = useCallback((orderId, materialId, status) => {
+    patchMaterial(orderId, materialId, (m) => ({ ...m, status }));
+  }, [patchMaterial]);
+
+  const clientMarkDroppedOff: AtelierState["clientMarkDroppedOff"] = useCallback((orderId, materialId) => {
+    patchMaterial(orderId, materialId, (m) => ({ ...m, status: "dropped_off", droppedOffAt: Date.now() }));
+  }, [patchMaterial]);
+
+  const confirmMaterialReceived: AtelierState["confirmMaterialReceived"] = useCallback((orderId, materialId, by) => {
+    patchMaterial(orderId, materialId, (m) => ({
+      ...m,
+      status: "received",
+      confirmation: { at: Date.now(), byName: by.name, byRole: by.role, photo: by.photo },
+    }));
+  }, [patchMaterial]);
+
+  const startProduction: AtelierState["startProduction"] = useCallback((orderId) => {
+    setOrders((prev) => prev.map(o => o.id === orderId
+      ? { ...o, awaitingMaterials: false, status: o.status === "requested" ? "active" : o.status }
+      : o));
+  }, [setOrders]);
+
   const deductFabric: AtelierState["deductFabric"] = useCallback((id, amount) => {
     setFabrics((prev) => prev.map(f => {
       if (f.id !== id) return f;
@@ -655,11 +712,12 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
   const value: AtelierState = useMemo(() => ({
     clients, measurements, orders, fabrics, materials, measurementTemplates, tasks,
     addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, setStage, undoLastStage, addPayment, confirmOrder, declineOrder,
+    addOrderMaterial, updateOrderMaterial, removeOrderMaterial, setMaterialStatus, clientMarkDroppedOff, confirmMaterialReceived, startProduction,
     setFabrics, setMaterials, deductFabric, deductMaterial,
     addTemplateField, removeTemplateField,
     addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask,
     latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient,
-  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, tasks, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, setStage, undoLastStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
+  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, tasks, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, setStage, undoLastStage, addPayment, confirmOrder, declineOrder, addOrderMaterial, updateOrderMaterial, removeOrderMaterial, setMaterialStatus, clientMarkDroppedOff, confirmMaterialReceived, startProduction, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
 
   return <AtelierContext.Provider value={value}>{children}</AtelierContext.Provider>;
 };
