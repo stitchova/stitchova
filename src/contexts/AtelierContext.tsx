@@ -310,6 +310,12 @@ const seedOrders: Order[] = [
     status: "active",
     payments: [{ id: "p2", amount: 1800, method: "Bank Transfer", date: "2024-03-05" }],
     createdAt: "2024-03-05", source: "manual",
+    awaitingMaterials: true,
+    materialsList: [
+      { id: "om-1", name: "Main fabric — navy wool suiting (4 yards)", source: "client", requiredToStart: true, status: "needed", neededBy: new Date(Date.now() + 2 * 86400000).toISOString().split("T")[0], createdAt: Date.now() },
+      { id: "om-2", name: "Lining — bemberg", source: "procure", requiredToStart: false, status: "ordered", createdAt: Date.now() },
+      { id: "om-3", name: "Horn buttons x8", source: "procure", requiredToStart: false, status: "needed", createdAt: Date.now() },
+    ],
   },
   {
     id: "o-yaw-boateng", clientId: "yaw-boateng", client: "Yaw Boateng",
