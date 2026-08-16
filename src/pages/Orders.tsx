@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Filter, ChevronRight, Plus, X, CheckCircle2, XCircle, Image as ImageIcon, Truck, Package } from "lucide-react";
+import { Search, Filter, ChevronRight, Plus, X, CheckCircle2, XCircle, Image as ImageIcon, Truck, Package, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ClientPicker from "@/components/ClientPicker";
-import { useAtelier, BASE_STAGES, OPTIONAL_STAGES, PAYMENT_METHODS, parsePrice, money, costFromFabricUse, costFromMaterialUse } from "@/contexts/AtelierContext";
+import { useAtelier, BASE_STAGES, OPTIONAL_STAGES, PAYMENT_METHODS, parsePrice, money, costFromFabricUse, costFromMaterialUse, materialsProgress, MaterialSource, OrderMaterial } from "@/contexts/AtelierContext";
 
 const statusTabs = ["All", "Requested", "Active", "Completed"];
 
@@ -38,6 +38,9 @@ const Orders = () => {
   const [fabricPicks, setFabricPicks] = useState<Record<string, number>>({});
   const [materialPicks, setMaterialPicks] = useState<Record<string, number>>({});
   const [orderPhotos, setOrderPhotos] = useState<string[]>([]);
+  // Per-order materials checklist captured at creation time
+  const [reqMaterials, setReqMaterials] = useState<{ name: string; source: MaterialSource; neededBy: string; requiredToStart: boolean }[]>([]);
+  const [matDraft, setMatDraft] = useState<{ name: string; source: MaterialSource; neededBy: string }>({ name: "", source: "procure", neededBy: "" });
 
   useEffect(() => {
     if (params.get("new") === "1") {
@@ -51,6 +54,7 @@ const Orders = () => {
     if (o.status === "requested") return "Requested";
     if (o.status === "completed") return "Completed";
     if (o.status === "declined") return "Declined";
+    if (o.awaitingMaterials) return "Awaiting Materials";
     return o.stages[o.currentStage] || "Active";
   };
 
@@ -58,6 +62,7 @@ const Orders = () => {
     if (o.status === "requested") return "bg-primary/60";
     if (o.status === "completed") return "bg-status-completed";
     if (o.status === "declined") return "bg-destructive/70";
+    if (o.awaitingMaterials) return "bg-muted-foreground";
     const s = o.stages[o.currentStage];
     if (s === "Cutting") return "bg-status-cutting";
     if (s === "Sewing") return "bg-status-sewing";
@@ -80,6 +85,20 @@ const Orders = () => {
     setFabricPicks({});
     setMaterialPicks({});
     setOrderPhotos([]);
+    setReqMaterials([]);
+    setMatDraft({ name: "", source: "procure", neededBy: "" });
+  };
+
+  const addDraftMaterial = () => {
+    if (!matDraft.name.trim()) return;
+    setReqMaterials((prev) => [...prev, {
+      name: matDraft.name.trim(),
+      source: matDraft.source,
+      neededBy: matDraft.neededBy,
+      // First material added defaults to "required to start" (usually the main fabric).
+      requiredToStart: prev.length === 0,
+    }]);
+    setMatDraft({ name: "", source: "procure", neededBy: "" });
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,6 +143,16 @@ const Orders = () => {
     const fabricCost = costFromFabricUse(fabricUse, fabrics);
     const materialsCost = costFromMaterialUse(materialUse, materials);
 
+    const materialsList: OrderMaterial[] = reqMaterials.map((m, i) => ({
+      id: `omat-${Date.now()}-${i}`,
+      name: m.name,
+      source: m.source,
+      neededBy: m.neededBy || undefined,
+      requiredToStart: m.requiredToStart,
+      status: "needed",
+      createdAt: Date.now(),
+    }));
+
     const created = addOrder({
       clientId: newOrder.clientId,
       client: newOrder.clientName,
@@ -146,6 +175,8 @@ const Orders = () => {
       deliveryDate: newOrder.deliveryDate || undefined,
       deliveryStatus: "pending",
       costs: { fabric: Math.round(fabricCost), materials: Math.round(materialsCost) },
+      materialsList,
+      awaitingMaterials: materialsList.length > 0,
     });
 
     fabricUse.forEach((f) => deductFabric(f.id, f.amount));
