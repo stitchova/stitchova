@@ -264,6 +264,26 @@ const Orders = () => {
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/15 text-primary">Marketplace</span>
                 )}
               </div>
+              {o.awaitingMaterials && (() => {
+                const mp = materialsProgress(o.materialsList);
+                return (
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary text-foreground flex items-center gap-1">
+                      <Package className="w-2.5 h-2.5 text-primary" /> {mp.received}/{mp.total} materials
+                    </span>
+                    {mp.waitingOnClient > 0 && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                        <User className="w-2.5 h-2.5" /> waiting on client
+                      </span>
+                    )}
+                    {mp.waitingOnUs > 0 && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground flex items-center gap-1">
+                        <Truck className="w-2.5 h-2.5" /> to procure
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
               <div className="flex items-center justify-between mt-1.5">
                 <span className="text-[11px] text-muted-foreground">Due: {o.dueDate}</span>
                 <span className="text-xs font-bold text-primary">{money(o.price, o.currency)}</span>
