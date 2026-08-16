@@ -389,6 +389,19 @@ interface AtelierState {
   confirmOrder: (orderId: string) => void;
   declineOrder: (orderId: string) => void;
 
+  addOrderMaterial: (orderId: string, m: {
+    name: string; source: MaterialSource; neededBy?: string; requiredToStart?: boolean;
+  }) => void;
+  updateOrderMaterial: (orderId: string, materialId: string, patch: Partial<OrderMaterial>) => void;
+  removeOrderMaterial: (orderId: string, materialId: string) => void;
+  setMaterialStatus: (orderId: string, materialId: string, status: OrderMaterialStatus) => void;
+  clientMarkDroppedOff: (orderId: string, materialId: string) => void;
+  confirmMaterialReceived: (
+    orderId: string, materialId: string,
+    by: { name: string; role: "designer" | "worker"; photo?: string },
+  ) => void;
+  startProduction: (orderId: string) => void;
+
   setFabrics: React.Dispatch<React.SetStateAction<Fabric[]>>;
   setMaterials: React.Dispatch<React.SetStateAction<Material[]>>;
   deductFabric: (id: string, amount: number) => void;
