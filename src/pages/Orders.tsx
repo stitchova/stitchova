@@ -441,6 +441,59 @@ const Orders = () => {
               placeholder="Style description..." rows={2}
               className={inputClass + " resize-none"} />
 
+            {/* Required materials for this order */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Required Materials (tracked before production)</p>
+              {reqMaterials.length > 0 && (
+                <div className="space-y-1.5 mb-2">
+                  {reqMaterials.map((m, i) => (
+                    <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] text-foreground truncate">{m.name}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[9px] text-muted-foreground">
+                            {m.source === "client" ? "Client-supplied" : "To be procured"}
+                          </span>
+                          {m.neededBy && <span className="text-[9px] text-muted-foreground">· by {m.neededBy}</span>}
+                        </div>
+                      </div>
+                      <button onClick={() => setReqMaterials(prev => prev.map((x, idx) => idx === i ? { ...x, requiredToStart: !x.requiredToStart } : x))}
+                        className={cn("text-[9px] px-2 py-1 rounded-lg border whitespace-nowrap",
+                          m.requiredToStart ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}>
+                        {m.requiredToStart ? "Required to start" : "Needed later"}
+                      </button>
+                      <button onClick={() => setReqMaterials(prev => prev.filter((_, idx) => idx !== i))}>
+                        <X className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="space-y-2 rounded-xl border border-dashed border-border p-2.5">
+                <input value={matDraft.name} onChange={(e) => setMatDraft(p => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g. Main fabric — kente print" className={inputClass} />
+                <div className="flex gap-2">
+                  {(["procure", "client"] as MaterialSource[]).map((s) => (
+                    <button key={s} onClick={() => setMatDraft(p => ({ ...p, source: s }))}
+                      className={cn("flex-1 py-2 rounded-xl text-[10px] font-medium border flex items-center justify-center gap-1",
+                        matDraft.source === s ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
+                      {s === "client" ? <User className="w-3 h-3" /> : <Truck className="w-3 h-3" />}
+                      {s === "client" ? "Client-supplied" : "To be procured"}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input type="date" value={matDraft.neededBy} onChange={(e) => setMatDraft(p => ({ ...p, neededBy: e.target.value }))}
+                    className={inputClass + " flex-1"} />
+                  <button onClick={addDraftMaterial}
+                    className="px-4 rounded-xl bg-secondary text-foreground text-[11px] font-semibold">Add</button>
+                </div>
+                <p className="text-[9px] text-muted-foreground">
+                  The first material added is set as “required to start”. Tap the tag on any item to change it.
+                </p>
+              </div>
+            </div>
+
             {/* Delivery method */}
             <div>
               <p className="text-xs text-muted-foreground mb-2">Delivery Method</p>
