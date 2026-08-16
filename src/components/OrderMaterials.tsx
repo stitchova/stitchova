@@ -14,6 +14,8 @@ interface Props {
   orderId: string;
   actorName: string;
   actorRole: "designer" | "worker";
+  /** Fired after the order leaves "Awaiting Materials" so the parent can notify the client. */
+  onStarted?: () => void;
 }
 
 const sourceMeta: Record<MaterialSource, { label: string; short: string; icon: typeof Truck }> = {
@@ -31,7 +33,7 @@ const fmtStamp = (t: number) =>
  * Designer/worker-facing per-order materials checklist.
  * Covers both procurement and client hand-off, with a proof-of-receipt step.
  */
-export const OrderMaterials = ({ orderId, actorName, actorRole }: Props) => {
+export const OrderMaterials = ({ orderId, actorName, actorRole, onStarted }: Props) => {
   const {
     orderById, addOrderMaterial, updateOrderMaterial, removeOrderMaterial,
     setMaterialStatus, confirmMaterialReceived, startProduction, clientById,
@@ -298,7 +300,7 @@ export const OrderMaterials = ({ orderId, actorName, actorRole }: Props) => {
       {order.awaitingMaterials && (
         <button
           disabled={!p.ready}
-          onClick={() => { startProduction(orderId); toast.success("Production started — order moved to Cutting"); }}
+          onClick={() => { startProduction(orderId); toast.success("Production started — order moved to Cutting"); onStarted?.(); }}
           className={cn("w-full mt-2 py-2.5 rounded-xl text-[11px] font-bold",
             p.ready ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground cursor-not-allowed")}>
           {p.ready ? "Start production (Cutting)" : "Required materials not received yet"}
