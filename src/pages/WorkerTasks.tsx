@@ -8,6 +8,7 @@ import { useAtelier, WorkerTask, TaskStatus } from "@/contexts/AtelierContext";
 import { useWorkshopChat } from "@/contexts/WorkshopChatContext";
 import { CURRENT_WORKER } from "@/lib/workers";
 import StageTracker from "@/components/StageTracker";
+import OrderMaterials from "@/components/OrderMaterials";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
@@ -46,6 +47,10 @@ const WorkerTasks = () => {
     if (!order) return;
     if (targetIdx === order.currentStage) return;
     if (pendingStatusId === task.id) return;
+    if (order.awaitingMaterials) {
+      toast.error("Awaiting materials — required items must be confirmed received first.");
+      return;
+    }
 
     const isFinal = targetIdx === order.stages.length - 1;
     if (isFinal && task.images.length === 0) {
@@ -248,6 +253,13 @@ const WorkerTasks = () => {
                           onSelect={(idx) => handleStageTap(task, idx)}
                         />
                       </div>
+
+                      {/* Materials — worker can confirm receipt before production */}
+                      {order && (order.materialsList || []).length > 0 && (
+                        <div className="mb-4">
+                          <OrderMaterials orderId={order.id} actorName="Worker" actorRole="worker" />
+                        </div>
+                      )}
 
                       {/* Image Upload Section */}
                       <div className="mb-4">

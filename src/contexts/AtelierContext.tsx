@@ -12,6 +12,76 @@ export type MeasurementUnit = "in" | "cm";
 export type TaskStatus = "not_started" | "in_progress" | "completed";
 export type TaskPriority = "normal" | "urgent";
 
+// ---------- Per-order materials tracking ----------
+export type MaterialSource = "procure" | "client";
+export type OrderMaterialStatus = "needed" | "ordered" | "dropped_off" | "received";
+
+export interface MaterialConfirmation {
+  at: number;
+  byName: string;
+  byRole: "designer" | "worker";
+  photo?: string; // base64 data URL proof of receipt
+}
+
+export interface OrderMaterial {
+  id: string;
+  name: string;
+  source: MaterialSource;
+  neededBy?: string; // ISO date (yyyy-mm-dd)
+  requiredToStart: boolean;
+  status: OrderMaterialStatus;
+  droppedOffAt?: number; // client marked as dropped off
+  confirmation?: MaterialConfirmation;
+  createdAt: number;
+}
+
+export const MATERIAL_STATUS_LABEL: Record<OrderMaterialStatus, string> = {
+  needed: "Needed",
+  ordered: "Ordered",
+  dropped_off: "Client dropped off",
+  received: "Received",
+};
+
+// The flow differs by where the material comes from.
+export const materialFlow = (source: MaterialSource): OrderMaterialStatus[] =>
+  source === "client"
+    ? ["needed", "dropped_off", "received"]
+    : ["needed", "ordered", "received"];
+
+export interface MaterialsProgress {
+  total: number;
+  received: number;
+  requiredTotal: number;
+  requiredReceived: number;
+  ready: boolean;          // all "required to start" items received
+  waitingOn: string[];     // names of required items not yet received
+  waitingOnClient: number; // outstanding client-supplied items
+  waitingOnUs: number;     // outstanding items we must procure
+}
+
+export const materialsProgress = (list?: OrderMaterial[]): MaterialsProgress => {
+  const items = list || [];
+  const required = items.filter((m) => m.requiredToStart);
+  const outstanding = items.filter((m) => m.status !== "received");
+  return {
+    total: items.length,
+    received: items.filter((m) => m.status === "received").length,
+    requiredTotal: required.length,
+    requiredReceived: required.filter((m) => m.status === "received").length,
+    ready: items.length === 0 || required.every((m) => m.status === "received"),
+    waitingOn: required.filter((m) => m.status !== "received").map((m) => m.name),
+    waitingOnClient: outstanding.filter((m) => m.source === "client").length,
+    waitingOnUs: outstanding.filter((m) => m.source === "procure").length,
+  };
+};
+
+// Items whose needed-by date is within `days` and that aren't confirmed yet.
+export const materialsDueSoon = (list: OrderMaterial[] | undefined, days = 3) => {
+  const limit = Date.now() + days * 86400000;
+  return (list || []).filter((m) =>
+    m.status !== "received" && m.neededBy && new Date(m.neededBy).getTime() <= limit);
+};
+
 export interface StageHistoryEntry {
   stageIdx: number;
   stage: string;
@@ -107,6 +177,10 @@ export interface Order {
   deliveryStatus?: DeliveryStatus;
   costs?: { fabric?: number; materials?: number; labor?: number };
   stageHistory?: StageHistoryEntry[];
+  /** Per-order materials checklist (procurement + client handoff). */
+  materialsList?: OrderMaterial[];
+  /** True while the order sits in the "Awaiting Materials" stage, before Cutting. */
+  awaitingMaterials?: boolean;
 }
 
 export interface Fabric {
@@ -236,6 +310,12 @@ const seedOrders: Order[] = [
     status: "active",
     payments: [{ id: "p2", amount: 1800, method: "Bank Transfer", date: "2024-03-05" }],
     createdAt: "2024-03-05", source: "manual",
+    awaitingMaterials: true,
+    materialsList: [
+      { id: "om-1", name: "Main fabric — navy wool suiting (4 yards)", source: "client", requiredToStart: true, status: "needed", neededBy: new Date(Date.now() + 2 * 86400000).toISOString().split("T")[0], createdAt: Date.now() },
+      { id: "om-2", name: "Lining — bemberg", source: "procure", requiredToStart: false, status: "ordered", createdAt: Date.now() },
+      { id: "om-3", name: "Horn buttons x8", source: "procure", requiredToStart: false, status: "needed", createdAt: Date.now() },
+    ],
   },
   {
     id: "o-yaw-boateng", clientId: "yaw-boateng", client: "Yaw Boateng",
@@ -314,6 +394,19 @@ interface AtelierState {
   addPayment: (orderId: string, p: Omit<OrderPayment, "id">) => void;
   confirmOrder: (orderId: string) => void;
   declineOrder: (orderId: string) => void;
+
+  addOrderMaterial: (orderId: string, m: {
+    name: string; source: MaterialSource; neededBy?: string; requiredToStart?: boolean;
+  }) => void;
+  updateOrderMaterial: (orderId: string, materialId: string, patch: Partial<OrderMaterial>) => void;
+  removeOrderMaterial: (orderId: string, materialId: string) => void;
+  setMaterialStatus: (orderId: string, materialId: string, status: OrderMaterialStatus) => void;
+  clientMarkDroppedOff: (orderId: string, materialId: string) => void;
+  confirmMaterialReceived: (
+    orderId: string, materialId: string,
+    by: { name: string; role: "designer" | "worker"; photo?: string },
+  ) => void;
+  startProduction: (orderId: string) => void;
 
   setFabrics: React.Dispatch<React.SetStateAction<Fabric[]>>;
   setMaterials: React.Dispatch<React.SetStateAction<Material[]>>;
@@ -485,6 +578,63 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
     setOrders((prev) => prev.map(o => o.id === orderId ? { ...o, status: "declined" } : o));
   }, [setOrders]);
 
+  // ---------- Per-order materials ----------
+  const patchMaterial = useCallback((orderId: string, materialId: string, fn: (m: OrderMaterial) => OrderMaterial) => {
+    setOrders((prev) => prev.map(o => o.id === orderId
+      ? { ...o, materialsList: (o.materialsList || []).map(m => m.id === materialId ? fn(m) : m) }
+      : o));
+  }, [setOrders]);
+
+  const addOrderMaterial: AtelierState["addOrderMaterial"] = useCallback((orderId, m) => {
+    setOrders((prev) => prev.map(o => {
+      if (o.id !== orderId) return o;
+      const list = o.materialsList || [];
+      const entry: OrderMaterial = {
+        id: `omat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: m.name.trim(),
+        source: m.source,
+        neededBy: m.neededBy,
+        // First material on an order is the main fabric → required to start by default.
+        requiredToStart: m.requiredToStart ?? list.length === 0,
+        status: "needed",
+        createdAt: Date.now(),
+      };
+      return { ...o, materialsList: [...list, entry], awaitingMaterials: o.awaitingMaterials ?? true };
+    }));
+  }, [setOrders]);
+
+  const updateOrderMaterial: AtelierState["updateOrderMaterial"] = useCallback((orderId, materialId, patch) => {
+    patchMaterial(orderId, materialId, (m) => ({ ...m, ...patch }));
+  }, [patchMaterial]);
+
+  const removeOrderMaterial: AtelierState["removeOrderMaterial"] = useCallback((orderId, materialId) => {
+    setOrders((prev) => prev.map(o => o.id === orderId
+      ? { ...o, materialsList: (o.materialsList || []).filter(m => m.id !== materialId) }
+      : o));
+  }, [setOrders]);
+
+  const setMaterialStatus: AtelierState["setMaterialStatus"] = useCallback((orderId, materialId, status) => {
+    patchMaterial(orderId, materialId, (m) => ({ ...m, status }));
+  }, [patchMaterial]);
+
+  const clientMarkDroppedOff: AtelierState["clientMarkDroppedOff"] = useCallback((orderId, materialId) => {
+    patchMaterial(orderId, materialId, (m) => ({ ...m, status: "dropped_off", droppedOffAt: Date.now() }));
+  }, [patchMaterial]);
+
+  const confirmMaterialReceived: AtelierState["confirmMaterialReceived"] = useCallback((orderId, materialId, by) => {
+    patchMaterial(orderId, materialId, (m) => ({
+      ...m,
+      status: "received",
+      confirmation: { at: Date.now(), byName: by.name, byRole: by.role, photo: by.photo },
+    }));
+  }, [patchMaterial]);
+
+  const startProduction: AtelierState["startProduction"] = useCallback((orderId) => {
+    setOrders((prev) => prev.map(o => o.id === orderId
+      ? { ...o, awaitingMaterials: false, status: o.status === "requested" ? "active" : o.status }
+      : o));
+  }, [setOrders]);
+
   const deductFabric: AtelierState["deductFabric"] = useCallback((id, amount) => {
     setFabrics((prev) => prev.map(f => {
       if (f.id !== id) return f;
@@ -568,11 +718,12 @@ export const AtelierProvider = ({ children }: { children: ReactNode }) => {
   const value: AtelierState = useMemo(() => ({
     clients, measurements, orders, fabrics, materials, measurementTemplates, tasks,
     addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, setStage, undoLastStage, addPayment, confirmOrder, declineOrder,
+    addOrderMaterial, updateOrderMaterial, removeOrderMaterial, setMaterialStatus, clientMarkDroppedOff, confirmMaterialReceived, startProduction,
     setFabrics, setMaterials, deductFabric, deductMaterial,
     addTemplateField, removeTemplateField,
     addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask,
     latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient,
-  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, tasks, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, setStage, undoLastStage, addPayment, confirmOrder, declineOrder, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
+  }), [clients, measurements, orders, fabrics, materials, measurementTemplates, tasks, addClient, updateClient, addMeasurement, addOrder, updateOrder, setDeliveryStatus, advanceStage, setStage, undoLastStage, addPayment, confirmOrder, declineOrder, addOrderMaterial, updateOrderMaterial, removeOrderMaterial, setMaterialStatus, clientMarkDroppedOff, confirmMaterialReceived, startProduction, setFabrics, setMaterials, deductFabric, deductMaterial, addTemplateField, removeTemplateField, addTask, updateTask, deleteTask, tasksByWorker, tasksByOrder, flagTask, latestMeasurement, clientById, orderById, ordersByClient, measurementsByClient]);
 
   return <AtelierContext.Provider value={value}>{children}</AtelierContext.Provider>;
 };

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Filter, ChevronRight, Plus, X, CheckCircle2, XCircle, Image as ImageIcon, Truck, Package } from "lucide-react";
+import { Search, Filter, ChevronRight, Plus, X, CheckCircle2, XCircle, Image as ImageIcon, Truck, Package, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ClientPicker from "@/components/ClientPicker";
-import { useAtelier, BASE_STAGES, OPTIONAL_STAGES, PAYMENT_METHODS, parsePrice, money, costFromFabricUse, costFromMaterialUse } from "@/contexts/AtelierContext";
+import { useAtelier, BASE_STAGES, OPTIONAL_STAGES, PAYMENT_METHODS, parsePrice, money, costFromFabricUse, costFromMaterialUse, materialsProgress, MaterialSource, OrderMaterial } from "@/contexts/AtelierContext";
 
 const statusTabs = ["All", "Requested", "Active", "Completed"];
 
@@ -38,6 +38,9 @@ const Orders = () => {
   const [fabricPicks, setFabricPicks] = useState<Record<string, number>>({});
   const [materialPicks, setMaterialPicks] = useState<Record<string, number>>({});
   const [orderPhotos, setOrderPhotos] = useState<string[]>([]);
+  // Per-order materials checklist captured at creation time
+  const [reqMaterials, setReqMaterials] = useState<{ name: string; source: MaterialSource; neededBy: string; requiredToStart: boolean }[]>([]);
+  const [matDraft, setMatDraft] = useState<{ name: string; source: MaterialSource; neededBy: string }>({ name: "", source: "procure", neededBy: "" });
 
   useEffect(() => {
     if (params.get("new") === "1") {
@@ -51,6 +54,7 @@ const Orders = () => {
     if (o.status === "requested") return "Requested";
     if (o.status === "completed") return "Completed";
     if (o.status === "declined") return "Declined";
+    if (o.awaitingMaterials) return "Awaiting Materials";
     return o.stages[o.currentStage] || "Active";
   };
 
@@ -58,6 +62,7 @@ const Orders = () => {
     if (o.status === "requested") return "bg-primary/60";
     if (o.status === "completed") return "bg-status-completed";
     if (o.status === "declined") return "bg-destructive/70";
+    if (o.awaitingMaterials) return "bg-muted-foreground";
     const s = o.stages[o.currentStage];
     if (s === "Cutting") return "bg-status-cutting";
     if (s === "Sewing") return "bg-status-sewing";
@@ -80,6 +85,20 @@ const Orders = () => {
     setFabricPicks({});
     setMaterialPicks({});
     setOrderPhotos([]);
+    setReqMaterials([]);
+    setMatDraft({ name: "", source: "procure", neededBy: "" });
+  };
+
+  const addDraftMaterial = () => {
+    if (!matDraft.name.trim()) return;
+    setReqMaterials((prev) => [...prev, {
+      name: matDraft.name.trim(),
+      source: matDraft.source,
+      neededBy: matDraft.neededBy,
+      // First material added defaults to "required to start" (usually the main fabric).
+      requiredToStart: prev.length === 0,
+    }]);
+    setMatDraft({ name: "", source: "procure", neededBy: "" });
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,6 +143,16 @@ const Orders = () => {
     const fabricCost = costFromFabricUse(fabricUse, fabrics);
     const materialsCost = costFromMaterialUse(materialUse, materials);
 
+    const materialsList: OrderMaterial[] = reqMaterials.map((m, i) => ({
+      id: `omat-${Date.now()}-${i}`,
+      name: m.name,
+      source: m.source,
+      neededBy: m.neededBy || undefined,
+      requiredToStart: m.requiredToStart,
+      status: "needed",
+      createdAt: Date.now(),
+    }));
+
     const created = addOrder({
       clientId: newOrder.clientId,
       client: newOrder.clientName,
@@ -146,6 +175,8 @@ const Orders = () => {
       deliveryDate: newOrder.deliveryDate || undefined,
       deliveryStatus: "pending",
       costs: { fabric: Math.round(fabricCost), materials: Math.round(materialsCost) },
+      materialsList,
+      awaitingMaterials: materialsList.length > 0,
     });
 
     fabricUse.forEach((f) => deductFabric(f.id, f.amount));
@@ -233,6 +264,26 @@ const Orders = () => {
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/15 text-primary">Marketplace</span>
                 )}
               </div>
+              {o.awaitingMaterials && (() => {
+                const mp = materialsProgress(o.materialsList);
+                return (
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary text-foreground flex items-center gap-1">
+                      <Package className="w-2.5 h-2.5 text-primary" /> {mp.received}/{mp.total} materials
+                    </span>
+                    {mp.waitingOnClient > 0 && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                        <User className="w-2.5 h-2.5" /> waiting on client
+                      </span>
+                    )}
+                    {mp.waitingOnUs > 0 && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground flex items-center gap-1">
+                        <Truck className="w-2.5 h-2.5" /> to procure
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
               <div className="flex items-center justify-between mt-1.5">
                 <span className="text-[11px] text-muted-foreground">Due: {o.dueDate}</span>
                 <span className="text-xs font-bold text-primary">{money(o.price, o.currency)}</span>
@@ -389,6 +440,59 @@ const Orders = () => {
             <textarea value={newOrder.styleDesc} onChange={(e) => setNewOrder(p => ({ ...p, styleDesc: e.target.value }))}
               placeholder="Style description..." rows={2}
               className={inputClass + " resize-none"} />
+
+            {/* Required materials for this order */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Required Materials (tracked before production)</p>
+              {reqMaterials.length > 0 && (
+                <div className="space-y-1.5 mb-2">
+                  {reqMaterials.map((m, i) => (
+                    <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] text-foreground truncate">{m.name}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[9px] text-muted-foreground">
+                            {m.source === "client" ? "Client-supplied" : "To be procured"}
+                          </span>
+                          {m.neededBy && <span className="text-[9px] text-muted-foreground">· by {m.neededBy}</span>}
+                        </div>
+                      </div>
+                      <button onClick={() => setReqMaterials(prev => prev.map((x, idx) => idx === i ? { ...x, requiredToStart: !x.requiredToStart } : x))}
+                        className={cn("text-[9px] px-2 py-1 rounded-lg border whitespace-nowrap",
+                          m.requiredToStart ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}>
+                        {m.requiredToStart ? "Required to start" : "Needed later"}
+                      </button>
+                      <button onClick={() => setReqMaterials(prev => prev.filter((_, idx) => idx !== i))}>
+                        <X className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="space-y-2 rounded-xl border border-dashed border-border p-2.5">
+                <input value={matDraft.name} onChange={(e) => setMatDraft(p => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g. Main fabric — kente print" className={inputClass} />
+                <div className="flex gap-2">
+                  {(["procure", "client"] as MaterialSource[]).map((s) => (
+                    <button key={s} onClick={() => setMatDraft(p => ({ ...p, source: s }))}
+                      className={cn("flex-1 py-2 rounded-xl text-[10px] font-medium border flex items-center justify-center gap-1",
+                        matDraft.source === s ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
+                      {s === "client" ? <User className="w-3 h-3" /> : <Truck className="w-3 h-3" />}
+                      {s === "client" ? "Client-supplied" : "To be procured"}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input type="date" value={matDraft.neededBy} onChange={(e) => setMatDraft(p => ({ ...p, neededBy: e.target.value }))}
+                    className={inputClass + " flex-1"} />
+                  <button onClick={addDraftMaterial}
+                    className="px-4 rounded-xl bg-secondary text-foreground text-[11px] font-semibold">Add</button>
+                </div>
+                <p className="text-[9px] text-muted-foreground">
+                  The first material added is set as “required to start”. Tap the tag on any item to change it.
+                </p>
+              </div>
+            </div>
 
             {/* Delivery method */}
             <div>

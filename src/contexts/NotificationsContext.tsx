@@ -12,6 +12,8 @@ export type NotifTriggerKey =
   | "received"
   | "appointment_reminder"
   | "payment_reminder"
+  | "materials_reminder"
+  | "materials_dropped"
   | "custom";
 
 export interface NotifTemplate {
@@ -75,6 +77,14 @@ const DEFAULT_TEMPLATES: NotifTemplate[] = [
   { key: "payment_reminder", label: "Payment reminder", channels: ["sms", "email"], enabled: true,
     subject: "{brand}: Friendly balance reminder",
     body: "Hi {client}, this is a gentle reminder that a balance of {balance} is due on your order at {brand}. — {brand}",
+    autoSchedule: "immediate" },
+  { key: "materials_reminder", label: "Materials drop-off reminder", channels: ["whatsapp"], enabled: true,
+    subject: "{brand}: Materials needed for your {garment}",
+    body: "Hi {client}, a quick reminder to drop off: {materials}. Needed by {date} so we can start work on your {garment}. — {brand}",
+    autoSchedule: "immediate" },
+  { key: "materials_dropped", label: "Client dropped off materials", channels: ["whatsapp"], enabled: true,
+    subject: "{brand}: Materials drop-off logged",
+    body: "Hi {client}, thanks — we've logged that you dropped off {materials}. We'll confirm receipt shortly. — {brand}",
     autoSchedule: "immediate" },
 ];
 

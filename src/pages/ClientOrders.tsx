@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Star, Package, CheckCircle2, Truck, Sparkles } from "lucide-react";
+import { ArrowLeft, Star, Package, CheckCircle2, Truck, Sparkles, Clock, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAtelier, money, Order } from "@/contexts/AtelierContext";
+import { useAtelier, money, Order, materialsProgress } from "@/contexts/AtelierContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
+import { useBrandInvoice } from "@/contexts/BrandInvoiceContext";
 import { useReviews } from "@/contexts/ReviewsContext";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const ease = [0.16, 1, 0.3, 1];
 const tabs = ["Active", "Completed", "All"];
@@ -21,6 +24,9 @@ const OrderTimeline = ({ o }: { o: Order }) => {
   return (
     <div className="mt-3">
       <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1.5">Production</p>
+      {o.awaitingMaterials && (
+        <p className="text-[9px] text-primary font-semibold mb-1.5">Awaiting materials — production hasn't started</p>
+      )}
       <div className="flex items-center gap-1">
         {stages.map((s, i) => (
           <div key={s + i} className="flex items-center flex-1">
@@ -58,9 +64,24 @@ const OrderTimeline = ({ o }: { o: Order }) => {
 
 const ClientOrders = () => {
   const navigate = useNavigate();
-  const { orders } = useAtelier();
+  const { orders, clientMarkDroppedOff } = useAtelier();
+  const { send } = useNotifications();
+  const { brand } = useBrandInvoice();
   const { hasReviewedOrder } = useReviews();
   const [activeTab, setActiveTab] = useState("Active");
+
+  const markDropped = (o: Order, matId: string, matName: string) => {
+    clientMarkDroppedOff(o.id, matId);
+    send({
+      key: "materials_dropped",
+      clientName: o.client,
+      brandName: brand.businessName,
+      channels: ["whatsapp"],
+      tokens: { garment: o.garment.toLowerCase(), materials: matName },
+      orderRef: o.id,
+    });
+    toast.success("Drop-off logged — your designer will confirm receipt.");
+  };
 
   const filtered = orders.filter((o) => {
     if (activeTab === "Active") return o.status === "active" || o.status === "requested";
@@ -149,6 +170,54 @@ const ClientOrders = () => {
                   </div>
 
                   <OrderTimeline o={o} />
+
+                  {/* Materials the client needs to bring */}
+                  {(() => {
+                    const mine = (o.materialsList || []).filter(m => m.source === "client");
+                    if (!mine.length) return null;
+                    const mp = materialsProgress(o.materialsList);
+                    return (
+                      <div className="mt-3 rounded-xl border border-border bg-secondary/30 p-2.5">
+                        <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                          What to bring · {mp.received} of {mp.total} received
+                        </p>
+                        <div className="space-y-1.5">
+                          {mine.map((m) => (
+                            <div key={m.id} className="flex items-center gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] text-foreground truncate">
+                                  Bring: {m.name}
+                                  {m.neededBy && (
+                                    <span className="text-muted-foreground"> — needed by {new Date(m.neededBy).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                                  )}
+                                </p>
+                                {m.status === "dropped_off" && (
+                                  <span className="text-[9px] text-muted-foreground flex items-center gap-1">
+                                    <Clock className="w-2.5 h-2.5" /> Dropped off — awaiting designer confirmation
+                                  </span>
+                                )}
+                                {m.status === "received" && m.confirmation && (
+                                  <span className="text-[9px] text-status-completed flex items-center gap-1">
+                                    <ShieldCheck className="w-2.5 h-2.5" /> Confirmed {new Date(m.confirmation.at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                                  </span>
+                                )}
+                              </div>
+                              {m.status === "needed" && (
+                                <motion.button whileTap={{ scale: 0.95 }}
+                                  onClick={(e) => { e.stopPropagation(); markDropped(o, m.id, m.name); }}
+                                  className="text-[9px] font-bold px-2 py-1 rounded-lg bg-primary text-primary-foreground whitespace-nowrap">
+                                  I've dropped this off
+                                </motion.button>
+                              )}
+                              {m.status === "received" && (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-status-completed flex-shrink-0" />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-[10px] text-muted-foreground">Due: {o.dueDate}</span>

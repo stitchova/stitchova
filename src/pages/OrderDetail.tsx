@@ -7,6 +7,7 @@ import { useNotifications, STAGE_TRIGGER_KEYS, NotifTriggerKey } from "@/context
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAtelier, PAYMENT_METHODS, DeliveryStatus, costFromFabricUse, costFromMaterialUse, TaskStatus } from "@/contexts/AtelierContext";
 import StageTracker from "@/components/StageTracker";
+import OrderMaterials from "@/components/OrderMaterials";
 import { useReviews } from "@/contexts/ReviewsContext";
 import { AVAILABLE_WORKERS, WorkerRef } from "@/lib/workers";
 import { toast } from "sonner";
@@ -195,6 +196,10 @@ const OrderDetail = () => {
   const handleStageTap = (stageIdx: number) => {
     if (stageIdx < 0 || stageIdx >= productionStages.length) return;
     if (stageIdx === order.currentStage) return;
+    if (order.awaitingMaterials) {
+      toast.error("Awaiting materials — confirm the required items before starting production.");
+      return;
+    }
     const isFinal = stageIdx === productionStages.length - 1;
     if (isFinal && !hasFinishedPhoto()) {
       setPendingFinalIdx(stageIdx);
@@ -493,10 +498,21 @@ const OrderDetail = () => {
           )}
         </motion.div>
 
+        {/* Materials Tracking — before production begins */}
+        <OrderMaterials
+          orderId={order.id}
+          actorName={brand.businessName || "Designer"}
+          actorRole="designer"
+          onStarted={() => runStageNotifications(0)}
+        />
+
         {/* Production Stages */}
         <motion.div {...fadeUp} transition={{ delay: 0.05 }} className="card-surface p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-foreground">Production Stages</span>
+            {order.awaitingMaterials && (
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">Awaiting Materials</span>
+            )}
             {commsUnlocked ? (
               <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" /> Auto-notify ON
