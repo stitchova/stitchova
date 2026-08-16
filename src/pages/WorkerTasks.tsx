@@ -47,6 +47,10 @@ const WorkerTasks = () => {
     if (!order) return;
     if (targetIdx === order.currentStage) return;
     if (pendingStatusId === task.id) return;
+    if (order.awaitingMaterials) {
+      toast.error("Awaiting materials — required items must be confirmed received first.");
+      return;
+    }
 
     const isFinal = targetIdx === order.stages.length - 1;
     if (isFinal && task.images.length === 0) {
