@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Star, Package, CheckCircle2, Truck, Sparkles } from "lucide-react";
+import { ArrowLeft, Star, Package, CheckCircle2, Truck, Sparkles, Clock, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAtelier, money, Order } from "@/contexts/AtelierContext";
+import { useAtelier, money, Order, materialsProgress } from "@/contexts/AtelierContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
+import { useBrandInvoice } from "@/contexts/BrandInvoiceContext";
 import { useReviews } from "@/contexts/ReviewsContext";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const ease = [0.16, 1, 0.3, 1];
 const tabs = ["Active", "Completed", "All"];
@@ -21,6 +24,9 @@ const OrderTimeline = ({ o }: { o: Order }) => {
   return (
     <div className="mt-3">
       <p className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1.5">Production</p>
+      {o.awaitingMaterials && (
+        <p className="text-[9px] text-primary font-semibold mb-1.5">Awaiting materials — production hasn't started</p>
+      )}
       <div className="flex items-center gap-1">
         {stages.map((s, i) => (
           <div key={s + i} className="flex items-center flex-1">
