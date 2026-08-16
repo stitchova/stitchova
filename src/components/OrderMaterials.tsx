@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Package, Truck, User, Camera, CheckCircle2, X, Clock, Send, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -116,6 +116,32 @@ export const OrderMaterials = ({ orderId, actorName, actorRole, onStarted }: Pro
   };
 
   const clientOutstanding = list.filter(m => m.source === "client" && m.status !== "received");
+
+  // Auto WhatsApp reminder when a client-supplied item's needed-by date is
+  // approaching and it still isn't confirmed. Deduped to once per day per item.
+  useEffect(() => {
+    const due = materialsDueSoon(list, 2).filter(m => m.source === "client" && m.status !== "received");
+    if (!due.length) return;
+    const today = new Date().toISOString().split("T")[0];
+    const fresh = due.filter(m => localStorage.getItem(`stitchova.matReminder.${m.id}`) !== today);
+    if (!fresh.length) return;
+    const client = clientById(order.clientId);
+    send({
+      key: "materials_reminder",
+      clientName: order.client,
+      clientContact: client?.phone || "—",
+      brandName: brand.businessName,
+      channels: ["whatsapp"],
+      tokens: {
+        garment: order.garment.toLowerCase(),
+        materials: fresh.map(m => m.name).join(", "),
+        date: fmtDate(fresh.find(m => m.neededBy)?.neededBy) || "soon",
+      },
+      orderRef: order.id,
+    });
+    fresh.forEach(m => localStorage.setItem(`stitchova.matReminder.${m.id}`, today));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order.id, list.map(m => `${m.id}:${m.status}`).join("|")]);
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card-surface p-4">
