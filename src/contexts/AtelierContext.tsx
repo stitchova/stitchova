@@ -12,6 +12,76 @@ export type MeasurementUnit = "in" | "cm";
 export type TaskStatus = "not_started" | "in_progress" | "completed";
 export type TaskPriority = "normal" | "urgent";
 
+// ---------- Per-order materials tracking ----------
+export type MaterialSource = "procure" | "client";
+export type OrderMaterialStatus = "needed" | "ordered" | "dropped_off" | "received";
+
+export interface MaterialConfirmation {
+  at: number;
+  byName: string;
+  byRole: "designer" | "worker";
+  photo?: string; // base64 data URL proof of receipt
+}
+
+export interface OrderMaterial {
+  id: string;
+  name: string;
+  source: MaterialSource;
+  neededBy?: string; // ISO date (yyyy-mm-dd)
+  requiredToStart: boolean;
+  status: OrderMaterialStatus;
+  droppedOffAt?: number; // client marked as dropped off
+  confirmation?: MaterialConfirmation;
+  createdAt: number;
+}
+
+export const MATERIAL_STATUS_LABEL: Record<OrderMaterialStatus, string> = {
+  needed: "Needed",
+  ordered: "Ordered",
+  dropped_off: "Client dropped off",
+  received: "Received",
+};
+
+// The flow differs by where the material comes from.
+export const materialFlow = (source: MaterialSource): OrderMaterialStatus[] =>
+  source === "client"
+    ? ["needed", "dropped_off", "received"]
+    : ["needed", "ordered", "received"];
+
+export interface MaterialsProgress {
+  total: number;
+  received: number;
+  requiredTotal: number;
+  requiredReceived: number;
+  ready: boolean;          // all "required to start" items received
+  waitingOn: string[];     // names of required items not yet received
+  waitingOnClient: number; // outstanding client-supplied items
+  waitingOnUs: number;     // outstanding items we must procure
+}
+
+export const materialsProgress = (list?: OrderMaterial[]): MaterialsProgress => {
+  const items = list || [];
+  const required = items.filter((m) => m.requiredToStart);
+  const outstanding = items.filter((m) => m.status !== "received");
+  return {
+    total: items.length,
+    received: items.filter((m) => m.status === "received").length,
+    requiredTotal: required.length,
+    requiredReceived: required.filter((m) => m.status === "received").length,
+    ready: items.length === 0 || required.every((m) => m.status === "received"),
+    waitingOn: required.filter((m) => m.status !== "received").map((m) => m.name),
+    waitingOnClient: outstanding.filter((m) => m.source === "client").length,
+    waitingOnUs: outstanding.filter((m) => m.source === "procure").length,
+  };
+};
+
+// Items whose needed-by date is within `days` and that aren't confirmed yet.
+export const materialsDueSoon = (list: OrderMaterial[] | undefined, days = 3) => {
+  const limit = Date.now() + days * 86400000;
+  return (list || []).filter((m) =>
+    m.status !== "received" && m.neededBy && new Date(m.neededBy).getTime() <= limit);
+};
+
 export interface StageHistoryEntry {
   stageIdx: number;
   stage: string;
@@ -107,6 +177,10 @@ export interface Order {
   deliveryStatus?: DeliveryStatus;
   costs?: { fabric?: number; materials?: number; labor?: number };
   stageHistory?: StageHistoryEntry[];
+  /** Per-order materials checklist (procurement + client handoff). */
+  materialsList?: OrderMaterial[];
+  /** True while the order sits in the "Awaiting Materials" stage, before Cutting. */
+  awaitingMaterials?: boolean;
 }
 
 export interface Fabric {
