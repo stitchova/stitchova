@@ -96,10 +96,10 @@ const WorkshopChat = () => {
   return (
     <>
       {/* Tablet/desktop workshop messaging (designer role only) */}
-      {isDesigner && <WorkshopWorkspace />}
+      {(isDesigner || role === "worker") && <WorkshopWorkspace canAnnounce={isDesigner} />}
 
       {/* Mobile view (unchanged; workers keep it at every width) */}
-      <div className={`min-h-screen bg-background pb-24${isDesigner ? " lg:hidden" : ""}`}>
+      <div className={`min-h-screen bg-background pb-24 lg:hidden`}>
       {/* Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}

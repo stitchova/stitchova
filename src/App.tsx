@@ -15,6 +15,7 @@ import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
 import LockGate from "@/components/LockGate";
 import RequireRole from "@/components/RequireRole";
+import WorkerTopNav from "@/components/worker-desktop/WorkerTopNav";
 import DesignerTopNav from "@/components/designer-desktop/DesignerTopNav";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
@@ -84,11 +85,12 @@ const AppShell = () => {
   const [displayLocation, setDisplayLocation] = useState(location);
   // The Orders route has a dedicated tablet/desktop workspace layout, so the
   // mobile-width shell is released from lg upwards for that route only.
-  const wideRoutes = ["/orders", "/", "/clients", "/measurements", "/payments", "/workers", "/workshop-chat"];
+  const wideRoutes = ["/orders", "/", "/clients", "/measurements", "/payments", "/workers", "/workshop-chat", "/worker-dashboard", "/worker-tasks", "/worker-measurements", "/worker-materials"];
   const wideRoute = wideRoutes.includes(location.pathname);
   return (
     <LockGate>
       <DesignerTopNav />
+      <WorkerTopNav />
       <div className={`app-shell mx-auto min-h-screen max-w-md relative w-full${wideRoute ? " lg:max-w-[1440px]" : ""}`}>
         <AnimatePresence
           mode="wait"

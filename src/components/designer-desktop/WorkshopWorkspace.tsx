@@ -12,7 +12,7 @@ const time = (t: number) =>
   new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 /** Designer workshop messaging workspace (conversation list + thread). */
-const WorkshopWorkspace = () => {
+const WorkshopWorkspace = ({ canAnnounce = true }: { canAnnounce?: boolean }) => {
   const { members, currentUserId, dmChatId, getChatMessages, sendMessage, markChatRead, unreadCountForChat } = useWorkshopChat();
   const [chatId, setChatId] = useState("group");
   const [query, setQuery] = useState("");
@@ -41,7 +41,7 @@ const WorkshopWorkspace = () => {
 
   const send = () => {
     if (!text.trim()) return;
-    sendMessage(chatId, text.trim(), { isAnnouncement: announce && chatId === "group" });
+    sendMessage(chatId, text.trim(), { isAnnouncement: canAnnounce && announce && chatId === "group" });
     setText("");
     setAnnounce(false);
   };
@@ -112,7 +112,7 @@ const WorkshopWorkspace = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              {chatId === "group" && (
+              {canAnnounce && chatId === "group" && (
                 <button onClick={() => setAnnounce((a) => !a)}
                   className={cn("rounded-full px-4 py-2.5 text-[11px] font-semibold border transition-colors flex items-center gap-1.5",
                     announce ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground")}>
