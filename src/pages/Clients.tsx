@@ -45,7 +45,12 @@ const Clients = () => {
   const inputClass = "w-full bg-secondary/50 border border-border rounded-xl py-3 px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors";
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop designer workspace */}
+      <ClientsWorkspace onAddClient={() => setShowAdd(true)} />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       <div className="designer-hero px-5 pt-6 pb-5 rounded-b-3xl">
         <div className="flex items-center justify-between">
           <div>
@@ -147,6 +152,7 @@ const Clients = () => {
           </div>
         )}
       </div>
+      </div>
 
       <AnimatePresence>
         {showAdd && (
@@ -189,7 +195,7 @@ const Clients = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 };
 
