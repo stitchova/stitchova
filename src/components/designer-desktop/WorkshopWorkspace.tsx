@@ -12,7 +12,7 @@ const time = (t: number) =>
   new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 /** Designer workshop messaging workspace (conversation list + thread). */
-const WorkshopWorkspace = () => {
+const WorkshopWorkspace = ({ canAnnounce = true }: { canAnnounce?: boolean }) => {
   const { members, currentUserId, dmChatId, getChatMessages, sendMessage, markChatRead, unreadCountForChat } = useWorkshopChat();
   const [chatId, setChatId] = useState("group");
   const [query, setQuery] = useState("");
@@ -41,7 +41,7 @@ const WorkshopWorkspace = () => {
 
   const send = () => {
     if (!text.trim()) return;
-    sendMessage(chatId, text.trim(), { isAnnouncement: announce && chatId === "group" });
+    sendMessage(chatId, text.trim(), { isAnnouncement: canAnnounce && announce && chatId === "group" });
     setText("");
     setAnnounce(false);
   };
