@@ -80,9 +80,12 @@ const ALL = ({ children }: { children: React.ReactNode }) => <RequireRole allow=
 const AppShell = () => {
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
+  // The Orders route has a dedicated tablet/desktop workspace layout, so the
+  // mobile-width shell is released from lg upwards for that route only.
+  const wideRoute = location.pathname === "/orders";
   return (
     <LockGate>
-      <div className="app-shell mx-auto min-h-screen max-w-md relative w-full">
+      <div className={`app-shell mx-auto min-h-screen max-w-md relative w-full${wideRoute ? " lg:max-w-[1440px]" : ""}`}>
         <AnimatePresence
           mode="wait"
           initial={false}
