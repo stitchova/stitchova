@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ClientPicker from "@/components/ClientPicker";
+import OrdersWorkspace from "@/components/orders/OrdersWorkspace";
 import { useAtelier, BASE_STAGES, OPTIONAL_STAGES, PAYMENT_METHODS, parsePrice, money, costFromFabricUse, costFromMaterialUse, materialsProgress, MaterialSource, OrderMaterial } from "@/contexts/AtelierContext";
 
 const statusTabs = ["All", "Requested", "Active", "Completed"];
@@ -193,6 +194,11 @@ const Orders = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      {/* Tablet/desktop workspace layout */}
+      <OrdersWorkspace onNewOrder={() => setShowNewOrder(true)} />
+
+      {/* Mobile layout (unchanged) */}
+      <div className="lg:hidden">
       <div className="designer-hero px-5 pt-6 pb-5 rounded-b-3xl flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold shimmer-text">Orders</h1>
@@ -309,6 +315,7 @@ const Orders = () => {
             <p className="text-sm text-muted-foreground">No orders match your filters</p>
           </div>
         )}
+      </div>
       </div>
 
       {/* New Order Dialog */}
