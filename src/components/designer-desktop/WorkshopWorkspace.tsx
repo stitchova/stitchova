@@ -37,7 +37,7 @@ const WorkshopWorkspace = () => {
   const active = conversations.find((c) => c.chatId === chatId) || conversations[0];
 
   useEffect(() => { markChatRead(chatId); }, [chatId, messages.length, markChatRead]);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length, chatId]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [messages.length, chatId]);
 
   const send = () => {
     if (!text.trim()) return;
