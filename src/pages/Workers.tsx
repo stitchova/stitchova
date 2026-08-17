@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import WorkerProgressTracker from "@/components/WorkerProgressTracker";
 import { useAtelier } from "@/contexts/AtelierContext";
+import WorkersWorkspace from "@/components/designer-desktop/WorkersWorkspace";
 
 // Map the demo worker roster (Workers.tsx) to shared workshop IDs so real
 // stage-history / task activity can flow into their performance numbers.

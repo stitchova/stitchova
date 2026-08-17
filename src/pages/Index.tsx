@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import DashboardWorkspace from "@/components/designer-desktop/DashboardWorkspace";
 
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";

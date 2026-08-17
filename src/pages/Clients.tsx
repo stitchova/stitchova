@@ -5,6 +5,7 @@ import { Search, Filter, ChevronRight, Phone, Users, Plus, X } from "lucide-reac
 import { useAtelier } from "@/contexts/AtelierContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import ClientsWorkspace from "@/components/designer-desktop/ClientsWorkspace";
 
 const tabs = ["All", "Active", "New"];
 

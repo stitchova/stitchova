@@ -9,6 +9,7 @@ import { useBrandInvoice } from "@/contexts/BrandInvoiceContext";
 import ClientPicker from "@/components/ClientPicker";
 import { Image as ImageIcon } from "lucide-react";
 import { genders, ageGroups, categories, garmentTypes, defaultMeasurementFields } from "@/constants/garments";
+import MeasurementsWorkspace from "@/components/designer-desktop/MeasurementsWorkspace";
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 

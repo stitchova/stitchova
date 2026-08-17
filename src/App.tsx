@@ -15,6 +15,7 @@ import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
 import LockGate from "@/components/LockGate";
 import RequireRole from "@/components/RequireRole";
+import DesignerTopNav from "@/components/designer-desktop/DesignerTopNav";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Clients from "./pages/Clients";
@@ -56,6 +57,7 @@ import SetPasscode from "./pages/SetPasscode";
 import Showcase from "./pages/Showcase";
 import ShowcaseCreate from "./pages/ShowcaseCreate";
 import Referrals from "./pages/Referrals";
+import Payments from "./pages/Payments";
 import NotFound from "./pages/NotFound";
 import BrandSettings from "./pages/BrandSettings";
 import InvoiceEditor from "./pages/InvoiceEditor";
@@ -82,9 +84,11 @@ const AppShell = () => {
   const [displayLocation, setDisplayLocation] = useState(location);
   // The Orders route has a dedicated tablet/desktop workspace layout, so the
   // mobile-width shell is released from lg upwards for that route only.
-  const wideRoute = location.pathname === "/orders";
+  const wideRoutes = ["/orders", "/", "/clients", "/measurements", "/payments", "/workers", "/workshop-chat"];
+  const wideRoute = wideRoutes.includes(location.pathname);
   return (
     <LockGate>
+      <DesignerTopNav />
       <div className={`app-shell mx-auto min-h-screen max-w-md relative w-full${wideRoute ? " lg:max-w-[1440px]" : ""}`}>
         <AnimatePresence
           mode="wait"
@@ -104,6 +108,7 @@ const AppShell = () => {
               <Route path="/" element={<D><Index /></D>} />
               <Route path="/clients" element={<D><Clients /></D>} />
               <Route path="/orders" element={<D><Orders /></D>} />
+              <Route path="/payments" element={<D><Payments /></D>} />
               <Route path="/more" element={<D><More /></D>} />
               <Route path="/add" element={<D><AddNew /></D>} />
               <Route path="/client/:id" element={<D><ClientProfile /></D>} />

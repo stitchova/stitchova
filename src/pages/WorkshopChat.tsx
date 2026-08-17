@@ -6,6 +6,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useWorkshopChat, WorkshopMember } from "@/contexts/WorkshopChatContext";
 import { useToast } from "@/hooks/use-toast";
 import EmptyState from "@/components/EmptyState";
+import WorkshopWorkspace from "@/components/designer-desktop/WorkshopWorkspace";
 
 const ease = [0.16, 1, 0.3, 1];
 
