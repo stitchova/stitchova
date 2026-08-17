@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ClipboardList, Ruler, Package, Clock, CheckCircle2, AlertTriangle, Camera, ChevronRight, MessagesSquare, Flame } from "lucide-react";
 import { useAtelier } from "@/contexts/AtelierContext";
 import { CURRENT_WORKER } from "@/lib/workers";
+import WorkerOverviewWorkspace from "@/components/worker-desktop/WorkerOverviewWorkspace";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
@@ -88,7 +89,12 @@ const WorkerDashboard = () => {
   const ringOffset = ringC - (completionPct / 100) * ringC;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop worker workspace */}
+      <WorkerOverviewWorkspace />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       {/* Header */}
       <div className="px-5 pt-14 pb-6">
         <motion.div {...fadeUp}>
@@ -229,6 +235,7 @@ const WorkerDashboard = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

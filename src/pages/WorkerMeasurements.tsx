@@ -7,6 +7,7 @@ import ClientPicker from "@/components/ClientPicker";
 import { useAtelier } from "@/contexts/AtelierContext";
 import { useBrandInvoice } from "@/contexts/BrandInvoiceContext";
 import { categories, garmentTypes, defaultMeasurementFields } from "@/constants/garments";
+import MeasurementsWorkspace from "@/components/designer-desktop/MeasurementsWorkspace";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
@@ -68,7 +69,12 @@ const WorkerMeasurements = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop worker workspace */}
+      <MeasurementsWorkspace />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border px-5 pt-14 pb-4">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center">
@@ -155,6 +161,7 @@ const WorkerMeasurements = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

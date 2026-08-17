@@ -9,6 +9,7 @@ import { useWorkshopChat } from "@/contexts/WorkshopChatContext";
 import { CURRENT_WORKER } from "@/lib/workers";
 import StageTracker from "@/components/StageTracker";
 import OrderMaterials from "@/components/OrderMaterials";
+import WorkerTasksWorkspace from "@/components/worker-desktop/WorkerTasksWorkspace";
 
 const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } };
 
@@ -145,7 +146,12 @@ const WorkerTasks = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop worker workspace */}
+      <WorkerTasksWorkspace />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       <input ref={fileInputRef} type="file" accept="image/*" capture="environment" multiple
         className="hidden" onChange={onFileChange} />
 
@@ -350,6 +356,7 @@ const WorkerTasks = () => {
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 };
 
