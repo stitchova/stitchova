@@ -542,7 +542,12 @@ const Workers = () => {
 
   // ── MAIN LIST + FORM VIEW ──
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop worker management */}
+      <WorkersWorkspace />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       <div className="sticky top-0 z-10 bg-background/70 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -795,7 +800,8 @@ const Workers = () => {
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
