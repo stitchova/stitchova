@@ -6,6 +6,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useWorkshopChat, WorkshopMember } from "@/contexts/WorkshopChatContext";
 import { useToast } from "@/hooks/use-toast";
 import EmptyState from "@/components/EmptyState";
+import WorkshopWorkspace from "@/components/designer-desktop/WorkshopWorkspace";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -93,7 +94,12 @@ const WorkshopChat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop workshop messaging (designer role only) */}
+      {isDesigner && <WorkshopWorkspace />}
+
+      {/* Mobile view (unchanged; workers keep it at every width) */}
+      <div className={`min-h-screen bg-background pb-24${isDesigner ? " lg:hidden" : ""}`}>
       {/* Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
@@ -297,7 +303,8 @@ const WorkshopChat = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import DashboardWorkspace from "@/components/designer-desktop/DashboardWorkspace";
 
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
@@ -108,7 +109,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop designer dashboard */}
+      <DashboardWorkspace />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       {/* Hero Header */}
       <div className="designer-hero px-5 pt-6 pb-6 flex items-center justify-between rounded-b-3xl">
         <div className="flex items-center gap-3">
@@ -294,7 +300,8 @@ const Index = () => {
           </div>
         </motion.div>
       </motion.div>
-    </div>
+      </div>
+    </>
   );
 };
 
