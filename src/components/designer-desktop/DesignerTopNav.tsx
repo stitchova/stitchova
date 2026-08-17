@@ -39,7 +39,7 @@ const DesignerTopNav = () => {
     <header className="hidden lg:block sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto max-w-[1440px] px-8 h-16 flex items-center gap-6">
         <button onClick={() => navigate("/")} className="flex items-center">
-          <Logo size="sm" />
+          <Logo size={32} animated={false} />
         </button>
         <nav className="flex items-center gap-1 rounded-full frost-card p-1.5">
           {items.map((item) => {
