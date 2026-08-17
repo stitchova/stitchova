@@ -56,7 +56,7 @@ const WorkerTopNav = () => {
           className="ml-auto w-9 h-9 rounded-full p-[2px]"
           style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
           <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
-            <span className="text-[10px] font-bold text-foreground">{CURRENT_WORKER.initials || "TA"}</span>
+            <span className="text-[10px] font-bold text-foreground">{CURRENT_WORKER.avatar}</span>
           </div>
         </button>
       </div>
