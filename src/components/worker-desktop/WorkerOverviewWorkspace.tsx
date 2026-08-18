@@ -56,7 +56,7 @@ const WorkerOverviewWorkspace = () => {
             const order = orderById(t.orderId);
             return (
               <button key={t.id} onClick={() => navigate("/worker-tasks")}
-                className="w-full text-left rounded-2xl p-3 flex items-center gap-3 bg-card/60 border border-border/40 hover:bg-card transition-colors">
+                className="w-full text-left rounded-2xl p-3 flex items-center gap-3 bg-card border border-border hover:bg-secondary/40 transition-colors">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-foreground truncate">{t.title}</p>
                   <p className="text-[11px] text-muted-foreground truncate">
@@ -86,7 +86,7 @@ const WorkerOverviewWorkspace = () => {
             )}
           </SectionCard>
           <button onClick={() => navigate("/workshop-chat")}
-            className="w-full rounded-2xl bg-secondary/50 border border-border/30 p-4 flex items-center gap-3 hover:bg-secondary transition-colors">
+            className="w-full rounded-2xl bg-secondary border border-border p-4 flex items-center gap-3 hover:bg-secondary transition-colors">
             <MessageCircle className="w-4 h-4 text-primary" />
             <span className="text-xs font-semibold text-foreground">Message the workshop</span>
           </button>

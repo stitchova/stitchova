@@ -180,6 +180,26 @@
     box-shadow: 0 6px 24px -10px hsl(var(--foreground) / 0.18);
   }
 
+  /* Desktop-only, solid variants — used exclusively by tablet/desktop
+   * workspace components (designer-desktop/, worker-desktop/, orders/).
+   * Deliberately NOT used anywhere in the mobile app views, which keep
+   * using the translucent .frost-card / .glass-input look above. */
+  .solid-panel {
+    background: hsl(var(--card));
+    @apply rounded-2xl border border-border;
+    box-shadow: 0 6px 24px -10px hsl(var(--foreground) / 0.18);
+  }
+
+  .solid-input {
+    background: hsl(var(--background));
+    @apply border border-input rounded-2xl;
+  }
+
+  .solid-block {
+    background: hsl(var(--secondary));
+    @apply rounded-2xl border border-border;
+  }
+
   @keyframes typing-dot {
     0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
     30% { transform: translateY(-4px); opacity: 1; }

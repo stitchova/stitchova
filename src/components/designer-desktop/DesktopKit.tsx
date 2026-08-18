@@ -85,7 +85,7 @@ export interface StatCard { label: string; value: string; hint?: string }
 export const StatCards = ({ stats }: { stats: StatCard[] }) => (
   <div className={cn("grid gap-5 mt-6", stats.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
     {stats.map((s) => (
-      <div key={s.label} className="frost-card p-5">
+      <div key={s.label} className="solid-panel p-5">
         <p className="text-xs text-muted-foreground">{s.label}</p>
         <p className="text-2xl font-bold text-foreground mt-2">{s.value}</p>
         {s.hint && <p className="text-[11px] text-muted-foreground mt-1">{s.hint}</p>}
@@ -144,7 +144,7 @@ interface ListRowProps {
 export const ListRow = ({ active, onClick, title, meta, pill, leading, trailing }: ListRowProps) => (
   <button onClick={onClick}
     className={cn("w-full text-left rounded-2xl p-3 flex items-center gap-3 transition-colors border",
-      active ? "bg-primary/10 border-primary/40" : "bg-card/60 border-border/40 hover:bg-card")}>
+      active ? "bg-primary/10 border-primary/40" : "bg-card border-border hover:bg-secondary/40")}>
     {leading}
     <div className="min-w-0 flex-1">
       <p className="text-xs font-semibold text-foreground truncate">{title}</p>
@@ -167,7 +167,7 @@ export const Avatar = ({ initials }: { initials: string }) => (
 export const DetailPanel = ({ id, children }: { id: string; children: ReactNode }) => (
   <motion.div key={id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-    className="rounded-3xl bg-card/70 border border-border/40 p-6 space-y-5">
+    className="rounded-3xl bg-card border border-border p-6 space-y-5">
     {children}
   </motion.div>
 );
@@ -201,7 +201,7 @@ export const DetailHeader = ({
 export const InfoGrid = ({ blocks, cols = 4 }: { blocks: { label: string; value: string }[]; cols?: 3 | 4 }) => (
   <div className={cn("grid gap-3", cols === 3 ? "grid-cols-3" : "grid-cols-4")}>
     {blocks.map((b) => (
-      <div key={b.label} className="rounded-2xl bg-secondary/50 border border-border/30 p-4">
+      <div key={b.label} className="rounded-2xl bg-secondary border border-border p-4">
         <p className="text-[10px] text-muted-foreground">{b.label}</p>
         <p className="text-sm font-semibold text-foreground mt-1.5 leading-snug">{b.value}</p>
       </div>
@@ -210,7 +210,7 @@ export const InfoGrid = ({ blocks, cols = 4 }: { blocks: { label: string; value:
 );
 
 export const SummaryBar = ({ items, children }: { items: { label: string; value: string; accent?: boolean }[]; children?: ReactNode }) => (
-  <div className="rounded-2xl bg-secondary/40 border border-border/30 p-5 flex items-center justify-between">
+  <div className="rounded-2xl bg-secondary border border-border p-5 flex items-center justify-between">
     <div className="flex gap-10">
       {items.map((i) => (
         <div key={i.label}>
@@ -224,7 +224,7 @@ export const SummaryBar = ({ items, children }: { items: { label: string; value:
 );
 
 export const SectionCard = ({ title, children, className }: { title: string; children: ReactNode; className?: string }) => (
-  <div className={cn("rounded-2xl bg-secondary/30 border border-border/30 p-5", className)}>
+  <div className={cn("rounded-2xl bg-secondary border border-border p-5", className)}>
     <p className="text-xs font-semibold text-foreground mb-3">{title}</p>
     {children}
   </div>

@@ -41,7 +41,7 @@ const DesignerTopNav = () => {
         <button onClick={() => navigate("/")} className="flex items-center">
           <Logo size={32} animated={false} />
         </button>
-        <nav className="flex items-center gap-1 rounded-full frost-card p-1.5">
+        <nav className="flex items-center gap-1 rounded-full solid-panel p-1.5">
           {items.map((item) => {
             const active = isActive(item.path);
             return (

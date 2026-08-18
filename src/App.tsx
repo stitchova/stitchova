@@ -83,10 +83,17 @@ const ALL = ({ children }: { children: React.ReactNode }) => <RequireRole allow=
 const AppShell = () => {
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
-  // The Orders route has a dedicated tablet/desktop workspace layout, so the
-  // mobile-width shell is released from lg upwards for that route only.
-  const wideRoutes = ["/orders", "/", "/clients", "/measurements", "/payments", "/workers", "/workshop-chat", "/worker-dashboard", "/worker-tasks", "/worker-measurements", "/worker-materials"];
-  const wideRoute = wideRoutes.includes(location.pathname);
+  // The shell is capped to mobile width (max-w-md) by default so the existing
+  // mobile app view is untouched below the `lg` breakpoint. From `lg` upward,
+  // every route releases to the full desktop width — desktop workspace
+  // components decide per-page whether they render anything there (via
+  // `DesktopOnly` / `hidden lg:block`). Previously this was an explicit
+  // per-route whitelist, which meant any new or missed route silently stayed
+  // mobile-width forever, even on a wide screen. Auth/onboarding-style routes
+  // intentionally stay narrow at every width since they're single-column
+  // flows, not workspaces.
+  const narrowRoutes = ["/onboarding", "/auth", "/set-passcode", "/subscription", "/.lovable/oauth/consent"];
+  const wideRoute = !narrowRoutes.includes(location.pathname);
   return (
     <LockGate>
       <DesignerTopNav />
