@@ -17,6 +17,7 @@ import LockGate from "@/components/LockGate";
 import RequireRole from "@/components/RequireRole";
 import WorkerTopNav from "@/components/worker-desktop/WorkerTopNav";
 import DesignerTopNav from "@/components/designer-desktop/DesignerTopNav";
+import ClientTopNav from "@/components/client-desktop/ClientTopNav";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Clients from "./pages/Clients";
@@ -98,6 +99,7 @@ const AppShell = () => {
     <LockGate>
       <DesignerTopNav />
       <WorkerTopNav />
+      <ClientTopNav />
       <div className={`app-shell mx-auto min-h-screen max-w-md relative w-full${wideRoute ? " lg:max-w-[1440px]" : ""}`}>
         <AnimatePresence
           mode="wait"
