@@ -31,11 +31,11 @@ const WorkerTopNav = () => {
 
   return (
     <header className="hidden lg:block sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto max-w-[1440px] px-8 h-16 flex items-center gap-6">
-        <button onClick={() => navigate("/worker-dashboard")} className="flex items-center">
+      <div className="mx-auto max-w-[1440px] px-8 h-16 grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+        <button onClick={() => navigate("/worker-dashboard")} className="flex items-center justify-self-start">
           <Logo size={32} animated={false} />
         </button>
-        <nav className="flex items-center gap-1 rounded-full solid-panel p-1.5">
+        <nav className="flex items-center justify-center gap-1 rounded-full solid-panel p-1.5">
           {items.map((item) => {
             const active = isActive(item.path);
             return (
@@ -53,7 +53,7 @@ const WorkerTopNav = () => {
           })}
         </nav>
         <button onClick={() => navigate("/worker-profile")}
-          className="ml-auto w-9 h-9 rounded-full p-[2px]"
+          className="justify-self-end w-9 h-9 rounded-full p-[2px]"
           style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
           <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
             <span className="text-[10px] font-bold text-foreground">{CURRENT_WORKER.avatar}</span>
