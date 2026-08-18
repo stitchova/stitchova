@@ -81,7 +81,7 @@ const WorkerMaterialsWorkspace = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {(order.fabricUse || []).map((item) => (
-                      <div key={`f-${item.id}`} className="rounded-xl bg-card/60 border border-border/30 p-3 flex items-center gap-3">
+                      <div key={`f-${item.id}`} className="rounded-xl bg-card border border-border p-3 flex items-center gap-3">
                         <Scissors className="w-4 h-4 text-primary" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-foreground truncate">{item.name}</p>
@@ -91,7 +91,7 @@ const WorkerMaterialsWorkspace = () => {
                       </div>
                     ))}
                     {(order.materialUse || []).map((item) => (
-                      <div key={`m-${item.id}`} className="rounded-xl bg-card/60 border border-border/30 p-3 flex items-center gap-3">
+                      <div key={`m-${item.id}`} className="rounded-xl bg-card border border-border p-3 flex items-center gap-3">
                         <Sparkles className="w-4 h-4 text-status-completed" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-foreground truncate">{item.name}</p>

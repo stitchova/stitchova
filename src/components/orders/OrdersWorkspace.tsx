@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Package, Truck, User, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { Search, Plus, Package, Truck, User, CheckCircle2, XCircle, ExternalLink, ListFilter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import OrderMaterials from "@/components/OrderMaterials";
 import EmptyState from "@/components/EmptyState";
 import { useAtelier, money, materialsProgress, Order } from "@/contexts/AtelierContext";
 import { useBrandInvoice } from "@/contexts/BrandInvoiceContext";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 const tabs = ["All", "Requested", "Active", "Completed"] as const;
 
@@ -49,6 +52,17 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
   const [tab, setTab] = useState<(typeof tabs)[number]>("All");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [clientFilter, setClientFilter] = useState<string>("all");
+  const [stageFilter, setStageFilter] = useState<string>("all");
+
+  const clientOptions = useMemo(
+    () => Array.from(new Set(orders.map((o) => o.client))).sort(),
+    [orders]
+  );
+  const stageOptions = useMemo(
+    () => Array.from(new Set(orders.map((o) => statusOf(o)))),
+    [orders]
+  );
 
   const filtered = useMemo(() => orders.filter((o) => {
     const byTab =
@@ -57,8 +71,10 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
       tab === "Active" ? o.status === "active" :
       o.status === "completed";
     const bySearch = `${o.type} ${o.client} ${o.garment}`.toLowerCase().includes(query.toLowerCase());
-    return byTab && bySearch;
-  }), [orders, tab, query]);
+    const byClient = clientFilter === "all" ? true : o.client === clientFilter;
+    const byStage = stageFilter === "all" ? true : statusOf(o) === stageFilter;
+    return byTab && bySearch && byClient && byStage;
+  }), [orders, tab, query, clientFilter, stageFilter]);
 
   useEffect(() => {
     if (!filtered.find((o) => o.id === selectedId)) setSelectedId(filtered[0]?.id ?? null);
@@ -88,7 +104,7 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
           <h1 className="text-3xl font-bold shimmer-text leading-tight">Orders</h1>
           <p className="text-xs text-muted-foreground mt-1">Manage and track all your orders in one place.</p>
         </div>
-        <nav className="ml-6 flex items-center gap-1 rounded-full frost-card p-1.5">
+        <nav className="ml-6 flex items-center gap-1 rounded-full solid-panel p-1.5">
           {tabs.map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={cn("relative px-5 py-2 rounded-full text-xs font-semibold transition-colors",
@@ -102,7 +118,35 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3">
-          <div className="flex items-center gap-2 glass-input px-4 py-2.5 w-64">
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="w-44 solid-input text-xs">
+              <div className="flex items-center gap-2">
+                <User className="w-3.5 h-3.5 text-muted-foreground" />
+                <SelectValue placeholder="All customers" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">All customers</SelectItem>
+              {clientOptions.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={stageFilter} onValueChange={setStageFilter}>
+            <SelectTrigger className="w-44 solid-input text-xs">
+              <div className="flex items-center gap-2">
+                <ListFilter className="w-3.5 h-3.5 text-muted-foreground" />
+                <SelectValue placeholder="All statuses" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">All statuses</SelectItem>
+              {stageOptions.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2 solid-input px-4 py-2.5 w-56">
             <Search className="w-4 h-4 text-muted-foreground" />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search orders…"
               className="bg-transparent text-xs text-foreground placeholder:text-muted-foreground flex-1 outline-none" />
@@ -117,7 +161,7 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-5 mt-6">
         {stats.map((s) => (
-          <div key={s.label} className="frost-card p-5">
+          <div key={s.label} className="solid-panel p-5">
             <p className="text-xs text-muted-foreground">{s.label}</p>
             <p className="text-2xl font-bold text-foreground mt-2">{s.value}</p>
             <p className="text-[11px] text-muted-foreground mt-1">{s.hint}</p>
@@ -138,7 +182,7 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
               return (
                 <button key={o.id} onClick={() => setSelectedId(o.id)}
                   className={cn("w-full text-left rounded-2xl p-3 flex items-center gap-3 transition-colors border",
-                    active ? "bg-primary/10 border-primary/40" : "bg-card/60 border-border/40 hover:bg-card")}>
+                    active ? "bg-primary/10 border-primary/40" : "bg-card border-border hover:bg-secondary/40")}>
                   <img src={o.img} alt={o.type} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-foreground truncate">{orderNo(orders.indexOf(o))} · {o.type}</p>
@@ -160,7 +204,7 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
         {selected ? (
           <motion.div key={selected.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="rounded-3xl bg-card/70 border border-border/40 p-6 space-y-5">
+            className="rounded-3xl bg-card border border-border p-6 space-y-5">
             {/* Header info */}
             <div className="flex items-start justify-between gap-6">
               <div>
@@ -179,7 +223,7 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
                 <p className="text-[11px] text-muted-foreground">{brand.businessName || "Atelier"}</p>
               </div>
               <motion.button whileTap={{ scale: 0.96 }} onClick={() => navigate(`/order/${selected.id}`)}
-                className="rounded-full frost-card px-4 py-2 text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                className="rounded-full solid-panel px-4 py-2 text-[11px] font-semibold text-foreground flex items-center gap-1.5">
                 Open <ExternalLink className="w-3 h-3" />
               </motion.button>
             </div>
@@ -192,7 +236,7 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
                 { label: "Category", value: `${selected.category} · ${selected.garment}` },
                 { label: "Delivery", value: selected.deliveryMethod === "delivery" ? "Delivery" : "Pickup" },
               ].map((b) => (
-                <div key={b.label} className="rounded-2xl bg-secondary/50 border border-border/30 p-4">
+                <div key={b.label} className="rounded-2xl bg-secondary border border-border p-4">
                   <p className="text-[10px] text-muted-foreground">{b.label}</p>
                   <p className="text-sm font-semibold text-foreground mt-1.5 leading-snug">{b.value}</p>
                 </div>
@@ -221,7 +265,7 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
             <OrderMaterials orderId={selected.id} actorName={brand.businessName || "Designer"} actorRole="designer" />
 
             {/* Summary / totals */}
-            <div className="rounded-2xl bg-secondary/40 border border-border/30 p-5 flex items-center justify-between">
+            <div className="rounded-2xl bg-secondary border border-border p-5 flex items-center justify-between">
               <div className="flex gap-10">
                 <div>
                   <p className="text-[10px] text-muted-foreground">Sub total</p>
@@ -256,7 +300,7 @@ const OrdersWorkspace = ({ onNewOrder }: Props) => {
             </div>
           </motion.div>
         ) : (
-          <div className="rounded-3xl bg-card/70 border border-border/40">
+          <div className="rounded-3xl bg-card border border-border">
             <EmptyState icon={Package} title="Select an order" description="Pick an order from the list to see its details." />
           </div>
         )}

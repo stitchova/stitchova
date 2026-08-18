@@ -195,7 +195,7 @@ const WorkerTasksWorkspace = () => {
                   {measurement ? (
                     <div className="grid grid-cols-4 gap-3">
                       {Object.entries(measurement.fields).map(([k, v]) => (
-                        <div key={k} className="rounded-xl bg-card/60 border border-border/30 p-3">
+                        <div key={k} className="rounded-xl bg-card border border-border p-3">
                           <p className="text-[10px] text-muted-foreground">{k}</p>
                           <p className="text-sm font-semibold text-foreground mt-1">{v} {measurement.unit || "in"}</p>
                         </div>

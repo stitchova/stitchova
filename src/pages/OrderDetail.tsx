@@ -8,6 +8,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAtelier, PAYMENT_METHODS, DeliveryStatus, costFromFabricUse, costFromMaterialUse, TaskStatus } from "@/contexts/AtelierContext";
 import StageTracker from "@/components/StageTracker";
 import OrderMaterials from "@/components/OrderMaterials";
+import OrderDetailWorkspace from "@/components/designer-desktop/OrderDetailWorkspace";
 import { useReviews } from "@/contexts/ReviewsContext";
 import { AVAILABLE_WORKERS, WorkerRef } from "@/lib/workers";
 import { toast } from "sonner";
@@ -253,7 +254,12 @@ const OrderDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop workspace */}
+      <OrderDetailWorkspace order={order} />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       <div className="relative h-56">
         <img src={order.img} alt={order.type} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
@@ -808,7 +814,8 @@ const OrderDetail = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 };
 
