@@ -7,6 +7,7 @@ import { useShowcase, STYLE_TAGS, StyleTag } from "@/contexts/ShowcaseContext";
 import { useRole } from "@/contexts/RoleContext";
 import PostCard from "@/components/showcase/PostCard";
 import CommentsSheet from "@/components/showcase/CommentsSheet";
+import ShowcaseWorkspace from "@/components/client-desktop/ShowcaseWorkspace";
 
 const PAGE_SIZE = 4;
 
@@ -41,7 +42,12 @@ const Showcase = () => {
   }, [hasMore, loadingMore]);
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <>
+      {/* Tablet/desktop workspace */}
+      <ShowcaseWorkspace />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-28 lg:hidden">
       {/* Header */}
       <div className="px-5 pt-6 pb-3 sticky top-0 z-30 glass-nav">
         <div className="flex items-center justify-between">
@@ -108,7 +114,8 @@ const Showcase = () => {
       )}
 
       <CommentsSheet postId={openComments} onClose={() => setOpenComments(null)} />
-    </div>
+      </div>
+    </>
   );
 };
 

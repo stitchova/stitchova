@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Send, Image, Mic, CheckCheck, Paperclip } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -175,7 +176,7 @@ const Messages = () => {
                 { icon: Image, label: "Photo", color: "text-green-400" },
                 { icon: Mic, label: "Voice", color: "text-primary" },
               ].map((a) => (
-                <button key={a.label} className="flex flex-col items-center gap-1.5">
+                <button key={a.label} onClick={() => toast.info(`${a.label} attachments aren't available yet.`)} className="flex flex-col items-center gap-1.5">
                   <div className="w-11 h-11 rounded-full glass-card flex items-center justify-center">
                     <a.icon className={`w-5 h-5 ${a.color}`} />
                   </div>

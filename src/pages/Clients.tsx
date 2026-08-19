@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Filter, ChevronRight, Phone, Users, Plus, X } from "lucide-react";
+import { Search, Filter, ChevronRight, Phone, Users, Plus, X, ArrowDownAZ, Clock } from "lucide-react";
 import { useAtelier } from "@/contexts/AtelierContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import ClientsWorkspace from "@/components/designer-desktop/ClientsWorkspace";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const tabs = ["All", "Active", "New"];
 
@@ -17,6 +18,7 @@ const Clients = () => {
   const [activeTab, setActiveTab] = useState("All");
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [sortBy, setSortBy] = useState<"recent" | "az">("recent");
   const [form, setForm] = useState({ name: "", phone: "", gender: "Female", notes: "" });
 
   useEffect(() => {
@@ -27,9 +29,19 @@ const Clients = () => {
     }
   }, [params, setParams]);
 
-  const filtered = clients.filter((c) =>
-    `${c.name} ${c.phone}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = clients
+    .filter((c) => `${c.name} ${c.phone}`.toLowerCase().includes(search.toLowerCase()))
+    .filter((c) => {
+      if (activeTab === "All") return true;
+      if (activeTab === "Active") return ordersByClient(c.id).some((o) => o.status === "active" || o.status === "requested");
+      // "New": joined within the last 30 days
+      const joinedMs = new Date(c.joined).getTime();
+      return !Number.isNaN(joinedMs) && Date.now() - joinedMs <= 30 * 24 * 60 * 60 * 1000;
+    })
+    .sort((a, b) => {
+      if (sortBy === "az") return a.name.localeCompare(b.name);
+      return new Date(b.joined).getTime() - new Date(a.joined).getTime();
+    });
 
   const handleAdd = () => {
     if (!form.name.trim()) {
@@ -81,9 +93,26 @@ const Clients = () => {
             className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground flex-1 outline-none"
           />
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 rounded-xl frost-card flex items-center justify-center">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-        </motion.button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 rounded-xl frost-card flex items-center justify-center">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+            </motion.button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-48 p-2 bg-popover z-50">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 pt-1 pb-2">Sort by</p>
+            <button onClick={() => setSortBy("recent")}
+              className={cn("w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs font-medium",
+                sortBy === "recent" ? "bg-primary/10 text-primary" : "text-foreground hover:bg-secondary")}>
+              <Clock className="w-3.5 h-3.5" /> Recently added
+            </button>
+            <button onClick={() => setSortBy("az")}
+              className={cn("w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs font-medium",
+                sortBy === "az" ? "bg-primary/10 text-primary" : "text-foreground hover:bg-secondary")}>
+              <ArrowDownAZ className="w-3.5 h-3.5" /> Name (A–Z)
+            </button>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Tabs */}
