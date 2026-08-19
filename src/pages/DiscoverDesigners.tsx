@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, Star, MapPin, X, BadgeCheck, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
