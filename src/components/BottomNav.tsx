@@ -90,7 +90,7 @@ const BottomNav = ({ pathname }: { pathname: string }) => {
 
   return (
     <div
-      className={`pointer-events-none fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2${role === "designer" || role === "worker" ? " lg:hidden" : ""}`}
+      className="pointer-events-none fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 lg:hidden"
       style={{ ...containerStyle, ...navStyle }}
     >
       <div className="relative w-full">

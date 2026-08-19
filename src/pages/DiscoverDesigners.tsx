@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, Star, MapPin, X, BadgeCheck, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
@@ -12,6 +11,7 @@ import portfolio3 from "@/assets/designer-portfolio-3.jpg";
 import portfolio4 from "@/assets/designer-portfolio-4.jpg";
 import portfolio5 from "@/assets/designer-portfolio-5.jpg";
 import portfolio6 from "@/assets/designer-portfolio-6.jpg";
+import DiscoverWorkspace from "@/components/client-desktop/DiscoverWorkspace";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -54,16 +54,28 @@ const DiscoverDesigners = () => {
   const [activePrice, setActivePrice] = useState<string | null>(null);
   const [activeRating, setActiveRating] = useState<string | null>(null);
 
+  const priceToNumber = (p: string) => Number(p.replace(/[^0-9]/g, ""));
   const filtered = designers.filter((d) => {
     const matchesSearch = d.name.toLowerCase().includes(search.toLowerCase()) || d.specialty.toLowerCase().includes(search.toLowerCase());
     const matchesCat = activeCategory === "All" || d.specialty.toLowerCase().includes(activeCategory.toLowerCase());
-    return matchesSearch && matchesCat;
+    const dPrice = priceToNumber(d.price);
+    const matchesPrice = !activePrice
+      || (activePrice === "Under GHS 1K" && dPrice < 1000)
+      || (activePrice === "GHS 1K–3K" && dPrice >= 1000 && dPrice <= 3000)
+      || (activePrice === "GHS 3K+" && dPrice > 3000);
+    const matchesRating = !activeRating || d.rating >= Number(activeRating.replace("+", ""));
+    return matchesSearch && matchesCat && matchesPrice && matchesRating;
   });
 
   const featuredDesigner = designers.find(d => d.featured);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop workspace */}
+      <DiscoverWorkspace />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       {/* Header */}
       <div className="px-5 pt-6 pb-2">
         <h1 className="text-xl font-bold text-foreground">Discover</h1>
@@ -119,7 +131,7 @@ const DiscoverDesigners = () => {
                   {["Under GHS 1K", "GHS 1K–3K", "GHS 3K+"].map((p) => (
                     <button
                       key={p}
-                      onClick={() => { setActivePrice(activePrice === p ? null : p); toast(`Price: ${p}`); }}
+                      onClick={() => setActivePrice(activePrice === p ? null : p)}
                       className={`text-[10px] px-3 py-1.5 rounded-full transition-colors ${activePrice === p ? "bg-primary text-primary-foreground" : "glass-card text-muted-foreground hover:text-foreground"}`}
                     >
                       {p}
@@ -133,7 +145,7 @@ const DiscoverDesigners = () => {
                   {["4.5+", "4.0+", "3.5+"].map((r) => (
                     <button
                       key={r}
-                      onClick={() => { setActiveRating(activeRating === r ? null : r); toast(`Rating: ${r} ★`); }}
+                      onClick={() => setActiveRating(activeRating === r ? null : r)}
                       className={`text-[10px] px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors ${activeRating === r ? "bg-primary text-primary-foreground" : "glass-card text-muted-foreground hover:text-foreground"}`}
                     >
                       <Star className={`w-3 h-3 ${activeRating === r ? "fill-primary-foreground text-primary-foreground" : "text-primary fill-primary"}`} /> {r}
@@ -294,7 +306,8 @@ const DiscoverDesigners = () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

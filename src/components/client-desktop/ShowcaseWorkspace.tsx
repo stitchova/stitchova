@@ -38,7 +38,7 @@ const ShowcaseWorkspace = () => {
           <h1 className="text-2xl font-bold text-foreground">Showcase</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Fresh work from designers on the platform</p>
         </div>
-        <nav className="ml-6 flex items-center gap-1.5 rounded-full solid-panel p-1.5 overflow-x-auto max-w-2xl">
+        <nav className="ml-6 flex items-center gap-1.5 rounded-full solid-panel p-1.5 overflow-x-auto flex-1 min-w-0">
           {["All", ...STYLE_TAGS].map((tag) => (
             <button key={tag} onClick={() => setActiveTag(tag)}
               className={cn("relative px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors",
@@ -77,10 +77,24 @@ const ShowcaseWorkspace = () => {
                 onClick={() => setOpenId(p.id)}
                 className="break-inside-avoid mb-4 cursor-pointer solid-panel overflow-hidden group">
                 <div className="relative">
-                  <img src={p.media[0]} alt={p.caption} className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                  {p.mediaType === "video" ? (
+                    <video
+                      src={p.media[0]}
+                      poster={p.poster}
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                      className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                      onMouseEnter={(e) => void e.currentTarget.play().catch(() => {})}
+                      onMouseLeave={(e) => e.currentTarget.pause()}
+                    />
+                  ) : (
+                    <img src={p.media[0]} alt={p.caption} className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                  )}
                   {p.mediaType === "video" && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/20">
-                      <div className="w-12 h-12 rounded-full bg-background/80 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-background/80 flex items-center justify-center group-hover:opacity-0 transition-opacity">
                         <Play className="w-5 h-5 text-foreground fill-foreground ml-0.5" />
                       </div>
                     </div>
@@ -103,7 +117,6 @@ const ShowcaseWorkspace = () => {
                   <button onClick={(e) => { e.stopPropagation(); toggleLike(p.id); }}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
                     <Heart className={cn("w-4 h-4", isLiked(p.id) && "fill-primary text-primary")} />
-                    {(comments[p.id]?.length ?? 0) >= 0 ? null : null}
                   </button>
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <MessageCircle className="w-4 h-4" /> {comments[p.id]?.length || 0}
@@ -129,7 +142,12 @@ const ShowcaseWorkspace = () => {
               exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.25, ease }}
               onClick={(e) => e.stopPropagation()}
               className="solid-panel max-w-4xl w-full max-h-[85vh] grid grid-cols-[1.4fr_1fr] overflow-hidden">
-              <img src={openPost.media[0]} alt={openPost.caption} className="w-full h-full object-cover max-h-[85vh]" />
+              {openPost.mediaType === "video" ? (
+                <video src={openPost.media[0]} poster={openPost.poster} controls autoPlay muted loop playsInline
+                  className="w-full h-full object-cover max-h-[85vh] bg-background" />
+              ) : (
+                <img src={openPost.media[0]} alt={openPost.caption} className="w-full h-full object-cover max-h-[85vh]" />
+              )}
               <div className="p-6 flex flex-col">
                 <div className="flex items-center gap-3">
                   <img src={openPost.designerAvatar} alt={openPost.designerName} className="w-10 h-10 rounded-full object-cover" />
