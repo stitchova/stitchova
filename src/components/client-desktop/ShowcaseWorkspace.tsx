@@ -117,7 +117,6 @@ const ShowcaseWorkspace = () => {
                   <button onClick={(e) => { e.stopPropagation(); toggleLike(p.id); }}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
                     <Heart className={cn("w-4 h-4", isLiked(p.id) && "fill-primary text-primary")} />
-                    {(comments[p.id]?.length ?? 0) >= 0 ? null : null}
                   </button>
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <MessageCircle className="w-4 h-4" /> {comments[p.id]?.length || 0}
