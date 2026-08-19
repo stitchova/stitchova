@@ -10,6 +10,7 @@ import portfolio1 from "@/assets/designer-portfolio-1.jpg";
 import portfolio2 from "@/assets/designer-portfolio-2.jpg";
 import portfolio3 from "@/assets/designer-portfolio-3.jpg";
 import portfolio4 from "@/assets/designer-portfolio-4.jpg";
+import ClientHomeWorkspace from "@/components/client-desktop/ClientHomeWorkspace";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -77,7 +78,12 @@ const ClientHome = () => {
   const current = heroSlides[slide];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop workspace */}
+      <ClientHomeWorkspace />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       {/* Header */}
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -357,7 +363,8 @@ const ClientHome = () => {
           </div>
         </motion.div>
       </motion.div>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -31,11 +31,11 @@ const WorkerTopNav = () => {
 
   return (
     <header className="hidden lg:block sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto max-w-[1440px] px-8 h-16 grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+      <div className="mx-auto max-w-[1440px] px-8 h-16 grid grid-cols-3 items-center">
         <button onClick={() => navigate("/worker-dashboard")} className="flex items-center justify-self-start">
           <Logo size={32} animated={false} />
         </button>
-        <nav className="flex items-center justify-center gap-1 rounded-full solid-panel p-1.5">
+        <nav className="flex items-center gap-1 rounded-full solid-panel p-1.5 justify-self-center">
           {items.map((item) => {
             const active = isActive(item.path);
             return (

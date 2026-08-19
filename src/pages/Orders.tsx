@@ -5,6 +5,7 @@ import { Search, Filter, ChevronRight, Plus, X, CheckCircle2, XCircle, Image as 
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import ClientPicker from "@/components/ClientPicker";
 import OrdersWorkspace from "@/components/orders/OrdersWorkspace";
 import { useAtelier, BASE_STAGES, OPTIONAL_STAGES, PAYMENT_METHODS, parsePrice, money, costFromFabricUse, costFromMaterialUse, materialsProgress, MaterialSource, OrderMaterial } from "@/contexts/AtelierContext";
@@ -25,6 +26,7 @@ const Orders = () => {
 
   const [activeTab, setActiveTab] = useState("All");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [awaitingOnly, setAwaitingOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [newOrder, setNewOrder] = useState({
@@ -76,8 +78,9 @@ const Orders = () => {
     else if (activeTab === "Active") matchStatus = o.status === "active";
     else if (activeTab === "Completed") matchStatus = o.status === "completed";
     const matchCategory = activeCategory === "All" || o.category === activeCategory;
+    const matchAwaiting = !awaitingOnly || o.awaitingMaterials;
     const matchSearch = `${o.type} ${o.client} ${o.garment}`.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchStatus && matchCategory && matchSearch;
+    return matchStatus && matchCategory && matchAwaiting && matchSearch;
   });
 
   const resetForm = () => {
@@ -216,9 +219,22 @@ const Orders = () => {
           <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search orders..." className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground flex-1 outline-none" />
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 rounded-xl frost-card flex items-center justify-center">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-        </motion.button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <motion.button whileTap={{ scale: 0.9 }} className={cn("w-12 h-12 rounded-xl frost-card flex items-center justify-center", awaitingOnly && "ring-2 ring-primary")}>
+              <Filter className="w-4 h-4 text-muted-foreground" />
+            </motion.button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-56 p-2 bg-popover z-50">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 pt-1 pb-2">Filter</p>
+            <button onClick={() => setAwaitingOnly((v) => !v)}
+              className={cn("w-full flex items-center justify-between gap-2 px-2 py-2 rounded-lg text-xs font-medium",
+                awaitingOnly ? "bg-primary/10 text-primary" : "text-foreground hover:bg-secondary")}>
+              <span>Awaiting materials only</span>
+              {awaitingOnly && <CheckCircle2 className="w-3.5 h-3.5" />}
+            </button>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="flex gap-2 px-5 mb-2 overflow-x-auto scrollbar-hide">

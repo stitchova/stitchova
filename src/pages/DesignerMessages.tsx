@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Send, Mic, Image, Paperclip, X, Play, Pause, Plus, Search, Phone, Video, MoreVertical, CheckCheck, Mail, MapPin, Calendar, ShoppingBag, Ruler } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { toast } from "sonner";
 
 interface Message {
   id: number;
@@ -216,10 +217,10 @@ const DesignerMessages = () => {
             </p>
           </motion.button>
           <div className="flex items-center gap-1">
-            <motion.button whileTap={{ scale: 0.9 }} className="w-9 h-9 rounded-xl flex items-center justify-center bg-card">
+            <motion.button whileTap={{ scale: 0.9 }} onClick={() => toast.info("Voice calling isn't available yet — send a WhatsApp-style message instead.")} className="w-9 h-9 rounded-xl flex items-center justify-center bg-card">
               <Phone className="w-4 h-4 text-muted-foreground" />
             </motion.button>
-            <motion.button whileTap={{ scale: 0.9 }} className="w-9 h-9 rounded-xl flex items-center justify-center bg-card">
+            <motion.button whileTap={{ scale: 0.9 }} onClick={() => toast.info("Video calling isn't available yet — send a WhatsApp-style message instead.")} className="w-9 h-9 rounded-xl flex items-center justify-center bg-card">
               <Video className="w-4 h-4 text-muted-foreground" />
             </motion.button>
           </div>
