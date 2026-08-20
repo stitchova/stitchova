@@ -14,7 +14,7 @@ import {
 const tabs = ["All", "Busy", "Free"] as const;
 
 /** Designer worker-management workspace (list + detail) for tablet/desktop. */
-const WorkersWorkspace = () => {
+const WorkersWorkspace = ({ onManageStaff }: { onManageStaff?: () => void }) => {
   const navigate = useNavigate();
   const { tasksByWorker, orderById } = useAtelier();
   const { dmChatId, currentUserId } = useWorkshopChat();
