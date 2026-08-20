@@ -284,15 +284,37 @@ const InvoiceEditor = () => {
         </div>
       </div>
 
-      {/* Sticky action */}
-      <div className="fixed bottom-24 left-0 right-0 px-5 max-w-md mx-auto lg:max-w-lg">
-        <motion.button whileTap={{ scale: 0.98 }} onClick={save}
-          className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-sm shadow-2xl shadow-primary/30 flex items-center justify-center gap-2">
-          {isReceipt ? <Receipt className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-          Generate {isReceipt ? "Receipt" : "Invoice"}
-          <span className="font-mono opacity-80">· {money(totals.total, brand.currency)}</span>
-        </motion.button>
-      </div>
+      {/* Sticky bottom action */}
+      <motion.div
+        initial={{ y: 24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24, delay: 0.15 }}
+        className="fixed bottom-24 left-0 right-0 z-40 px-4 sm:max-w-md mx-auto lg:max-w-lg"
+      >
+        <div className="rounded-[2rem] border border-primary/20 bg-card/85 backdrop-blur-2xl shadow-[0_-12px_40px_-12px_hsl(var(--primary)/0.18),0_8px_30px_-10px_hsl(0_0%_0%/0.3)] p-2">
+          <motion.button
+            whileHover={{ scale: 1.02, y: -1.5 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+            onClick={save}
+            className="relative w-full overflow-hidden rounded-[1.5rem] bg-primary py-4 text-sm font-bold text-primary-foreground shadow-2xl shadow-primary/40 ring-1 ring-primary-foreground/25 flex items-center justify-center gap-2"
+          >
+            {/* shimmer sweep */}
+            <motion.span
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ repeat: Infinity, duration: 2.4, ease: "linear" }}
+            />
+            <span className="relative flex items-center justify-center gap-2">
+              {isReceipt ? <Receipt className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+              Generate {isReceipt ? "Receipt" : "Invoice"}
+              <span className="font-mono opacity-85">· {money(totals.total, brand.currency)}</span>
+            </span>
+          </motion.button>
+        </div>
+      </motion.div>
+
     </div>
   );
 };
