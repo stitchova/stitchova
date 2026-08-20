@@ -289,7 +289,7 @@ const InvoiceEditor = () => {
         initial={{ y: 24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 24, delay: 0.15 }}
-        className="fixed bottom-24 left-0 right-0 z-40 px-4 sm:max-w-md mx-auto lg:max-w-lg"
+        className="sticky bottom-0 z-40 px-4 pb-6 pt-4 sm:max-w-md mx-auto lg:max-w-lg"
       >
         <div className="rounded-[2rem] border border-primary/20 bg-card/85 backdrop-blur-2xl shadow-[0_-12px_40px_-12px_hsl(var(--primary)/0.18),0_8px_30px_-10px_hsl(0_0%_0%/0.3)] p-2">
           <motion.button
