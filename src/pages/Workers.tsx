@@ -562,10 +562,11 @@ const Workers = () => {
   return (
     <>
       {/* Tablet/desktop worker management */}
-      <WorkersWorkspace />
+      {!showForm && <WorkersWorkspace onManageStaff={openRegistration} />}
 
-      {/* Mobile view (unchanged) */}
-      <div className="min-h-screen bg-background pb-24 lg:hidden">
+      {/* Mobile view — also shown full-width on desktop while registering */}
+      <div className={cn("min-h-screen bg-background pb-24", !showForm && "lg:hidden")}>
+        <div className={cn(showForm && "hidden lg:block lg:max-w-3xl lg:mx-auto")} />
       <div className="sticky top-0 z-10 bg-background/70 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
