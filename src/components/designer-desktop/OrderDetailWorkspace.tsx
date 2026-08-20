@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarDays, Truck, MapPin, Wallet, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, CalendarDays, Truck, MapPin, Wallet, Plus, Sparkles, Phone, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -85,51 +85,94 @@ const OrderDetailWorkspace = ({ order }: Props) => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute bottom-6 left-8 right-8 flex items-end justify-between gap-8"
+          className="absolute inset-x-8 bottom-6 grid grid-cols-[1fr_auto] items-end gap-10"
         >
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground glow-primary">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground/80 animate-pulse" />
-                {order.awaitingMaterials ? "Awaiting Materials" : order.stages[order.currentStage] || order.status}
-              </span>
-              {order.status === "requested" && (
-                <span className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border text-foreground">
-                  New request
+          {/* Editorial title block with accent rule */}
+          <div className="min-w-0 flex gap-5">
+            <span className="w-[3px] self-stretch rounded-full flex-shrink-0"
+              style={{ background: "linear-gradient(180deg, hsl(var(--primary)), transparent)" }} />
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Order #{String(order.id).slice(-5)} · {order.category}
+              </p>
+              <h1 className="text-[2.6rem] leading-[1.05] font-bold text-foreground mt-2 tracking-tight truncate">
+                {order.type}
+              </h1>
+
+              <div className="flex items-center gap-2 mt-4">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground glow-primary">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground/80 animate-pulse" />
+                  {order.awaitingMaterials ? "Awaiting Materials" : order.stages[order.currentStage] || order.status}
                 </span>
-              )}
-              <span className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-background/60 backdrop-blur-md border border-border text-muted-foreground">
-                Due {order.dueDate}
-              </span>
-            </div>
+                <span className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-background/60 backdrop-blur-md border border-border text-muted-foreground">
+                  {order.garment}
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-full bg-background/60 backdrop-blur-md border border-border text-muted-foreground">
+                  <CalendarDays className="w-3 h-3" /> {order.dueDate}
+                </span>
+                {order.status === "requested" && (
+                  <span className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border text-foreground">
+                    New request
+                  </span>
+                )}
+              </div>
 
-            <h1 className="text-4xl font-bold text-foreground mt-4 tracking-tight truncate">{order.type}</h1>
-
-            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-              <span>{order.garment}</span>
-              <span className="w-1 h-1 rounded-full bg-muted-foreground/60" />
-              <span>{order.category}</span>
-              <span className="w-1 h-1 rounded-full bg-muted-foreground/60" />
-              <span className="font-semibold text-primary">{money(order.price, order.currency)}</span>
+              {/* Stage progress meter */}
+              <div className="mt-5 max-w-md">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1.5">
+                  <span>Stage {Math.min(order.currentStage + 1, order.stages.length)} of {order.stages.length}</span>
+                  <span>{Math.round(((order.currentStage + 1) / Math.max(order.stages.length, 1)) * 100)}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-background/60 backdrop-blur-md overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${((order.currentStage + 1) / Math.max(order.stages.length, 1)) * 100}%` }}
+                    transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+                    className="h-full rounded-full bg-primary"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 rounded-2xl bg-card/80 backdrop-blur-xl border border-border px-5 py-4 shadow-lg flex-shrink-0">
-            <div className="w-11 h-11 rounded-full p-[2px] flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
-              <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
-                <span className="text-xs font-bold text-primary">
-                  {order.client.split(" ").map((w) => w[0]).slice(0, 2).join("")}
-                </span>
-              </div>
+          {/* Value + client rail */}
+          <div className="flex items-stretch gap-3 flex-shrink-0">
+            <div className="rounded-2xl bg-card/80 backdrop-blur-xl border border-border px-5 py-4 text-right">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Balance due</p>
+              <p className="text-xl font-bold text-primary mt-1 leading-none">{money(balance, order.currency)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">of {money(order.price, order.currency)}</p>
             </div>
-            <div className="text-left">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Client</p>
-              <p className="text-sm font-semibold text-foreground leading-tight">{order.client}</p>
-              {client?.phone && <p className="text-[11px] text-muted-foreground mt-0.5">{client.phone}</p>}
+
+            <div className="rounded-2xl bg-card/80 backdrop-blur-xl border border-border px-5 py-4 flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full p-[2px] flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
+                <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
+                  <span className="text-xs font-bold text-primary">
+                    {order.client.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                  </span>
+                </div>
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Client</p>
+                <p className="text-sm font-semibold text-foreground leading-tight">{order.client}</p>
+                {client?.phone && <p className="text-[11px] text-muted-foreground mt-0.5">{client.phone}</p>}
+              </div>
+              {client?.phone && (
+                <div className="flex flex-col gap-1.5 ml-1">
+                  <a href={`tel:${client.phone}`} aria-label={`Call ${order.client}`}
+                    className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
+                    <Phone className="w-3.5 h-3.5" />
+                  </a>
+                  <button aria-label={`Message ${order.client}`} onClick={() => navigate("/messages")}
+                    className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
+
 
       </div>
 
