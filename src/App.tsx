@@ -61,6 +61,7 @@ import ShowcaseCreate from "./pages/ShowcaseCreate";
 import Referrals from "./pages/Referrals";
 import Payments from "./pages/Payments";
 import NotFound from "./pages/NotFound";
+import CurrencySettings from "./pages/CurrencySettings";
 import BrandSettings from "./pages/BrandSettings";
 import InvoiceEditor from "./pages/InvoiceEditor";
 import InvoicePreview from "./pages/InvoicePreview";
@@ -138,6 +139,7 @@ const AppShell = () => {
               <Route path="/workshop-chat/:chatId" element={<DW><WorkshopConversation /></DW>} />
               <Route path="/referrals" element={<D><Referrals /></D>} />
               <Route path="/settings/brand" element={<D><BrandSettings /></D>} />
+              <Route path="/settings/currency" element={<D><CurrencySettings /></D>} />
               <Route path="/invoices" element={<D><Invoices /></D>} />
               <Route path="/order/:clientId/invoice/new" element={<D><InvoiceEditor /></D>} />
               <Route path="/invoice/:invoiceId" element={<D><InvoicePreview /></D>} />

@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Globe, Moon, Lock, Smartphone, Palette, Shield, KeyRound, LockKeyhole, FileText } from "lucide-react";
+import { ArrowLeft, Bell, Globe, Moon, Lock, Smartphone, Palette, Shield, KeyRound, LockKeyhole, FileText, Coins } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLock } from "@/contexts/LockContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { currency } = useCurrency();
   const { hasPasscode, biometricEnabled, setBiometricEnabled, lockNow } = useLock();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
@@ -29,6 +31,7 @@ const Settings = () => {
       title: "Business",
       items: [
         { icon: FileText, label: "Brand & Billing", desc: "Logo, contact & invoice branding", action: () => navigate("/settings/brand") },
+        { icon: Coins, label: "Currency", desc: `${currency.code} · ${currency.label}`, action: () => navigate("/settings/currency") },
       ],
     },
     {
