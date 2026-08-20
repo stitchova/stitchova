@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Receipt, FileText } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowLeft, Plus, Trash2, Receipt, FileText, Sparkles, CalendarDays, Percent, BadgePercent, Wallet, StickyNote, GripVertical } from "lucide-react";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { toast } from "sonner";
 import { useBrandInvoice, InvoiceLineItem, InvoiceType, computeTotals, money } from "@/contexts/BrandInvoiceContext";
 
@@ -13,8 +13,25 @@ const ordersData: Record<string, { type: string; client: string; price: string; 
 };
 
 const parseAmount = (s: string) => Number((s || "").replace(/[^\d.]/g, "")) || 0;
-
 const uid = () => Math.random().toString(36).slice(2, 9);
+
+const QUICK_ITEMS = ["Tailoring Labour", "Fabric", "Lining", "Beadwork", "Delivery", "Alteration"];
+
+const glass = "rounded-3xl border border-border/60 bg-card/60 backdrop-blur-xl shadow-[0_8px_40px_-16px_hsl(var(--primary)/0.25)]";
+
+const Field = ({
+  label, icon: Icon, children,
+}: { label: string; icon?: React.ElementType; children: React.ReactNode }) => (
+  <div className="space-y-1.5">
+    <label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      {Icon && <Icon className="w-3 h-3 text-primary" />} {label}
+    </label>
+    {children}
+  </div>
+);
+
+const inputCls =
+  "w-full bg-secondary/60 border border-border/50 rounded-2xl px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary/60 focus:bg-secondary";
 
 const InvoiceEditor = () => {
   const navigate = useNavigate();
@@ -39,13 +56,18 @@ const InvoiceEditor = () => {
 
   const totals = useMemo(() => computeTotals({ items, discount, taxPct, amountPaid }), [items, discount, taxPct, amountPaid]);
   const status = type === "receipt" || totals.balance === 0 ? "paid" : amountPaid > 0 ? "partial" : "unpaid";
+  const isReceipt = type === "receipt";
+  const paidPct = totals.total > 0 ? Math.min(100, (amountPaid / totals.total) * 100) : 0;
 
   const updateItem = (id: string, patch: Partial<InvoiceLineItem>) =>
     setItems((prev) => prev.map((it) => it.id === id ? { ...it, ...patch } : it));
 
+  const addItem = (description = "") =>
+    setItems((p) => [...p, { id: uid(), description, qty: 1, price: 0 }]);
+
   const save = () => {
     if (!items.length) return toast.error("Add at least one line item");
-    const paidForRecord = type === "receipt" ? Math.min(amountPaid || totals.total, totals.total) : amountPaid;
+    const paidForRecord = isReceipt ? Math.min(amountPaid || totals.total, totals.total) : amountPaid;
     const rec = createInvoice({
       type, status,
       orderId: clientId,
@@ -60,124 +82,215 @@ const InvoiceEditor = () => {
       amountPaid: paidForRecord,
       notes,
     });
-    toast.success(`${type === "receipt" ? "Receipt" : "Invoice"} ${rec.number} created`);
+    toast.success(`${isReceipt ? "Receipt" : "Invoice"} ${rec.number} created`);
     navigate(`/invoice/${rec.id}`);
   };
 
+  const statusTone =
+    status === "paid" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+      : status === "partial" ? "bg-primary/15 text-primary border-primary/30"
+        : "bg-destructive/15 text-destructive border-destructive/30";
+
   return (
-    <div className="min-h-screen bg-background pb-32">
-      <div className="px-5 pt-6 pb-4 flex items-center gap-3">
-        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+    <div className="min-h-screen bg-background pb-40">
+      {/* Ambient glow */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,hsl(var(--primary)/0.16),transparent_70%)]" />
+
+      {/* Header */}
+      <div className="relative px-5 pt-6 pb-3 flex items-center gap-3">
+        <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}
+          className="w-10 h-10 rounded-full border border-border/60 bg-card/60 backdrop-blur-xl flex items-center justify-center"
+          aria-label="Go back">
+          <ArrowLeft className="w-4.5 h-4.5 text-foreground" />
         </motion.button>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">New {type === "receipt" ? "Receipt" : "Invoice"}</h1>
-          <p className="text-xs text-muted-foreground">For {order.client} · {order.type}</p>
+        <div className="min-w-0">
+          <h1 className="text-[22px] font-bold tracking-tight text-foreground leading-tight">
+            New {isReceipt ? "Receipt" : "Invoice"}
+          </h1>
+          <p className="text-[11px] text-muted-foreground truncate">{order.client} · {order.type}</p>
         </div>
+        <span className={`ml-auto shrink-0 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${statusTone}`}>
+          {status}
+        </span>
       </div>
 
-      <div className="px-5 space-y-5">
-        {/* Type toggle */}
-        <div className="card-surface p-1 grid grid-cols-2 gap-1">
-          {(["invoice", "receipt"] as const).map((t) => (
-            <button key={t} onClick={() => setType(t)}
-              className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-colors ${
-                type === t ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              }`}>
-              {t === "invoice" ? <FileText className="w-3.5 h-3.5" /> : <Receipt className="w-3.5 h-3.5" />}
-              {t === "invoice" ? "Invoice" : "Receipt"}
-            </button>
-          ))}
-        </div>
-
-        {/* Line items */}
-        <div className="card-surface p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-foreground">Line Items</span>
-            <button onClick={() => setItems((p) => [...p, { id: uid(), description: "", qty: 1, price: 0 }])}
-              className="flex items-center gap-1 text-xs text-primary font-medium">
-              <Plus className="w-3.5 h-3.5" /> Add
-            </button>
-          </div>
-          {items.map((it) => (
-            <div key={it.id} className="bg-secondary/40 rounded-xl p-3 space-y-2">
-              <div className="flex gap-2">
-                <input value={it.description} onChange={(e) => updateItem(it.id, { description: e.target.value })}
-                  placeholder="Description"
-                  className="flex-1 bg-background rounded-lg px-3 py-2 text-sm text-foreground outline-none" />
-                <button onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))}
-                  className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center">
-                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                </button>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="text-[9px] text-muted-foreground uppercase">Qty</label>
-                  <input type="number" min={1} value={it.qty} onChange={(e) => updateItem(it.id, { qty: Number(e.target.value) || 1 })}
-                    className="w-full bg-background rounded-lg px-2 py-1.5 text-sm text-foreground outline-none" />
-                </div>
-                <div>
-                  <label className="text-[9px] text-muted-foreground uppercase">Price</label>
-                  <input type="number" min={0} value={it.price} onChange={(e) => updateItem(it.id, { price: Number(e.target.value) || 0 })}
-                    className="w-full bg-background rounded-lg px-2 py-1.5 text-sm text-foreground outline-none" />
-                </div>
-                <div>
-                  <label className="text-[9px] text-muted-foreground uppercase">Total</label>
-                  <div className="px-2 py-1.5 text-sm font-bold text-primary font-mono">{money(it.qty * it.price, brand.currency)}</div>
-                </div>
-              </div>
+      <div className="relative px-5 space-y-4 lg:grid lg:grid-cols-[1.4fr_1fr] lg:gap-5 lg:space-y-0 lg:items-start">
+        <div className="space-y-4">
+          {/* Type toggle */}
+          <LayoutGroup id="doc-type">
+            <div className={`${glass} p-1.5 grid grid-cols-2 gap-1`}>
+              {(["invoice", "receipt"] as const).map((t) => {
+                const active = type === t;
+                return (
+                  <button key={t} onClick={() => setType(t)}
+                    className="relative flex items-center justify-center gap-2 py-3 rounded-2xl text-xs font-bold">
+                    {active && (
+                      <motion.span layoutId="doc-type-pill"
+                        transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                        className="absolute inset-0 rounded-2xl bg-primary shadow-lg shadow-primary/25" />
+                    )}
+                    <span className={`relative flex items-center gap-2 ${active ? "text-primary-foreground" : "text-muted-foreground"}`}>
+                      {t === "invoice" ? <FileText className="w-3.5 h-3.5" /> : <Receipt className="w-3.5 h-3.5" />}
+                      {t === "invoice" ? "Invoice" : "Receipt"}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </LayoutGroup>
 
-        {/* Adjustments */}
-        <div className="card-surface p-4 grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[9px] text-muted-foreground uppercase font-semibold">Discount</label>
-            <input type="number" min={0} value={discount} onChange={(e) => setDiscount(Number(e.target.value) || 0)}
-              className="mt-1 w-full bg-secondary rounded-xl px-3 py-2 text-sm text-foreground outline-none" />
-          </div>
-          <div>
-            <label className="text-[9px] text-muted-foreground uppercase font-semibold">Tax %</label>
-            <input type="number" min={0} max={100} value={taxPct} onChange={(e) => setTaxPct(Number(e.target.value) || 0)}
-              className="mt-1 w-full bg-secondary rounded-xl px-3 py-2 text-sm text-foreground outline-none" />
-          </div>
-          <div>
-            <label className="text-[9px] text-muted-foreground uppercase font-semibold">
-              {type === "receipt" ? "Amount Received" : "Amount Paid"}
-            </label>
-            <input type="number" min={0} value={amountPaid} onChange={(e) => setAmountPaid(Number(e.target.value) || 0)}
-              className="mt-1 w-full bg-secondary rounded-xl px-3 py-2 text-sm text-foreground outline-none" />
-          </div>
-          <div>
-            <label className="text-[9px] text-muted-foreground uppercase font-semibold">Due Date</label>
-            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-              className="mt-1 w-full bg-secondary rounded-xl px-3 py-2 text-sm text-foreground outline-none" />
-          </div>
-        </div>
+          {/* Line items */}
+          <div className={`${glass} p-4 space-y-3`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-foreground">Line Items</p>
+                <p className="text-[10px] text-muted-foreground">{items.length} {items.length === 1 ? "entry" : "entries"}</p>
+              </div>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => addItem()}
+                className="flex items-center gap-1.5 rounded-full bg-primary/12 border border-primary/30 px-3 py-1.5 text-[11px] font-bold text-primary">
+                <Plus className="w-3.5 h-3.5" /> Add
+              </motion.button>
+            </div>
 
-        {/* Notes */}
-        <div className="card-surface p-4">
-          <label className="text-[9px] text-muted-foreground uppercase font-semibold">Notes</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-            placeholder="Delivery: 2 weeks. Balance on fitting day."
-            className="mt-1 w-full bg-secondary rounded-xl px-3 py-2 text-sm text-foreground outline-none resize-none" />
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-0.5">
+              {QUICK_ITEMS.map((q) => (
+                <button key={q} onClick={() => addItem(q)}
+                  className="shrink-0 rounded-full border border-border/60 bg-secondary/50 px-3 py-1 text-[10px] font-medium text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors">
+                  + {q}
+                </button>
+              ))}
+            </div>
+
+            <AnimatePresence initial={false}>
+              {items.map((it, i) => (
+                <motion.div key={it.id}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -12, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.22, delay: Math.min(i, 6) * 0.02 }}
+                  className="rounded-2xl border border-border/50 bg-secondary/30 p-3 space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-[10px] font-bold text-primary font-mono">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <input value={it.description} onChange={(e) => updateItem(it.id, { description: e.target.value })}
+                      placeholder="Description"
+                      className="flex-1 bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground" />
+                    <button onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))}
+                      aria-label="Remove line item"
+                      className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center hover:bg-destructive/20 transition-colors">
+                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-xl bg-background/70 border border-border/40 px-2.5 py-1.5">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Qty</p>
+                      <input type="number" min={1} value={it.qty}
+                        onChange={(e) => updateItem(it.id, { qty: Number(e.target.value) || 1 })}
+                        className="w-full bg-transparent text-sm font-mono text-foreground outline-none" />
+                    </div>
+                    <div className="rounded-xl bg-background/70 border border-border/40 px-2.5 py-1.5">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Price</p>
+                      <input type="number" min={0} value={it.price}
+                        onChange={(e) => updateItem(it.id, { price: Number(e.target.value) || 0 })}
+                        className="w-full bg-transparent text-sm font-mono text-foreground outline-none" />
+                    </div>
+                    <div className="rounded-xl bg-primary/10 border border-primary/25 px-2.5 py-1.5">
+                      <p className="text-[9px] uppercase tracking-wider text-primary/80">Amount</p>
+                      <p className="text-sm font-bold text-primary font-mono truncate">{money(it.qty * it.price, brand.currency)}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {!items.length && (
+              <div className="rounded-2xl border border-dashed border-border/60 py-8 text-center">
+                <GripVertical className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
+                <p className="text-xs text-muted-foreground">No line items yet — add one above.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Adjustments */}
+          <div className={`${glass} p-4 grid grid-cols-2 gap-3`}>
+            <Field label="Discount" icon={BadgePercent}>
+              <input type="number" min={0} value={discount} onChange={(e) => setDiscount(Number(e.target.value) || 0)} className={inputCls} />
+            </Field>
+            <Field label="Tax %" icon={Percent}>
+              <input type="number" min={0} max={100} value={taxPct} onChange={(e) => setTaxPct(Number(e.target.value) || 0)} className={inputCls} />
+            </Field>
+            <Field label={isReceipt ? "Amount Received" : "Amount Paid"} icon={Wallet}>
+              <input type="number" min={0} value={amountPaid} onChange={(e) => setAmountPaid(Number(e.target.value) || 0)} className={inputCls} />
+            </Field>
+            <Field label="Due Date" icon={CalendarDays}>
+              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={inputCls} />
+            </Field>
+          </div>
+
+          {/* Notes */}
+          <div className={`${glass} p-4`}>
+            <Field label="Notes" icon={StickyNote}>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
+                placeholder="Delivery: 2 weeks. Balance on fitting day."
+                className={`${inputCls} resize-none`} />
+            </Field>
+          </div>
         </div>
 
         {/* Summary */}
-        <div className="card-surface p-4 space-y-2">
-          <div className="flex justify-between text-xs text-muted-foreground"><span>Subtotal</span><span className="font-mono text-foreground">{money(totals.subtotal, brand.currency)}</span></div>
-          {totals.discount > 0 && <div className="flex justify-between text-xs text-muted-foreground"><span>Discount</span><span className="font-mono">-{money(totals.discount, brand.currency)}</span></div>}
-          {taxPct > 0 && <div className="flex justify-between text-xs text-muted-foreground"><span>Tax ({taxPct}%)</span><span className="font-mono text-foreground">{money(totals.tax, brand.currency)}</span></div>}
-          <div className="flex justify-between text-sm font-bold pt-2 border-t border-border"><span>Total</span><span className="text-primary font-mono">{money(totals.total, brand.currency)}</span></div>
-          <div className="flex justify-between text-xs"><span className="text-muted-foreground">Balance</span><span className="font-mono font-bold text-foreground">{money(totals.balance, brand.currency)}</span></div>
+        <div className={`${glass} overflow-hidden lg:sticky lg:top-6`}>
+          <div className="px-4 pt-4 pb-3 flex items-center gap-2 border-b border-border/50">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-foreground">Summary</span>
+          </div>
+
+          <div className="p-4 space-y-2.5">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Subtotal</span><span className="font-mono text-foreground">{money(totals.subtotal, brand.currency)}</span>
+            </div>
+            {totals.discount > 0 && (
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Discount</span><span className="font-mono text-destructive">-{money(totals.discount, brand.currency)}</span>
+              </div>
+            )}
+            {taxPct > 0 && (
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Tax ({taxPct}%)</span><span className="font-mono text-foreground">{money(totals.tax, brand.currency)}</span>
+              </div>
+            )}
+
+            <div className="mt-1 rounded-2xl bg-primary/12 border border-primary/25 px-3.5 py-3 flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Total</span>
+              <span className="text-lg font-bold font-mono text-primary">{money(totals.total, brand.currency)}</span>
+            </div>
+
+            <div className="pt-1 space-y-1.5">
+              <div className="flex justify-between text-[11px]">
+                <span className="text-muted-foreground">{isReceipt ? "Received" : "Paid"}</span>
+                <span className="font-mono font-semibold text-foreground">{money(amountPaid, brand.currency)}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                <motion.div className="h-full rounded-full bg-primary"
+                  animate={{ width: `${paidPct}%` }} transition={{ type: "spring", stiffness: 220, damping: 30 }} />
+              </div>
+              <div className="flex justify-between text-[11px] pt-0.5">
+                <span className="text-muted-foreground">Balance due</span>
+                <span className="font-mono font-bold text-foreground">{money(totals.balance, brand.currency)}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="fixed bottom-24 left-0 right-0 px-5 max-w-md mx-auto">
+      {/* Sticky action */}
+      <div className="fixed bottom-24 left-0 right-0 px-5 max-w-md mx-auto lg:max-w-lg">
         <motion.button whileTap={{ scale: 0.98 }} onClick={save}
-          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm shadow-xl shadow-primary/30">
-          Generate {type === "receipt" ? "Receipt" : "Invoice"}
+          className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-sm shadow-2xl shadow-primary/30 flex items-center justify-center gap-2">
+          {isReceipt ? <Receipt className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+          Generate {isReceipt ? "Receipt" : "Invoice"}
+          <span className="font-mono opacity-80">· {money(totals.total, brand.currency)}</span>
         </motion.button>
       </div>
     </div>
