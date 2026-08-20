@@ -222,8 +222,13 @@ const ShowcaseWorkspace = () => {
               exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.25, ease }}
               onClick={(e) => e.stopPropagation()}
               className="solid-panel max-w-4xl w-full max-h-[85vh] grid grid-cols-[1.4fr_1fr] overflow-hidden">
-              <SmartImage src={openPost.media[0]} alt={openPost.caption}
-                containerClassName="w-full h-full max-h-[85vh]" className="w-full h-full object-cover max-h-[85vh]" />
+              {openPost.mediaType === "video" ? (
+                <video src={openPost.media[0]} poster={openPost.poster} controls autoPlay muted loop playsInline
+                  className="w-full h-full object-cover max-h-[85vh] bg-background" />
+              ) : (
+                <SmartImage src={openPost.media[0]} alt={openPost.caption}
+                  containerClassName="w-full h-full max-h-[85vh]" className="w-full h-full object-cover max-h-[85vh]" />
+              )}
               <div className="p-6 flex flex-col">
                 <div className="flex items-center gap-3">
                   <img src={openPost.designerAvatar} alt={openPost.designerName} className="w-10 h-10 rounded-full object-cover" />
