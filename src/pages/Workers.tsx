@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Plus, Phone, Star, X, Save, Trash2, ChevronRight, Loader2,
@@ -6,7 +6,7 @@ import {
   Camera, MapPin, Mail, Calendar, AlertCircle, Heart, CheckCircle2,
   Eye, Edit2
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import WorkerProgressTracker from "@/components/WorkerProgressTracker";
