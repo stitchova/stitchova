@@ -92,7 +92,7 @@ const InvoiceEditor = () => {
         : "bg-destructive/15 text-destructive border-destructive/30";
 
   return (
-    <div className="min-h-screen bg-background pb-40">
+    <div className="min-h-screen bg-background pb-6">
       {/* Ambient glow */}
       <div className="pointer-events-none fixed inset-x-0 top-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,hsl(var(--primary)/0.16),transparent_70%)]" />
 
