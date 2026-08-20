@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
 
 export interface BrandProfile {
@@ -150,5 +151,4 @@ export const computeTotals = (inv: Pick<InvoiceRecord, "items" | "discount" | "t
   return { subtotal, discount, tax, total, balance };
 };
 
-export const money = (n: number, currency = "GHS") =>
-  `${currency} ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const money = (n: number, _currency?: string) => formatMoney(n, { decimals: true });
