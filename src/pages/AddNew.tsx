@@ -9,7 +9,7 @@ const actions = [
   { icon: CalendarDays, label: "Schedule Appointment", desc: "Schedule a fitting session for a client", color: "text-primary", path: "/appointments" },
   { icon: Shirt, label: "Add Fabric", desc: "Add to your fabric collection", color: "text-primary", path: "/fabrics" },
   { icon: Boxes, label: "Add Material", desc: "Add threads, beads, buttons & more", color: "text-primary", path: "/materials" },
-  { icon: Package, label: "Add Worker", desc: "Register a new team member", color: "text-primary", path: "/workers" },
+  { icon: Package, label: "Add Worker", desc: "Register a new team member", color: "text-primary", path: "/workers?new=1" },
   { icon: Image, label: "Style Library", desc: "Browse style inspirations", color: "text-primary", path: "/style-library" },
 ];
 
