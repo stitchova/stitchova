@@ -81,27 +81,56 @@ const OrderDetailWorkspace = ({ order }: Props) => {
           <ArrowLeft className="w-4.5 h-4.5 text-foreground" />
         </button>
 
-        <div className="absolute bottom-6 left-8 right-8 flex items-end justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-primary text-primary-foreground">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute bottom-6 left-8 right-8 flex items-end justify-between gap-8"
+        >
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground glow-primary">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground/80 animate-pulse" />
                 {order.awaitingMaterials ? "Awaiting Materials" : order.stages[order.currentStage] || order.status}
               </span>
               {order.status === "requested" && (
-                <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-secondary text-foreground">
+                <span className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border text-foreground">
                   New request
                 </span>
               )}
+              <span className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-background/60 backdrop-blur-md border border-border text-muted-foreground">
+                Due {order.dueDate}
+              </span>
             </div>
-            <h1 className="text-3xl font-bold text-foreground mt-3">{order.type}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{order.garment} · {order.category}</p>
+
+            <h1 className="text-4xl font-bold text-foreground mt-4 tracking-tight truncate">{order.type}</h1>
+
+            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+              <span>{order.garment}</span>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/60" />
+              <span>{order.category}</span>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/60" />
+              <span className="font-semibold text-primary">{money(order.price, order.currency)}</span>
+            </div>
           </div>
-          <div className="text-right bg-card border border-border rounded-2xl px-5 py-4">
-            <p className="text-[11px] text-muted-foreground">Client</p>
-            <p className="text-base font-semibold text-foreground mt-0.5">{order.client}</p>
-            {client?.phone && <p className="text-xs text-muted-foreground mt-0.5">{client.phone}</p>}
+
+          <div className="flex items-center gap-3 rounded-2xl bg-card/80 backdrop-blur-xl border border-border px-5 py-4 shadow-lg flex-shrink-0">
+            <div className="w-11 h-11 rounded-full p-[2px] flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
+              <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
+                <span className="text-xs font-bold text-primary">
+                  {order.client.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                </span>
+              </div>
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Client</p>
+              <p className="text-sm font-semibold text-foreground leading-tight">{order.client}</p>
+              {client?.phone && <p className="text-[11px] text-muted-foreground mt-0.5">{client.phone}</p>}
+            </div>
           </div>
-        </div>
+        </motion.div>
+
       </div>
 
       <div className="px-8 pb-16 pt-8 grid grid-cols-[1fr_360px] gap-6 items-start">
