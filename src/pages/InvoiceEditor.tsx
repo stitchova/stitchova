@@ -152,7 +152,7 @@ const InvoiceEditor = () => {
               </motion.button>
             </div>
 
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5">
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-0.5">
               {QUICK_ITEMS.map((q) => (
                 <button key={q} onClick={() => addItem(q)}
                   className="shrink-0 rounded-full border border-border/60 bg-secondary/50 px-3 py-1 text-[10px] font-medium text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors">
