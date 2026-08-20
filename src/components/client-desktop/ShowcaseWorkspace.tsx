@@ -123,11 +123,25 @@ const ShowcaseWorkspace = () => {
                   onClick={() => setOpenId(p.id)}
                   className="break-inside-avoid mb-4 cursor-pointer solid-panel overflow-hidden group">
                   <div className="relative">
-                    <SmartImage src={p.media[0]} alt={p.caption} containerClassName="w-full"
-                      className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                    {p.mediaType === "video" ? (
+                      <video
+                        src={p.media[0]}
+                        poster={p.poster}
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                        className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                        onMouseEnter={(e) => void e.currentTarget.play().catch(() => {})}
+                        onMouseLeave={(e) => e.currentTarget.pause()}
+                      />
+                    ) : (
+                      <SmartImage src={p.media[0]} alt={p.caption} containerClassName="w-full"
+                        className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                    )}
                     {p.mediaType === "video" && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-background/20">
-                        <div className="w-12 h-12 rounded-full bg-background/80 flex items-center justify-center">
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/20 pointer-events-none">
+                        <div className="w-12 h-12 rounded-full bg-background/80 flex items-center justify-center group-hover:opacity-0 transition-opacity">
                           <Play className="w-5 h-5 text-foreground fill-foreground ml-0.5" />
                         </div>
                       </div>
