@@ -66,6 +66,7 @@ import InvoiceEditor from "./pages/InvoiceEditor";
 import InvoicePreview from "./pages/InvoicePreview";
 import Invoices from "./pages/Invoices";
 import { BrandInvoiceProvider } from "@/contexts/BrandInvoiceContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ReviewsProvider } from "@/contexts/ReviewsContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import ClientCommunications from "./pages/ClientCommunications";
@@ -183,6 +184,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ThemeProvider>
+          <CurrencyProvider>
           <RoleProvider>
             <SubscriptionProvider>
               <WorkshopChatProvider>
@@ -202,6 +204,7 @@ const App = () => (
               </WorkshopChatProvider>
             </SubscriptionProvider>
           </RoleProvider>
+          </CurrencyProvider>
         </ThemeProvider>
       </BrowserRouter>
     </TooltipProvider>
