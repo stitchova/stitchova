@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarDays, Truck, MapPin, Wallet, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, CalendarDays, Truck, MapPin, Wallet, Plus, Sparkles, Phone, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
