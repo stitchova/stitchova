@@ -180,6 +180,24 @@ const Workers = () => {
   const [form, setForm] = useState(emptyForm);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Deep-link: /workers?new=1 opens the registration wizard (used by quick
+  // actions and the desktop "Manage staff" button).
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setShowForm(true);
+      setCurrentStep(0);
+      searchParams.delete("new");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  const openRegistration = () => {
+    setShowForm(true);
+    setCurrentStep(0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const toggleSpecialization = (s: string) => {
     setForm((prev) => ({
