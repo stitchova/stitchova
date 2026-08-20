@@ -14,7 +14,7 @@ import {
 const tabs = ["All", "Busy", "Free"] as const;
 
 /** Designer worker-management workspace (list + detail) for tablet/desktop. */
-const WorkersWorkspace = () => {
+const WorkersWorkspace = ({ onManageStaff }: { onManageStaff?: () => void }) => {
   const navigate = useNavigate();
   const { tasksByWorker, orderById } = useAtelier();
   const { dmChatId, currentUserId } = useWorkshopChat();
@@ -120,7 +120,7 @@ const WorkersWorkspace = () => {
               { label: "Completed", value: String(done.length) },
               { label: "Open", value: String(open.length), accent: true },
             ]}>
-              <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/workers")}
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => onManageStaff?.()}
                 className="rounded-full bg-primary text-primary-foreground text-xs font-semibold px-6 py-2.5">
                 Manage staff
               </motion.button>
