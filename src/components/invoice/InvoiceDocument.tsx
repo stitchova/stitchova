@@ -150,8 +150,8 @@ const InvoiceDocument = forwardRef<HTMLDivElement, Props>(({ invoice, brand }, r
       {!isReceipt && (brand.momo || brand.bank) && (
         <div style={{ marginTop: 32, padding: 16, background: "#F3ECDA", borderRadius: 8, border: `1px dashed ${accent}` }}>
           <div style={{ fontSize: 9, letterSpacing: 2, color: "#8a7a4a", fontWeight: 700, marginBottom: 6 }}>PAYMENT DETAILS</div>
-          {brand.momo && <div style={{ fontSize: 12, color: "#333" }}>📱 {brand.momo}</div>}
-          {brand.bank && <div style={{ fontSize: 12, color: "#333", marginTop: 2 }}>🏦 {brand.bank}</div>}
+          {brand.momo && <div style={{ fontSize: 12, color: "#333" }}><strong>Mobile Money:</strong> {brand.momo}</div>}
+          {brand.bank && <div style={{ fontSize: 12, color: "#333", marginTop: 2 }}><strong>Bank:</strong> {brand.bank}</div>}
         </div>
       )}
 
