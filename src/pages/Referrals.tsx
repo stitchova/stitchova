@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -113,7 +114,7 @@ const Referrals = () => {
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <Gift className="w-3.5 h-3.5" /> Rewards
             </div>
-            <p className="text-2xl font-bold text-gradient-gold">GHS {referrals.length * 25}</p>
+            <p className="text-2xl font-bold text-gradient-gold">{formatMoney(referrals.length * 25)}</p>
           </div>
         </div>
 

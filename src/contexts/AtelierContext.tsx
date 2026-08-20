@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import orderWedding from "@/assets/order-wedding.jpg";
 import orderSuit from "@/assets/order-suit.jpg";
@@ -233,7 +234,7 @@ export const initialsOf = (name: string) =>
 export const slugId = (name: string) =>
   `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${Math.random().toString(36).slice(2, 6)}`;
 
-export const money = (n: number, currency = "GHS") => `${currency} ${n.toLocaleString()}`;
+export const money = (n: number, _currency?: string) => formatMoney(n);
 
 export const parsePrice = (s: string) => {
   const m = /([\d,]+(?:\.\d+)?)/.exec(s || "");

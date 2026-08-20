@@ -18,6 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatMoney } from "@/lib/currency";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import DashboardWorkspace from "@/components/designer-desktop/DashboardWorkspace";
 
@@ -39,7 +40,7 @@ const fadeUp = {
 };
 
 const stats = [
-  { label: "Revenue", value: "GHS 12,450", icon: DollarSign, sub: "This month", trend: "+12%", path: "/analytics" },
+  { label: "Revenue", value: 12450, icon: DollarSign, sub: "This month", trend: "+12%", path: "/analytics" },
   { label: "Active Orders", value: "23", icon: ShoppingBag, sub: "8 due this week", trend: "+3", path: "/orders" },
 ];
 
@@ -195,7 +196,7 @@ const Index = () => {
                     <span className="text-[10px] text-status-completed font-medium">{s.trend}</span>
                   </div>
                 </div>
-                <p className="text-xl font-bold text-gradient-gold">{s.value}</p>
+                <p className="text-xl font-bold text-gradient-gold">{typeof s.value === "number" ? formatMoney(s.value) : s.value}</p>
                 <span className="text-[10px] text-muted-foreground">{s.sub}</span>
               </motion.button>
             ))}
