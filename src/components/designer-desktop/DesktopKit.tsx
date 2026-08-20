@@ -34,13 +34,13 @@ export const WorkspaceHeader = ({
 }: WorkspaceHeaderProps) => {
   const ActionIcon = action?.icon;
   return (
-    <div className="flex items-center gap-4 flex-wrap">
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
       <div>
         <h1 className="text-3xl font-bold shimmer-text leading-tight">{title}</h1>
         {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
       </div>
       {tabs && tabs.length > 0 && (
-        <nav className="ml-6 flex items-center gap-1 rounded-full frost-card p-1.5">
+        <nav className="flex items-center gap-1 rounded-full frost-card p-1.5 justify-self-center">
           {tabs.map((t) => (
             <button
               key={t}
@@ -59,7 +59,7 @@ export const WorkspaceHeader = ({
           ))}
         </nav>
       )}
-      <div className="ml-auto flex items-center gap-3">
+      <div className="justify-self-end flex items-center gap-3">
         {onQuery && (
           <div className="flex items-center gap-2 glass-input px-4 py-2.5 w-64">
             <Search className="w-4 h-4 text-muted-foreground" />
