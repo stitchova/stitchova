@@ -27,15 +27,22 @@ const InvoicePreview = () => {
 
   const filename = `${invoice.type === "receipt" ? "Receipt" : "Invoice"}-${invoice.number}.pdf`;
 
+  const DOC_WIDTH = 794;
+  const DOC_HEIGHT = 1123;
+
   const buildPdf = async () => {
     if (!docRef.current) return null;
     const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
       import("html2canvas"), import("jspdf"),
     ]);
+    // Capture at 2x for crisp text/edges, but the PDF page itself must stay
+    // at the document's true size (794x1123px ~ A4) — using the raw
+    // (2x-scaled) canvas dimensions as the page size was making every
+    // exported PDF roughly double the correct physical page size.
     const canvas = await html2canvas(docRef.current, { scale: 2, backgroundColor: "#FBF8F1", useCORS: true });
-    const img = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ unit: "px", format: [canvas.width, canvas.height] });
-    pdf.addImage(img, "PNG", 0, 0, canvas.width, canvas.height);
+    const img = canvas.toDataURL("image/jpeg", 0.92);
+    const pdf = new jsPDF({ unit: "px", format: [DOC_WIDTH, DOC_HEIGHT] });
+    pdf.addImage(img, "JPEG", 0, 0, DOC_WIDTH, DOC_HEIGHT);
     return pdf;
   };
 
@@ -100,13 +107,18 @@ const InvoicePreview = () => {
       <div className="px-4 print:p-0">
         <div className="rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 bg-white print:shadow-none print:rounded-none">
           <div style={{
-            transform: "scale(0.45)",
-            transformOrigin: "top left",
             width: 794 * 0.45,
             height: 1123 * 0.45,
             overflow: "hidden",
-          }} className="print:!scale-100 print:!w-auto print:!h-auto">
-            <InvoiceDocument ref={docRef} invoice={invoice} brand={brand} />
+          }} className="print:!w-auto print:!h-auto print:!overflow-visible">
+            <div style={{
+              transform: "scale(0.45)",
+              transformOrigin: "top left",
+              width: 794,
+              height: 1123,
+            }} className="print:!scale-100 print:!w-auto print:!h-auto">
+              <InvoiceDocument ref={docRef} invoice={invoice} brand={brand} />
+            </div>
           </div>
         </div>
       </div>
