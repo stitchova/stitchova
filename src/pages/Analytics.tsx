@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft,
-  Coins, Wallet, Receipt, Target, Sparkles,
+  Coins, Wallet, Receipt, Target, Sparkles, Info,
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -12,6 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import FeatureGate from "@/components/FeatureGate";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useAtelier } from "@/contexts/AtelierContext";
+import { projectRevenue } from "@/lib/projections";
 
 const revenueData = [
   { month: "Jan", revenue: 12400 }, { month: "Feb", revenue: 18200 },
@@ -57,6 +59,24 @@ const Analytics = () => {
   const navigate = useNavigate();
   const [period, setPeriod] = useState("Month");
   const { format, code } = useCurrency();
+  const { orders } = useAtelier();
+  const [projectionMonths, setProjectionMonths] = useState(1);
+
+  // Real projection from actual orders/payments (not the mock arrays above).
+  const projection = useMemo(() => projectRevenue(orders, projectionMonths), [orders, projectionMonths]);
+  const projectionChartData = useMemo(() => [
+    ...projection.history.map((h) => ({ label: h.label, actual: h.revenue, projected: null as number | null })),
+    ...(projection.projected.length && projection.history.length
+      ? [{
+          label: projection.history[projection.history.length - 1].label,
+          actual: null as number | null,
+          projected: projection.history[projection.history.length - 1].revenue,
+        }]
+      : []),
+    ...projection.projected.map((p) => ({ label: p.label, actual: null as number | null, projected: p.revenue })),
+  ], [projection]);
+
+
 
   const Money = ({ value, decimals }: { value: number; decimals?: boolean }) => (
     <span className="font-mono tabular-nums">{format(value, decimals)}</span>
@@ -209,6 +229,101 @@ const Analytics = () => {
                 </ResponsiveContainer>
               </div>
             </motion.div>
+
+            {/* Revenue projection — from real orders & recorded payments */}
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.12 }}
+              className="frost-card p-4 lg:col-span-2 relative overflow-hidden">
+              <div className="absolute -top-16 -right-10 w-40 h-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+              <div className="flex justify-between items-center mb-1 relative">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" /> Revenue Projection
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">Live from your orders · {code}</p>
+                </div>
+                {projection.hasEnoughData && (
+                  <div className="flex gap-1 bg-secondary/60 rounded-xl p-1">
+                    {[1, 2, 3].map((m) => (
+                      <motion.button key={m} whileTap={{ scale: 0.95 }} onClick={() => setProjectionMonths(m)}
+                        className={cn("relative px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-colors",
+                          projectionMonths === m ? "text-primary-foreground" : "text-muted-foreground")}>
+                        {projectionMonths === m && (
+                          <motion.div layoutId="projIndicator" className="absolute inset-0 rounded-lg bg-primary"
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+                        )}
+                        <span className="relative">{m}mo</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {!projection.hasEnoughData ? (
+                <div className="py-8 flex flex-col items-center text-center gap-2">
+                  <Info className="w-5 h-5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground max-w-[260px]">
+                    Not enough order history yet — projections need at least two months of recorded payments.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-[11px] text-muted-foreground mt-2 mb-3">
+                    Based on {projection.history.length} months of actual payments
+                    {projection.avgMonthlyGrowthPct !== null && (
+                      <> · averaging{" "}
+                        <span className={cn("font-semibold", projection.avgMonthlyGrowthPct >= 0 ? "text-status-completed" : "text-destructive")}>
+                          {projection.avgMonthlyGrowthPct >= 0 ? "+" : ""}{projection.avgMonthlyGrowthPct}%
+                        </span> month-over-month
+                      </>
+                    )}
+                  </p>
+                  <div className="h-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={projectionChartData}>
+                        <defs>
+                          <linearGradient id="actualGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                        <XAxis dataKey="label" axisLine={false} tickLine={false}
+                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                        <YAxis hide />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area type="monotone" dataKey="actual" stroke="hsl(var(--primary))" strokeWidth={2.5}
+                          fill="url(#actualGrad)" connectNulls={false} dot={{ r: 0 }}
+                          activeDot={{ r: 5, fill: "hsl(var(--primary))" }} />
+                        <Area type="monotone" dataKey="projected" stroke="hsl(var(--accent))" strokeWidth={2}
+                          strokeDasharray="5 4" fill="transparent" connectNulls />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div className="rounded-2xl bg-secondary/50 p-3">
+                      <p className="text-[10px] text-muted-foreground">
+                        Projected revenue · next {projectionMonths === 1 ? "month" : `${projectionMonths} months`}
+                      </p>
+                      <p className="text-base font-bold text-foreground mt-0.5">
+                        <Money value={projection.projected.reduce((s, p) => s + p.revenue, 0)} />
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-secondary/50 p-3">
+                      <p className="text-[10px] text-muted-foreground">Projected orders completed</p>
+                      <p className="text-base font-bold text-foreground mt-0.5 font-mono tabular-nums">
+                        {projection.projected.reduce((s, p) => s + p.completedOrders, 0)}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-3 flex items-start gap-1">
+                    <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                    A straight-line trend from your recent months — a planning estimate, not a guarantee.
+                  </p>
+                </>
+              )}
+            </motion.div>
+
+
 
             {/* Garment profitability */}
             <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.15 }}
