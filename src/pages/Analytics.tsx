@@ -59,6 +59,24 @@ const Analytics = () => {
   const navigate = useNavigate();
   const [period, setPeriod] = useState("Month");
   const { format, code } = useCurrency();
+  const { orders } = useAtelier();
+  const [projectionMonths, setProjectionMonths] = useState(1);
+
+  // Real projection from actual orders/payments (not the mock arrays above).
+  const projection = useMemo(() => projectRevenue(orders, projectionMonths), [orders, projectionMonths]);
+  const projectionChartData = useMemo(() => [
+    ...projection.history.map((h) => ({ label: h.label, actual: h.revenue, projected: null as number | null })),
+    ...(projection.projected.length && projection.history.length
+      ? [{
+          label: projection.history[projection.history.length - 1].label,
+          actual: null as number | null,
+          projected: projection.history[projection.history.length - 1].revenue,
+        }]
+      : []),
+    ...projection.projected.map((p) => ({ label: p.label, actual: null as number | null, projected: p.revenue })),
+  ], [projection]);
+
+
 
   const Money = ({ value, decimals }: { value: number; decimals?: boolean }) => (
     <span className="font-mono tabular-nums">{format(value, decimals)}</span>
