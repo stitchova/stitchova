@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft,
-  Coins, Wallet, Receipt, Target, Sparkles,
+  Coins, Wallet, Receipt, Target, Sparkles, Info,
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -12,6 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import FeatureGate from "@/components/FeatureGate";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useAtelier } from "@/contexts/AtelierContext";
+import { projectRevenue } from "@/lib/projections";
 
 const revenueData = [
   { month: "Jan", revenue: 12400 }, { month: "Feb", revenue: 18200 },
