@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCheck, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CallButtons } from "@/components/CallOverlay";
 
 export interface ClientMessageView {
   id: number;
@@ -21,11 +22,13 @@ interface Props {
   onInput: (v: string) => void;
   onSend: () => void;
   onOpenDesigner: () => void;
+  onAudioCall?: () => void;
+  onVideoCall?: () => void;
 }
 
 /** Tablet/desktop workspace for the client ↔ designer chat thread. */
 const ClientMessagesWorkspace = ({
-  designerName, avatar, postThumb, messages, showTyping, input, onInput, onSend, onOpenDesigner,
+  designerName, avatar, postThumb, messages, showTyping, input, onInput, onSend, onOpenDesigner, onAudioCall, onVideoCall,
 }: Props) => (
   <div className="hidden lg:block px-8 pt-6 pb-16">
     <div className="mx-auto max-w-[1080px] grid grid-cols-[1fr_minmax(280px,320px)] gap-6 items-start">
@@ -42,6 +45,9 @@ const ClientMessagesWorkspace = ({
               <p className="text-[10px] text-status-completed font-medium">Online</p>
             </div>
           </button>
+          {onAudioCall && onVideoCall && (
+            <CallButtons className="ml-auto" onAudio={onAudioCall} onVideo={onVideoCall} />
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
