@@ -13,6 +13,7 @@ const menuItems = [
   { icon: Crown, label: "Subscription", desc: "Manage your plan", path: "/subscription" },
   { icon: Palette, label: "Themes", desc: "Choose your color palette", path: "/themes" },
   { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/workers", requiresPlan: "pro" as const },
+  { icon: ClipboardList, label: "Staff Dashboard", desc: "Pending orders, appointments & overdue payments", path: "/staff-dashboard" },
   { icon: Gift, label: "Referrals", desc: "Invite clients & earn rewards", path: "/referrals" },
   { icon: MessagesSquare, label: "Workshop Chat", desc: "Group, DMs & announcements", path: "/workshop-chat" },
   { icon: FileText, label: "Invoices & Receipts", desc: "Branded billing documents", path: "/invoices" },

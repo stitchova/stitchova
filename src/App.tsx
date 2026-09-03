@@ -60,6 +60,7 @@ import Showcase from "./pages/Showcase";
 import ShowcaseCreate from "./pages/ShowcaseCreate";
 import Referrals from "./pages/Referrals";
 import Payments from "./pages/Payments";
+import StaffDashboard from "./pages/StaffDashboard";
 import NotFound from "./pages/NotFound";
 import CurrencySettings from "./pages/CurrencySettings";
 import BrandSettings from "./pages/BrandSettings";
@@ -129,6 +130,7 @@ const AppShell = () => {
               <Route path="/measurements" element={<D><Measurements /></D>} />
               <Route path="/fabrics" element={<D><Fabrics /></D>} />
               <Route path="/workers" element={<D><Workers /></D>} />
+              <Route path="/staff-dashboard" element={<D><StaffDashboard /></D>} />
               <Route path="/order/:clientId" element={<D><OrderDetail /></D>} />
               <Route path="/designer-messages" element={<D><DesignerMessages /></D>} />
               <Route path="/materials" element={<D><Materials /></D>} />
