@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRole } from "@/contexts/RoleContext";
 import ClientAppointmentsView from "./ClientAppointments";
 import AppointmentsWorkspace from "@/components/designer-desktop/AppointmentsWorkspace";
+import { useAppointmentSlots } from "@/lib/appointments";
 
 const defaultTimeSlots = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM",
@@ -46,7 +47,8 @@ const DesignerAppointments = () => {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [slotNotes, setSlotNotes] = useState("");
   const [slotReminder, setSlotReminder] = useState(true);
-  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+  const [storedSlots, setStoredSlots] = useAppointmentSlots();
+  const slots: AvailabilitySlot[] = storedSlots.map((s) => ({ ...s, date: new Date(s.date) }));
   const [saved, setSaved] = useState(false);
 
   const toggleTime = (t: string) => setSelectedTimes((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
@@ -60,13 +62,13 @@ const DesignerAppointments = () => {
       id: Date.now().toString(), date: selectedDate, times: [...selectedTimes],
       services: [...selectedServices], notes: slotNotes, reminder: slotReminder,
     };
-    setSlots((prev) => [...prev, newSlot]);
+    setStoredSlots((prev) => [...prev, { ...newSlot, date: newSlot.date.toISOString() }]);
     setSelectedDate(undefined); setSelectedTimes([]); setSelectedServices([]);
     setSlotNotes(""); setSlotReminder(true);
     toast({ title: "Slot added", description: `Availability set for ${format(newSlot.date, "MMM d")}` });
   };
 
-  const removeSlot = (id: string) => setSlots((prev) => prev.filter((s) => s.id !== id));
+  const removeSlot = (id: string) => setStoredSlots((prev) => prev.filter((s) => s.id !== id));
 
   const handleSave = () => {
     setSaved(true);
