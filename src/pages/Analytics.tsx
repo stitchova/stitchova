@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft,
+  ArrowLeft, TrendingUp, TrendingDown, ArrowDownLeft,
   Coins, Wallet, Receipt, Target, Sparkles, Info,
 } from "lucide-react";
 import {
