@@ -43,15 +43,6 @@ const workerProductivity = [
   { name: "Esi M.", tasks: 15, onTime: 98 },
 ];
 
-const transactions = [
-  { name: "Amina Johnson", type: "received", amount: 4500, method: "Bank Transfer", date: "Today, 2:30 PM" },
-  { name: "Fabric Express", type: "sent", amount: 1200, method: "Mobile Money", date: "Today, 11:00 AM" },
-  { name: "David Okonkwo", type: "received", amount: 8200, method: "Cash", date: "Yesterday" },
-  { name: "Thread Supply Co", type: "sent", amount: 3400, method: "Bank Transfer", date: "Yesterday" },
-  { name: "Grace Mensah", type: "received", amount: 6000, method: "Mobile Money", date: "Mar 18" },
-  { name: "Zara Textiles", type: "sent", amount: 5600, method: "Bank Transfer", date: "Mar 17" },
-];
-
 const periods = ["Week", "Month", "Year"];
 const fadeUp = { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } };
 
@@ -92,22 +83,45 @@ const Analytics = () => {
     );
   };
 
-  const totals = useMemo(() => {
-    const revenue = revenueData.reduce((s, r) => s + r.revenue, 0);
+  // Real money figures derived from actual orders + recorded payments so the
+  // page reacts the moment an invoice is settled.
+  const live = useMemo(() => {
+    const billable = orders.filter((o) => o.status !== "declined");
+    const paidOf = (o: typeof billable[number]) => o.payments.reduce((s, p) => s + p.amount, 0);
+    const revenue = billable.reduce((s, o) => s + paidOf(o), 0);
+    const booked = billable.reduce((s, o) => s + o.price, 0);
+    const outstanding = billable.reduce((s, o) => s + Math.max(0, o.price - paidOf(o)), 0);
+    const pending = billable
+      .filter((o) => o.status !== "completed")
+      .reduce((s, o) => s + Math.max(0, o.price - paidOf(o)), 0);
+    const costs = billable.reduce(
+      (s, o) => s + (o.costs?.fabric || 0) + (o.costs?.materials || 0) + (o.costs?.labor || 0), 0);
     return {
       revenue,
-      pending: Math.round(revenue * 0.16),
-      outstanding: Math.round(revenue * 0.13),
-      profit: Math.round(revenue * 0.73),
-      avgOrder: Math.round(revenue / 48),
+      pending,
+      outstanding,
+      profit: Math.max(0, revenue - costs),
+      avgOrder: billable.length ? Math.round(booked / billable.length) : 0,
+      collectedPct: booked > 0 ? Math.round((revenue / booked) * 100) : 0,
     };
-  }, []);
+  }, [orders]);
+
+  const liveTransactions = useMemo(
+    () =>
+      orders
+        .flatMap((o) => o.payments.map((p) => ({ ...p, client: o.client, orderType: o.type })))
+        .sort((a, b) => (a.date < b.date ? 1 : -1))
+        .slice(0, 8),
+    [orders]
+  );
+
+  const totals = live;
 
   const statCards = [
-    { label: "Total Revenue", value: totals.revenue, change: "+12.5%", up: true, icon: Coins },
-    { label: "Pending", value: totals.pending, change: "-3.2%", up: false, icon: Wallet },
-    { label: "Outstanding", value: totals.outstanding, change: "+5.1%", up: true, icon: Receipt },
-    { label: "Net Profit", value: totals.profit, change: "+18.4%", up: true, icon: Target },
+    { label: "Collected", value: totals.revenue, change: `${totals.collectedPct}% of booked`, up: true, icon: Coins },
+    { label: "Pending", value: totals.pending, change: "On open orders", up: false, icon: Wallet },
+    { label: "Outstanding", value: totals.outstanding, change: "All unpaid balances", up: true, icon: Receipt },
+    { label: "Net Profit", value: totals.profit, change: "After tracked costs", up: true, icon: Target },
   ];
 
   return (
@@ -140,14 +154,14 @@ const Analytics = () => {
             />
             <div className="relative">
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <Sparkles className="w-3.5 h-3.5 text-primary" /> Net revenue · this {period.toLowerCase()}
+                <Sparkles className="w-3.5 h-3.5 text-primary" /> Collected revenue · all recorded payments
               </div>
               <p className="mt-2 text-3xl font-bold text-gradient-gold font-mono tabular-nums">
                 {format(totals.revenue)}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="px-2.5 py-1 rounded-full bg-status-completed/15 text-status-completed text-[11px] font-semibold flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" /> +18.4% vs last {period.toLowerCase()}
+                  <TrendingUp className="w-3 h-3" /> {totals.collectedPct}% of booked value collected
                 </span>
                 <span className="px-2.5 py-1 rounded-full bg-secondary text-[11px] text-muted-foreground">
                   Avg order <Money value={totals.avgOrder} />
@@ -411,28 +425,24 @@ const Analytics = () => {
               className="card-surface p-4">
               <h3 className="text-sm font-semibold text-foreground mb-3">Recent Transactions</h3>
               <div className="space-y-2">
-                {transactions.map((t) => {
-                  const received = t.type === "received";
-                  return (
-                    <div key={`${t.name}-${t.date}`}
-                      className="flex items-center gap-3 rounded-2xl bg-secondary/30 p-3">
-                      <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0",
-                        received ? "bg-status-completed/15" : "bg-destructive/15")}>
-                        {received
-                          ? <ArrowDownLeft className="w-4 h-4 text-status-completed" />
-                          : <ArrowUpRight className="w-4 h-4 text-destructive" />}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-foreground truncate">{t.name}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{t.method} · {t.date}</p>
-                      </div>
-                      <span className={cn("text-xs font-bold font-mono tabular-nums",
-                        received ? "text-status-completed" : "text-destructive")}>
-                        {received ? "+" : "−"}{format(t.amount)}
-                      </span>
+                {liveTransactions.length === 0 && (
+                  <p className="text-[11px] text-muted-foreground py-4 text-center">No payments recorded yet.</p>
+                )}
+                {liveTransactions.map((t) => (
+                  <div key={t.id}
+                    className="flex items-center gap-3 rounded-2xl bg-secondary/30 p-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-status-completed/15">
+                      <ArrowDownLeft className="w-4 h-4 text-status-completed" />
                     </div>
-                  );
-                })}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-foreground truncate">{t.client}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{t.method} · {t.orderType} · {t.date}</p>
+                    </div>
+                    <span className="text-xs font-bold font-mono tabular-nums text-status-completed">
+                      +{format(t.amount)}
+                    </span>
+                  </div>
+                ))}
               </div>
             </motion.div>
           </div>
