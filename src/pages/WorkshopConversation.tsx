@@ -6,6 +6,7 @@ import { useWorkshopChat } from "@/contexts/WorkshopChatContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
 import WorkshopConversationWorkspace from "@/components/designer-desktop/WorkshopConversationWorkspace";
+import CallOverlay, { CallButtons, useCallSession } from "@/components/CallOverlay";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -13,6 +14,7 @@ const formatTime = (t: number) =>
   new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 const WorkshopConversation = () => {
+  const { call, startCall, endCall } = useCallSession();
   const navigate = useNavigate();
   const { chatId = "group" } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,6 +80,8 @@ const WorkshopConversation = () => {
     <>
       {/* Tablet/desktop workspace */}
       <WorkshopConversationWorkspace
+        onAudioCall={() => startCall("audio", { name: header.name, initials: header.initials, subtitle: header.sub, isGroup: header.isGroup })}
+        onVideoCall={() => startCall("video", { name: header.name, initials: header.initials, subtitle: header.sub, isGroup: header.isGroup })}
         headerName={header.name}
         headerSub={header.sub}
         headerInitials={header.initials}
@@ -118,6 +122,10 @@ const WorkshopConversation = () => {
           <p className="text-sm font-bold text-foreground truncate">{header.name}</p>
           <p className="text-[10px] text-muted-foreground">{header.sub}</p>
         </div>
+        <CallButtons
+          onAudio={() => startCall("audio", { name: header.name, initials: header.initials, subtitle: header.sub, isGroup: header.isGroup })}
+          onVideo={() => startCall("video", { name: header.name, initials: header.initials, subtitle: header.sub, isGroup: header.isGroup })}
+        />
       </motion.div>
 
       {/* Pinned banner */}
@@ -230,6 +238,7 @@ const WorkshopConversation = () => {
         </div>
       </div>
     </div>
+    <CallOverlay call={call} onEnd={endCall} />
     </>
   );
 };

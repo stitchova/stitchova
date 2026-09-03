@@ -7,6 +7,7 @@ import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
 import ClientMessagesWorkspace from "@/components/client-desktop/ClientMessagesWorkspace";
+import CallOverlay, { CallButtons, useCallSession } from "@/components/CallOverlay";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -17,6 +18,7 @@ const designerAvatars: Record<string, string> = {
 };
 
 const Messages = () => {
+  const { call, startCall, endCall } = useCallSession();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const designerId = searchParams.get("designer") || "nana-ama";
@@ -80,6 +82,8 @@ const Messages = () => {
         onInput={setInput}
         onSend={send}
         onOpenDesigner={() => navigate(`/designer/${designerId}`)}
+        onAudioCall={() => startCall("audio", { name: designerName, avatar, subtitle: "Fashion designer" })}
+        onVideoCall={() => startCall("video", { name: designerName, avatar, subtitle: "Fashion designer" })}
       />
 
       {/* Mobile view (unchanged) */}
@@ -108,6 +112,11 @@ const Messages = () => {
             <p className="text-[10px] text-green-400 font-medium">Online</p>
           </div>
         </motion.button>
+        <CallButtons
+          className="ml-auto"
+          onAudio={() => startCall("audio", { name: designerName, avatar, subtitle: "Fashion designer" })}
+          onVideo={() => startCall("video", { name: designerName, avatar, subtitle: "Fashion designer" })}
+        />
       </motion.div>
 
       {postThumb && (
@@ -234,6 +243,7 @@ const Messages = () => {
         </div>
       </div>
     </div>
+    <CallOverlay call={call} onEnd={endCall} />
     </>
   );
 };

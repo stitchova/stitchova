@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import DesignerMessagesWorkspace from "@/components/designer-desktop/DesignerMessagesWorkspace";
+import CallOverlay, { CallButtons, useCallSession } from "@/components/CallOverlay";
 
 interface Message {
   id: number;
@@ -52,6 +53,7 @@ const chatMessages: Message[] = [
 ];
 
 const DesignerMessages = () => {
+  const { call, startCall, endCall } = useCallSession();
   const navigate = useNavigate();
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(chatMessages);
@@ -129,6 +131,8 @@ const DesignerMessages = () => {
         input={input}
         onInput={setInput}
         onSend={sendMessage}
+        onAudioCall={() => activeConvo && startCall("audio", { name: activeConvo.clientName, initials: activeConvo.clientInitials, subtitle: activeConvo.location })}
+        onVideoCall={() => activeConvo && startCall("video", { name: activeConvo.clientName, initials: activeConvo.clientInitials, subtitle: activeConvo.location })}
       />
 
       {/* Mobile view (unchanged) */}
@@ -205,6 +209,7 @@ const DesignerMessages = () => {
           ))}
         </div>
       </div>
+      <CallOverlay call={call} onEnd={endCall} />
       </>
     );
   }
@@ -224,6 +229,8 @@ const DesignerMessages = () => {
         input={input}
         onInput={setInput}
         onSend={sendMessage}
+        onAudioCall={() => activeConvo && startCall("audio", { name: activeConvo.clientName, initials: activeConvo.clientInitials, subtitle: activeConvo.location })}
+        onVideoCall={() => activeConvo && startCall("video", { name: activeConvo.clientName, initials: activeConvo.clientInitials, subtitle: activeConvo.location })}
       />
 
       {/* Mobile view (unchanged) */}
@@ -251,12 +258,10 @@ const DesignerMessages = () => {
             </p>
           </motion.button>
           <div className="flex items-center gap-1">
-            <motion.button whileTap={{ scale: 0.9 }} onClick={() => toast.info("Voice calling isn't available yet — send a WhatsApp-style message instead.")} className="w-9 h-9 rounded-xl flex items-center justify-center bg-card">
-              <Phone className="w-4 h-4 text-muted-foreground" />
-            </motion.button>
-            <motion.button whileTap={{ scale: 0.9 }} onClick={() => toast.info("Video calling isn't available yet — send a WhatsApp-style message instead.")} className="w-9 h-9 rounded-xl flex items-center justify-center bg-card">
-              <Video className="w-4 h-4 text-muted-foreground" />
-            </motion.button>
+            <CallButtons
+              onAudio={() => activeConvo && startCall("audio", { name: activeConvo.clientName, initials: activeConvo.clientInitials, subtitle: activeConvo.location })}
+              onVideo={() => activeConvo && startCall("video", { name: activeConvo.clientName, initials: activeConvo.clientInitials, subtitle: activeConvo.location })}
+            />
           </div>
         </div>
       </div>
@@ -414,8 +419,8 @@ const DesignerMessages = () => {
             {/* Quick Actions */}
             <div className="px-6 py-4 grid grid-cols-3 gap-3">
               {[
-                { icon: Phone, label: "Call", action: () => {} },
-                { icon: Video, label: "Video", action: () => {} },
+                { icon: Phone, label: "Call", action: () => activeConvo && startCall("audio", { name: activeConvo.clientName, initials: activeConvo.clientInitials, subtitle: activeConvo.location }) },
+                { icon: Video, label: "Video", action: () => activeConvo && startCall("video", { name: activeConvo.clientName, initials: activeConvo.clientInitials, subtitle: activeConvo.location }) },
                 { icon: Mail, label: "Email", action: () => {} },
               ].map((a) => (
                 <motion.button key={a.label} whileTap={{ scale: 0.95 }} onClick={a.action}
@@ -454,6 +459,7 @@ const DesignerMessages = () => {
           </div>
         </SheetContent>
       </Sheet>
+      <CallOverlay call={call} onEnd={endCall} />
     </div>
     </>
   );

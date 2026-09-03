@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { CheckCheck, Megaphone, Pin, Send, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CallButtons } from "@/components/CallOverlay";
 
 export interface WorkshopMemberView {
   id: string;
@@ -35,12 +36,14 @@ interface Props {
   onInput: (v: string) => void;
   onSend: () => void;
   formatTime: (t: number) => string;
+  onAudioCall?: () => void;
+  onVideoCall?: () => void;
 }
 
 /** Tablet/desktop workspace for an individual workshop chat thread. */
 const WorkshopConversationWorkspace = ({
   headerName, headerSub, headerInitials, isGroup, isDesigner, members, currentUserId, getMember,
-  messages, pinnedText, onUnpin, announceMode, onToggleAnnounce, input, onInput, onSend, formatTime,
+  messages, pinnedText, onUnpin, announceMode, onToggleAnnounce, input, onInput, onSend, formatTime, onAudioCall, onVideoCall,
 }: Props) => (
   <div className="hidden lg:block px-8 pt-6 pb-16">
     <div className="mx-auto max-w-[1200px] grid grid-cols-[1fr_minmax(260px,300px)] gap-6 items-start">
@@ -54,6 +57,9 @@ const WorkshopConversationWorkspace = ({
             <p className="text-sm font-bold text-foreground truncate">{headerName}</p>
             <p className="text-[10px] text-muted-foreground">{headerSub}</p>
           </div>
+          {onAudioCall && onVideoCall && (
+            <CallButtons className="ml-auto" onAudio={onAudioCall} onVideo={onVideoCall} />
+          )}
         </div>
 
         {pinnedText && (
