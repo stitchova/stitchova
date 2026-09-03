@@ -458,6 +458,7 @@ const DesignerMessages = () => {
           </div>
         </SheetContent>
       </Sheet>
+      <CallOverlay call={call} onEnd={endCall} />
     </div>
     </>
   );
