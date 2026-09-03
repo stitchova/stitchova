@@ -4,15 +4,8 @@ import { ArrowLeft, Plus, Trash2, Receipt, FileText, Sparkles, CalendarDays, Per
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { toast } from "sonner";
 import { useBrandInvoice, InvoiceLineItem, InvoiceType, computeTotals, money } from "@/contexts/BrandInvoiceContext";
+import { useAtelier } from "@/contexts/AtelierContext";
 
-// Local mock: keep in sync with OrderDetail
-const ordersData: Record<string, { type: string; client: string; price: string; amountPaid: string; balance: string; fabrics: string[]; }> = {
-  "ama-serwaa": { type: "Wedding Gown", client: "Ama Serwaa", price: "GHS 2,500", amountPaid: "GHS 1,500", balance: "GHS 1,000", fabrics: ["French Lace – Ivory", "Silk Satin – White"] },
-  "kofi-mensah": { type: "3-Piece Suit", client: "Kofi Mensah", price: "GHS 1,800", amountPaid: "GHS 1,800", balance: "GHS 0", fabrics: ["English Wool – Navy"] },
-  "yaw-boateng": { type: "Agbada Set", client: "Yaw Boateng", price: "GHS 3,200", amountPaid: "GHS 2,500", balance: "GHS 700", fabrics: ["Guinea Brocade – Royal Blue"] },
-};
-
-const parseAmount = (s: string) => Number((s || "").replace(/[^\d.]/g, "")) || 0;
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 const QUICK_ITEMS = ["Tailoring Labour", "Fabric", "Lining", "Beadwork", "Delivery", "Alteration"];
@@ -38,16 +31,24 @@ const InvoiceEditor = () => {
   const { clientId = "ama-serwaa" } = useParams();
   const [params] = useSearchParams();
   const { brand, createInvoice } = useBrandInvoice();
-  const order = ordersData[clientId] || ordersData["ama-serwaa"];
+  const { orders, orderById, clientById } = useAtelier();
+  // The route param may be an order id (new format) or a legacy client id.
+  const order =
+    orderById(clientId) ||
+    orders.find((o) => o.clientId === clientId) ||
+    orders[0];
+  const orderClient = order ? clientById(order.clientId) : undefined;
+  const paidSoFar = order ? order.payments.reduce((s, p) => s + p.amount, 0) : 0;
 
   const [type, setType] = useState<InvoiceType>((params.get("type") as InvoiceType) || "invoice");
-  const [items, setItems] = useState<InvoiceLineItem[]>(() => [
-    { id: uid(), description: order.type, qty: 1, price: parseAmount(order.price) },
-    ...order.fabrics.map((f) => ({ id: uid(), description: f, qty: 1, price: 0 })),
-  ]);
+  const [items, setItems] = useState<InvoiceLineItem[]>(() =>
+    order
+      ? [{ id: uid(), description: `${order.type} — ${order.styleDesc || order.garment}`.slice(0, 90), qty: 1, price: order.price }]
+      : [{ id: uid(), description: "", qty: 1, price: 0 }]
+  );
   const [discount, setDiscount] = useState(0);
   const [taxPct, setTaxPct] = useState(0);
-  const [amountPaid, setAmountPaid] = useState(parseAmount(order.amountPaid));
+  const [amountPaid, setAmountPaid] = useState(paidSoFar);
   const [notes, setNotes] = useState("");
   const [dueDate, setDueDate] = useState(() => {
     const d = new Date(); d.setDate(d.getDate() + 14);
@@ -70,10 +71,10 @@ const InvoiceEditor = () => {
     const paidForRecord = isReceipt ? Math.min(amountPaid || totals.total, totals.total) : amountPaid;
     const rec = createInvoice({
       type, status,
-      orderId: clientId,
-      clientName: order.client,
-      clientPhone: "",
-      clientAddress: "",
+      orderId: order?.id || clientId,
+      clientName: order?.client || "Client",
+      clientPhone: orderClient?.phone || "",
+      clientAddress: orderClient?.address || "",
       issueDate: new Date().toISOString().slice(0, 10),
       dueDate,
       items,

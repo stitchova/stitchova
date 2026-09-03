@@ -49,7 +49,15 @@ export interface InvoiceRecord {
   amountPaid: number;
   notes: string;
   createdAt: number;
+  /** Set when the invoice has been sent to the client (WhatsApp / share). */
+  sentAt?: number;
+  sentChannel?: "whatsapp" | "share" | "email";
+  /** Set when the invoice was marked paid; the payment is mirrored onto the order. */
+  paidAt?: number;
+  /** Id of the payment recorded on the linked order, so we never double-post. */
+  paymentRef?: string;
 }
+
 
 const DEFAULT_BRAND: BrandProfile = {
   businessName: "Stitchova Atelier",
