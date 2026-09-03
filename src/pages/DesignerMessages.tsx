@@ -209,6 +209,7 @@ const DesignerMessages = () => {
           ))}
         </div>
       </div>
+      <CallOverlay call={call} onEnd={endCall} />
       </>
     );
   }

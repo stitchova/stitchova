@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { CheckCheck, Search, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DesktopOnly, WorkspaceHeader } from "./DesktopKit";
+import { CallButtons } from "@/components/CallOverlay";
 
 export interface ConversationView {
   id: string;
@@ -42,12 +43,14 @@ interface Props {
   input: string;
   onInput: (v: string) => void;
   onSend: () => void;
+  onAudioCall?: () => void;
+  onVideoCall?: () => void;
 }
 
 /** Tablet/desktop two-pane workspace for designer client messaging. */
 const DesignerMessagesWorkspace = ({
   conversations, activeConvo, activeChat, onSelect, searchQuery, onSearch,
-  messages, input, onInput, onSend,
+  messages, input, onInput, onSend, onAudioCall, onVideoCall,
 }: Props) => (
   <DesktopOnly>
     <div className="mx-auto max-w-[1280px]">
@@ -115,9 +118,14 @@ const DesignerMessagesWorkspace = ({
                     {activeConvo.online ? <span className="text-status-completed">Online</span> : "Last seen recently"}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-muted-foreground">{activeConvo.location}</p>
-                  <p className="text-[10px] text-muted-foreground">{activeConvo.totalOrders} orders · {activeConvo.measurements}</p>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-[10px] text-muted-foreground">{activeConvo.location}</p>
+                    <p className="text-[10px] text-muted-foreground">{activeConvo.totalOrders} orders · {activeConvo.measurements}</p>
+                  </div>
+                  {onAudioCall && onVideoCall && (
+                    <CallButtons onAudio={onAudioCall} onVideo={onVideoCall} />
+                  )}
                 </div>
               </div>
 
