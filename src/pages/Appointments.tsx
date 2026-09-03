@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useRole } from "@/contexts/RoleContext";
 import ClientAppointmentsView from "./ClientAppointments";
+import AppointmentsWorkspace from "@/components/designer-desktop/AppointmentsWorkspace";
 
 const defaultTimeSlots = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM",
@@ -74,7 +75,32 @@ const DesignerAppointments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop workspace */}
+      <AppointmentsWorkspace
+        saved={saved}
+        serviceTypes={serviceTypes}
+        quickDates={quickDates}
+        timeSlots={defaultTimeSlots}
+        selectedDate={selectedDate}
+        selectedTimes={selectedTimes}
+        selectedServices={selectedServices}
+        slotNotes={slotNotes}
+        slotReminder={slotReminder}
+        slots={slots}
+        canAdd={canAdd}
+        onSelectDate={setSelectedDate}
+        onToggleTime={toggleTime}
+        onToggleService={toggleService}
+        onNotes={setSlotNotes}
+        onToggleReminder={() => setSlotReminder(!slotReminder)}
+        onAddSlot={handleAddSlot}
+        onRemoveSlot={removeSlot}
+        onSave={handleSave}
+      />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-border/50">
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -235,6 +261,7 @@ const DesignerAppointments = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
