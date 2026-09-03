@@ -4,6 +4,7 @@ import { ArrowLeft, Send, Mic, Image, Paperclip, X, Play, Pause, Plus, Search, P
 import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import DesignerMessagesWorkspace from "@/components/designer-desktop/DesignerMessagesWorkspace";
 
 interface Message {
   id: number;
@@ -115,7 +116,23 @@ const DesignerMessages = () => {
   // ── CONVERSATIONS LIST ──
   if (!activeChat) {
     return (
-      <div className="min-h-screen bg-background pb-24">
+      <>
+      {/* Tablet/desktop workspace */}
+      <DesignerMessagesWorkspace
+        conversations={filteredConvos}
+        activeConvo={activeConvo}
+        activeChat={activeChat}
+        onSelect={setActiveChat}
+        searchQuery={searchQuery}
+        onSearch={setSearchQuery}
+        messages={messages}
+        input={input}
+        onInput={setInput}
+        onSend={sendMessage}
+      />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
           <div className="px-5 pt-6 pb-4 flex items-center gap-3 relative">
@@ -188,12 +205,29 @@ const DesignerMessages = () => {
           ))}
         </div>
       </div>
+      </>
     );
   }
 
   // ── CHAT VIEW ──
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
+      {/* Tablet/desktop workspace */}
+      <DesignerMessagesWorkspace
+        conversations={filteredConvos}
+        activeConvo={activeConvo}
+        activeChat={activeChat}
+        onSelect={setActiveChat}
+        searchQuery={searchQuery}
+        onSearch={setSearchQuery}
+        messages={messages}
+        input={input}
+        onInput={setInput}
+        onSend={sendMessage}
+      />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background flex flex-col lg:hidden">
       {/* Chat Header */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-b from-card to-transparent" />
@@ -421,6 +455,7 @@ const DesignerMessages = () => {
         </SheetContent>
       </Sheet>
     </div>
+    </>
   );
 };
 

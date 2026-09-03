@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Copy, Share2, Gift, Users, Check } from "lucide-react";
 import { toast } from "sonner";
+import ReferralsWorkspace from "@/components/designer-desktop/ReferralsWorkspace";
 
 interface ReferralEntry {
   name: string;
@@ -71,7 +72,12 @@ const Referrals = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <>
+      {/* Tablet/desktop workspace */}
+      <ReferralsWorkspace code={code} inviteLink={inviteLink} referrals={referrals} copied={copied} onCopy={handleCopy} onShare={handleShare} />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-24 lg:hidden">
       <div className="px-5 pt-6 pb-4 flex items-center gap-3">
         <motion.button whileTap={{ scale: 0.92 }} onClick={() => navigate(-1)} className="w-10 h-10 rounded-full frost-card flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -145,6 +151,7 @@ const Referrals = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

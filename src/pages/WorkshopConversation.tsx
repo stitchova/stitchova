@@ -5,6 +5,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useWorkshopChat } from "@/contexts/WorkshopChatContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
+import WorkshopConversationWorkspace from "@/components/designer-desktop/WorkshopConversationWorkspace";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -71,8 +72,33 @@ const WorkshopConversation = () => {
     setInput("");
   };
 
+  const handleUnpin = () => { pinAnnouncement(null); toast({ title: "Announcement unpinned" }); };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
+      {/* Tablet/desktop workspace */}
+      <WorkshopConversationWorkspace
+        headerName={header.name}
+        headerSub={header.sub}
+        headerInitials={header.initials}
+        isGroup={isGroup}
+        isDesigner={isDesigner}
+        members={members}
+        currentUserId={currentUserId}
+        getMember={getMember}
+        messages={messages}
+        pinnedText={pinned?.text}
+        onUnpin={handleUnpin}
+        announceMode={announceMode}
+        onToggleAnnounce={() => setAnnounceMode((v) => !v)}
+        input={input}
+        onInput={setInput}
+        onSend={handleSend}
+        formatTime={formatTime}
+      />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background flex flex-col lg:hidden">
       {/* Header */}
       <motion.div
         initial={{ y: -16, opacity: 0 }}
@@ -204,6 +230,7 @@ const WorkshopConversation = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
