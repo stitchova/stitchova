@@ -243,6 +243,7 @@ const Messages = () => {
         </div>
       </div>
     </div>
+    <CallOverlay call={call} onEnd={endCall} />
     </>
   );
 };
