@@ -1,15 +1,17 @@
 import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Share2, Printer, MessageCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, Share2, Printer, MessageCircle, Trash2, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useBrandInvoice, computeTotals, money } from "@/contexts/BrandInvoiceContext";
+import { useAtelier } from "@/contexts/AtelierContext";
 import InvoiceDocument from "@/components/invoice/InvoiceDocument";
 
 const InvoicePreview = () => {
   const navigate = useNavigate();
   const { invoiceId = "" } = useParams();
-  const { brand, getInvoice, deleteInvoice } = useBrandInvoice();
+  const { brand, getInvoice, deleteInvoice, updateInvoice } = useBrandInvoice();
+  const { orders, orderById, addPayment } = useAtelier();
   const invoice = getInvoice(invoiceId);
   const docRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
@@ -66,6 +68,7 @@ const InvoicePreview = () => {
       const file = new File([blob], filename, { type: "application/pdf" });
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> };
       if (nav.canShare?.({ files: [file] }) && nav.share) {
+        markSent("share");
         await nav.share({ files: [file], title: filename, text: `${brand.businessName} · ${invoice.type === "receipt" ? "Receipt" : "Invoice"} ${invoice.number}` });
       } else {
         pdf.save(filename);
@@ -75,12 +78,44 @@ const InvoicePreview = () => {
     finally { setBusy(false); }
   };
 
+  const linkedOrder =
+    (invoice && (orderById(invoice.orderId) || orders.find((o) => o.clientId === invoice.orderId))) || undefined;
+
+  const markSent = (channel: "whatsapp" | "share") => {
+    if (!invoice || invoice.sentAt) return;
+    updateInvoice(invoice.id, { sentAt: Date.now(), sentChannel: channel });
+  };
+
+  const markPaid = () => {
+    if (!invoice) return;
+    const t = computeTotals(invoice);
+    if (t.balance <= 0 && invoice.status === "paid") return;
+    const ref = `pay-${Date.now()}`;
+    if (linkedOrder && t.balance > 0) {
+      // Mirror the settlement onto the order so balances and analytics update.
+      addPayment(linkedOrder.id, {
+        amount: t.balance,
+        method: "Mobile Money",
+        date: new Date().toISOString().slice(0, 10),
+      });
+    }
+    updateInvoice(invoice.id, {
+      status: "paid",
+      amountPaid: t.total,
+      paidAt: Date.now(),
+      paymentRef: ref,
+    });
+    toast.success(`Marked paid · ${money(t.balance, brand.currency)} recorded`);
+  };
+
   const whatsapp = () => {
     const totals = computeTotals(invoice);
     const msg = encodeURIComponent(
       `Hi ${invoice.clientName},\n\nHere is your ${invoice.type === "receipt" ? "receipt" : "invoice"} from ${brand.businessName}:\n#${invoice.number}\nTotal: ${money(totals.total, brand.currency)}${invoice.type === "invoice" ? `\nBalance due: ${money(totals.balance, brand.currency)}` : ""}\n\nThank you!`
     );
-    window.open(`https://wa.me/?text=${msg}`, "_blank");
+    const to = (invoice.clientPhone || "").replace(/\D/g, "");
+    window.open(`https://wa.me/${to}?text=${msg}`, "_blank");
+    markSent("whatsapp");
   };
 
   const printDoc = () => window.print();
@@ -120,6 +155,45 @@ const InvoicePreview = () => {
               <InvoiceDocument ref={docRef} invoice={invoice} brand={brand} />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Status + send / settle */}
+      <div className="px-4 mt-4 print:hidden">
+        <div className="card-surface p-4 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+              invoice.status === "paid" ? "bg-status-completed/15 text-status-completed"
+                : invoice.status === "partial" ? "bg-primary/15 text-primary"
+                  : "bg-destructive/15 text-destructive"}`}>
+              {invoice.status}
+            </span>
+            {invoice.sentAt && (
+              <span className="text-[10px] text-muted-foreground">
+                Sent {new Date(invoice.sentAt).toLocaleDateString()} · {invoice.sentChannel}
+              </span>
+            )}
+            <span className="ml-auto text-[11px] text-muted-foreground">
+              Balance <span className="font-mono font-bold text-foreground">{money(computeTotals(invoice).balance, brand.currency)}</span>
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <motion.button whileTap={{ scale: 0.97 }} onClick={whatsapp}
+              className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-secondary/70 border border-border/50 text-xs font-bold text-foreground">
+              <Send className="w-4 h-4 text-primary" /> {invoice.sentAt ? "Resend to client" : "Send to client"}
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={markPaid}
+              disabled={invoice.status === "paid"}
+              className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground text-xs font-bold disabled:opacity-50">
+              <CheckCircle2 className="w-4 h-4" /> {invoice.status === "paid" ? "Paid" : "Mark as paid"}
+            </motion.button>
+          </div>
+          {linkedOrder && (
+            <button onClick={() => navigate(`/order/${linkedOrder.id}`)}
+              className="text-[11px] text-primary font-semibold">
+              View linked order · {linkedOrder.type} →
+            </button>
+          )}
         </div>
       </div>
 
