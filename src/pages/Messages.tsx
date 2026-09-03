@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import designerAvatar1 from "@/assets/designer-avatar-1.jpg";
 import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
+import ClientMessagesWorkspace from "@/components/client-desktop/ClientMessagesWorkspace";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -66,7 +67,23 @@ const Messages = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
+      {/* Tablet/desktop workspace */}
+      <ClientMessagesWorkspace
+        designerId={designerId}
+        designerName={designerName}
+        avatar={avatar}
+        postThumb={postThumb}
+        messages={messages}
+        showTyping={showTyping}
+        input={input}
+        onInput={setInput}
+        onSend={send}
+        onOpenDesigner={() => navigate(`/designer/${designerId}`)}
+      />
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background flex flex-col lg:hidden">
       {/* Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
@@ -217,6 +234,7 @@ const Messages = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
