@@ -93,8 +93,8 @@ const WorkshopConversationWorkspace = ({
                 className={cn("flex", mine ? "justify-end" : "justify-start")}
               >
                 {!mine && isGroup && (
-                  <div className="w-8 h-8 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold flex items-center justify-center mr-2 mt-auto flex-shrink-0">
-                    {sender?.initials ?? "?"}
+                  <div className="mr-2 mt-auto flex-shrink-0">
+                    <ContactAvatar seed={m.senderId} size={32} />
                   </div>
                 )}
                 <div className={cn("max-w-[58%] px-4 py-3 rounded-2xl",
