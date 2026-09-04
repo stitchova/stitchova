@@ -155,9 +155,7 @@ const WorkshopConversationWorkspace = ({
         <div className="space-y-2 max-h-[600px] overflow-y-auto scrollbar-hide pr-1">
           {members.map((m) => (
             <div key={m.id} className="flex items-center gap-3 rounded-2xl bg-secondary/40 p-3">
-              <div className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold flex items-center justify-center">
-                {m.initials}
-              </div>
+              <ContactAvatar seed={m.id} size={36} />
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-foreground truncate">{m.name}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{m.role}</p>
