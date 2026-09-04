@@ -38,7 +38,7 @@ const ClientMessagesWorkspace = ({
         <div className="px-6 py-4 border-b border-border flex items-center gap-3">
           <button onClick={onOpenDesigner} className="flex items-center gap-3">
             <div className="relative">
-              <img src={avatar} alt={designerName} className="w-11 h-11 rounded-full object-cover ring-2 ring-primary/20" />
+              <ContactAvatar seed={designerId} photoUrl={avatar} size={44} ring />
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-status-completed ring-2 ring-card" />
             </div>
             <div className="text-left">
