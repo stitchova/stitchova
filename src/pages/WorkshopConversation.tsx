@@ -7,6 +7,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
 import WorkshopConversationWorkspace from "@/components/designer-desktop/WorkshopConversationWorkspace";
 import CallOverlay, { CallButtons, useCallSession } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 const ease = [0.16, 1, 0.3, 1];
 
