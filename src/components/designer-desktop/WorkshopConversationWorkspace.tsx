@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { CheckCheck, Megaphone, Pin, Send, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CallButtons } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 export interface WorkshopMemberView {
   id: string;
