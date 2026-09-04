@@ -147,7 +147,7 @@ const Messages = () => {
               className={`flex ${m.from === "client" ? "justify-end" : "justify-start"}`}
             >
               {m.from === "designer" && (
-                <img src={avatar} alt="" className="w-7 h-7 rounded-full object-cover mr-2 mt-auto flex-shrink-0" />
+                <div className="mr-2 mt-auto flex-shrink-0"><ContactAvatar seed={designerId} photoUrl={avatar} size={28} /></div>
               )}
               <div
                 className={`max-w-[75%] px-4 py-3 ${
