@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useBrandInvoice, computeTotals, money } from "@/contexts/BrandInvoiceContext";
 import { useAtelier } from "@/contexts/AtelierContext";
 import InvoiceDocument from "@/components/invoice/InvoiceDocument";
+import { DesktopOnly, WorkspaceHeader } from "@/components/designer-desktop/DesktopKit";
 
 const InvoicePreview = () => {
   const navigate = useNavigate();
@@ -121,7 +122,83 @@ const InvoicePreview = () => {
   const printDoc = () => window.print();
 
   return (
-    <div className="min-h-screen bg-background pb-32 print:bg-white print:pb-0">
+    <div className="print:bg-white print:pb-0">
+      {/* Tablet/desktop workspace */}
+      <DesktopOnly className="print:!hidden">
+        <div className="flex items-start justify-between gap-4">
+          <WorkspaceHeader
+            title={`${invoice.type === "receipt" ? "Receipt" : "Invoice"} #${invoice.number}`}
+            subtitle={invoice.clientName}
+          />
+          <button onClick={() => { if (confirm("Delete this document?")) { deleteInvoice(invoice.id); navigate(-1); } }}
+            className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </button>
+        </div>
+
+        <div className="mt-6 flex items-start justify-center gap-6">
+          {/* Purely visual scaled card — buildPdf() captures the hidden copy below. */}
+          <div className="rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 bg-white flex-shrink-0">
+            <div style={{ width: DOC_WIDTH * 0.72, height: DOC_HEIGHT * 0.72, overflow: "hidden" }}>
+              <div style={{ transform: "scale(0.72)", transformOrigin: "top left", width: DOC_WIDTH, height: DOC_HEIGHT }}>
+                <InvoiceDocument invoice={invoice} brand={brand} />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-60 flex-shrink-0 sticky top-24 space-y-4">
+            <div className="card-surface p-4 space-y-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                  invoice.status === "paid" ? "bg-status-completed/15 text-status-completed"
+                    : invoice.status === "partial" ? "bg-primary/15 text-primary"
+                      : "bg-destructive/15 text-destructive"}`}>
+                  {invoice.status}
+                </span>
+                {invoice.sentAt && (
+                  <span className="text-[10px] text-muted-foreground">
+                    Sent {new Date(invoice.sentAt).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Balance <span className="font-mono font-bold text-foreground">{money(computeTotals(invoice).balance, brand.currency)}</span>
+              </p>
+              <button onClick={whatsapp}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary/70 border border-border/50 text-xs font-bold text-foreground">
+                <Send className="w-4 h-4 text-primary" /> {invoice.sentAt ? "Resend" : "Send to client"}
+              </button>
+              <button onClick={markPaid} disabled={invoice.status === "paid"}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold disabled:opacity-50">
+                <CheckCircle2 className="w-4 h-4" /> {invoice.status === "paid" ? "Paid" : "Mark as paid"}
+              </button>
+              {linkedOrder && (
+                <button onClick={() => navigate(`/order/${linkedOrder.id}`)} className="text-[11px] text-primary font-semibold">
+                  View linked order →
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {[
+                { icon: Download, label: "Download PDF", onClick: download },
+                { icon: Share2, label: "Share", onClick: share },
+                { icon: MessageCircle, label: "Send via WhatsApp", onClick: whatsapp },
+                { icon: Printer, label: "Print", onClick: printDoc },
+              ].map((a) => (
+                <button key={a.label} onClick={a.onClick} disabled={busy}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/60 hover:bg-secondary transition-colors disabled:opacity-50 text-left">
+                  <a.icon className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="text-xs font-semibold text-foreground">{a.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DesktopOnly>
+
+      {/* Mobile view (unchanged) */}
+      <div className="min-h-screen bg-background pb-32 print:bg-white print:pb-0 lg:hidden print:!block">
       <div className="px-5 pt-6 pb-4 flex items-center justify-between print:hidden">
         <div className="flex items-center gap-3">
           <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate(-1)}>
@@ -152,7 +229,7 @@ const InvoicePreview = () => {
               width: 794,
               height: 1123,
             }} className="print:!scale-100 print:!w-auto print:!h-auto">
-              <InvoiceDocument ref={docRef} invoice={invoice} brand={brand} />
+              <InvoiceDocument invoice={invoice} brand={brand} />
             </div>
           </div>
         </div>
@@ -213,6 +290,15 @@ const InvoicePreview = () => {
             </motion.button>
           ))}
         </div>
+      </div>
+
+      </div>
+
+      {/* Hidden, unscaled capture target for html2canvas — html2canvas cannot
+          measure elements inside a `transform: scale()` ancestor, which was
+          producing doubled/offset text on every exported PDF. */}
+      <div style={{ position: "fixed", top: 0, left: -10000, pointerEvents: "none" }} aria-hidden="true" className="print:hidden">
+        <InvoiceDocument ref={docRef} invoice={invoice} brand={brand} />
       </div>
 
       <style>{`

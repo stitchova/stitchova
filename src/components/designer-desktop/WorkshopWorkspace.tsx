@@ -12,9 +12,9 @@ const time = (t: number) =>
   new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 /** Designer workshop messaging workspace (conversation list + thread). */
-const WorkshopWorkspace = ({ canAnnounce = true }: { canAnnounce?: boolean }) => {
+const WorkshopWorkspace = ({ canAnnounce = true, initialChatId = "group" }: { canAnnounce?: boolean; initialChatId?: string }) => {
   const { members, currentUserId, dmChatId, getChatMessages, sendMessage, markChatRead, unreadCountForChat } = useWorkshopChat();
-  const [chatId, setChatId] = useState("group");
+  const [chatId, setChatId] = useState(initialChatId);
   const [query, setQuery] = useState("");
   const [text, setText] = useState("");
   const [announce, setAnnounce] = useState(false);
