@@ -8,6 +8,7 @@ import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
 import ClientMessagesWorkspace from "@/components/client-desktop/ClientMessagesWorkspace";
 import CallOverlay, { CallButtons, useCallSession } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 const ease = [0.16, 1, 0.3, 1];
 
