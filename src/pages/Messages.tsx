@@ -105,7 +105,7 @@ const Messages = () => {
           className="flex items-center gap-3"
         >
           <div className="relative">
-            <img src={avatar} alt="Designer" className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20" />
+            <ContactAvatar seed={designerId} photoUrl={avatar} size={40} ring />
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 ring-2 ring-background" />
           </div>
           <div className="text-left">
