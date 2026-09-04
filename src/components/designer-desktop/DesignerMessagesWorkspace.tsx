@@ -3,6 +3,7 @@ import { CheckCheck, Search, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DesktopOnly, WorkspaceHeader } from "./DesktopKit";
 import { CallButtons } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 export interface ConversationView {
   id: string;
