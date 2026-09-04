@@ -110,7 +110,7 @@ const ClientMessagesWorkspace = ({
       {/* Side rail */}
       <div className="space-y-5">
         <div className="rounded-3xl bg-card border border-border p-6 text-center">
-          <img src={avatar} alt={designerName} className="w-20 h-20 rounded-full object-cover mx-auto ring-2 ring-primary/20" />
+          <div className="mx-auto w-fit"><ContactAvatar seed={designerId} photoUrl={avatar} size={80} ring /></div>
           <p className="text-sm font-bold text-foreground mt-3">{designerName}</p>
           <p className="text-[11px] text-muted-foreground">Fashion designer</p>
           <button
