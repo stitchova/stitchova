@@ -206,11 +206,13 @@ const WorkshopChat = () => {
                   onClick={() => navigate(`/workshop-chat/${c.chatId}`)}
                   className="w-full glass-card p-3 rounded-2xl flex items-center gap-3 text-left"
                 >
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm ${
-                    c.isGroup ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-                  }`}>
-                    {c.isGroup ? <Users className="w-5 h-5" /> : c.initials}
-                  </div>
+                  {c.isGroup ? (
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 bg-primary text-primary-foreground">
+                      <Users className="w-5 h-5" />
+                    </div>
+                  ) : (
+                    <ContactAvatar seed={c.id} size={44} />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-semibold text-foreground truncate">{c.title}</p>
