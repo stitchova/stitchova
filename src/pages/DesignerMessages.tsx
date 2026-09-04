@@ -243,9 +243,7 @@ const DesignerMessages = () => {
           </motion.button>
           {/* Clickable avatar to view profile */}
           <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowProfile(true)} className="relative flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">{activeConvo?.clientInitials}</span>
-            </div>
+            <ContactAvatar seed={activeConvo?.id ?? ""} size={40} />
             {activeConvo?.online && (
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-status-completed ring-2 ring-background" />
             )}
