@@ -7,6 +7,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
 import WorkshopConversationWorkspace from "@/components/designer-desktop/WorkshopConversationWorkspace";
 import CallOverlay, { CallButtons, useCallSession } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -113,11 +114,13 @@ const WorkshopConversation = () => {
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/workshop-chat")}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </motion.button>
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-          header.isGroup ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-        }`}>
-          {header.isGroup ? <Users className="w-5 h-5" /> : header.initials}
-        </div>
+        {header.isGroup ? (
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+            <Users className="w-5 h-5" />
+          </div>
+        ) : (
+          <ContactAvatar seed={header.name} size={40} />
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-foreground truncate">{header.name}</p>
           <p className="text-[10px] text-muted-foreground">{header.sub}</p>
@@ -165,8 +168,8 @@ const WorkshopConversation = () => {
                 className={`flex ${mine ? "justify-end" : "justify-start"}`}
               >
                 {!mine && isGroup && (
-                  <div className="w-7 h-7 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold flex items-center justify-center mr-2 mt-auto flex-shrink-0">
-                    {sender?.initials ?? "?"}
+                  <div className="mr-2 mt-auto flex-shrink-0">
+                    <ContactAvatar seed={m.senderId} size={28} />
                   </div>
                 )}
                 <div

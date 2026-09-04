@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCheck, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CallButtons } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 export interface ClientMessageView {
   id: number;
@@ -28,7 +29,7 @@ interface Props {
 
 /** Tablet/desktop workspace for the client ↔ designer chat thread. */
 const ClientMessagesWorkspace = ({
-  designerName, avatar, postThumb, messages, showTyping, input, onInput, onSend, onOpenDesigner, onAudioCall, onVideoCall,
+  designerId, designerName, avatar, postThumb, messages, showTyping, input, onInput, onSend, onOpenDesigner, onAudioCall, onVideoCall,
 }: Props) => (
   <div className="hidden lg:block px-8 pt-6 pb-16">
     <div className="mx-auto max-w-[1080px] grid grid-cols-[1fr_minmax(280px,320px)] gap-6 items-start">
@@ -37,7 +38,7 @@ const ClientMessagesWorkspace = ({
         <div className="px-6 py-4 border-b border-border flex items-center gap-3">
           <button onClick={onOpenDesigner} className="flex items-center gap-3">
             <div className="relative">
-              <img src={avatar} alt={designerName} className="w-11 h-11 rounded-full object-cover ring-2 ring-primary/20" />
+              <ContactAvatar seed={designerId} photoUrl={avatar} size={44} ring />
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-status-completed ring-2 ring-card" />
             </div>
             <div className="text-left">
@@ -61,7 +62,7 @@ const ClientMessagesWorkspace = ({
                 className={cn("flex", m.from === "client" ? "justify-end" : "justify-start")}
               >
                 {m.from === "designer" && (
-                  <img src={avatar} alt="" className="w-7 h-7 rounded-full object-cover mr-2 mt-auto flex-shrink-0" />
+                  <div className="mr-2 mt-auto flex-shrink-0"><ContactAvatar seed={designerId} photoUrl={avatar} size={28} /></div>
                 )}
                 <div className={cn("max-w-[60%] px-4 py-3 rounded-2xl",
                   m.from === "client" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground")}>
@@ -80,7 +81,7 @@ const ClientMessagesWorkspace = ({
           </AnimatePresence>
           {showTyping && (
             <div className="flex items-center gap-2">
-              <img src={avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
+              <ContactAvatar seed={designerId} photoUrl={avatar} size={28} />
               <div className="bg-secondary rounded-2xl px-4 py-3 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-muted-foreground typing-dot" />
                 <span className="w-2 h-2 rounded-full bg-muted-foreground typing-dot" />
@@ -109,7 +110,7 @@ const ClientMessagesWorkspace = ({
       {/* Side rail */}
       <div className="space-y-5">
         <div className="rounded-3xl bg-card border border-border p-6 text-center">
-          <img src={avatar} alt={designerName} className="w-20 h-20 rounded-full object-cover mx-auto ring-2 ring-primary/20" />
+          <div className="mx-auto w-fit"><ContactAvatar seed={designerId} photoUrl={avatar} size={80} ring /></div>
           <p className="text-sm font-bold text-foreground mt-3">{designerName}</p>
           <p className="text-[11px] text-muted-foreground">Fashion designer</p>
           <button

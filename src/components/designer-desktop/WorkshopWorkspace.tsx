@@ -4,8 +4,9 @@ import { Send, Users, MessageCircle, Megaphone } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { useWorkshopChat } from "@/contexts/WorkshopChatContext";
 import { cn } from "@/lib/utils";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 import {
-  DesktopOnly, WorkspaceHeader, ListDetail, ListPanel, ListRow, DetailPanel, DetailHeader, Avatar,
+  DesktopOnly, WorkspaceHeader, ListDetail, ListPanel, ListRow, DetailPanel, DetailHeader,
 } from "./DesktopKit";
 
 const time = (t: number) =>
@@ -21,7 +22,8 @@ const WorkshopWorkspace = ({ canAnnounce = true, initialChatId = "group" }: { ca
   const endRef = useRef<HTMLDivElement>(null);
 
   const conversations = useMemo(() => {
-    const list = [{ chatId: "group", title: "Workshop group", subtitle: "Everyone in the atelier", initials: "WG" }];
+    const list: { chatId: string; title: string; subtitle: string; initials: string; memberId?: string }[] =
+      [{ chatId: "group", title: "Workshop group", subtitle: "Everyone in the atelier", initials: "WG" }];
     members
       .filter((m) => m.id !== currentUserId)
       .forEach((m) => list.push({
@@ -29,6 +31,7 @@ const WorkshopWorkspace = ({ canAnnounce = true, initialChatId = "group" }: { ca
         title: m.name,
         subtitle: m.role,
         initials: m.initials,
+        memberId: m.id,
       }));
     return list.filter((c) => `${c.title} ${c.subtitle}`.toLowerCase().includes(query.toLowerCase()));
   }, [members, currentUserId, dmChatId, query]);
@@ -62,7 +65,11 @@ const WorkshopWorkspace = ({ canAnnounce = true, initialChatId = "group" }: { ca
               const last = getChatMessages(c.chatId).slice(-1)[0];
               return (
                 <ListRow key={c.chatId} active={c.chatId === chatId} onClick={() => setChatId(c.chatId)}
-                  leading={<Avatar initials={c.initials} />}
+                  leading={c.memberId ? <ContactAvatar seed={c.memberId} size={40} /> : (
+                    <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-4 h-4 text-primary" />
+                    </div>
+                  )}
                   title={c.title}
                   meta={last ? last.text : c.subtitle}
                   pill={unread > 0 ? { label: String(unread), tone: "primary" } : undefined} />

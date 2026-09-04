@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { toast } from "sonner";
 import DesignerMessagesWorkspace from "@/components/designer-desktop/DesignerMessagesWorkspace";
 import CallOverlay, { CallButtons, useCallSession } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 interface Message {
   id: number;
@@ -171,9 +172,7 @@ const DesignerMessages = () => {
               whileTap={{ scale: 0.98 }} onClick={() => setActiveChat(c.id)}
               className="w-full card-glass p-4 flex items-center gap-3.5 group">
               <div className="relative flex-shrink-0">
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center" style={{ width: 52, height: 52 }}>
-                  <span className="text-sm font-bold text-primary">{c.clientInitials}</span>
-                </div>
+                <ContactAvatar seed={c.id} size={52} />
                 {c.online && (
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
                     className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-status-completed ring-[3px] ring-background" />
@@ -244,9 +243,7 @@ const DesignerMessages = () => {
           </motion.button>
           {/* Clickable avatar to view profile */}
           <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowProfile(true)} className="relative flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">{activeConvo?.clientInitials}</span>
-            </div>
+            <ContactAvatar seed={activeConvo?.id ?? ""} size={40} />
             {activeConvo?.online && (
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-status-completed ring-2 ring-background" />
             )}
@@ -409,8 +406,8 @@ const DesignerMessages = () => {
           <div className="relative">
             {/* Profile Header */}
             <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent pt-12 pb-6 px-6 text-center">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-primary/10">
-                <span className="text-2xl font-bold text-primary">{activeConvo?.clientInitials}</span>
+              <div className="mx-auto mb-3 w-fit">
+                <ContactAvatar seed={activeConvo?.id ?? ""} size={80} />
               </div>
               <h2 className="text-lg font-bold text-foreground">{activeConvo?.clientName}</h2>
               <p className="text-xs text-muted-foreground mt-1">{activeConvo?.online ? "🟢 Online now" : "Last seen recently"}</p>

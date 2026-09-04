@@ -8,6 +8,7 @@ import designerAvatar2 from "@/assets/designer-avatar-2.jpg";
 import designerAvatar3 from "@/assets/designer-avatar-3.jpg";
 import ClientMessagesWorkspace from "@/components/client-desktop/ClientMessagesWorkspace";
 import CallOverlay, { CallButtons, useCallSession } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -104,7 +105,7 @@ const Messages = () => {
           className="flex items-center gap-3"
         >
           <div className="relative">
-            <img src={avatar} alt="Designer" className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20" />
+            <ContactAvatar seed={designerId} photoUrl={avatar} size={40} ring />
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 ring-2 ring-background" />
           </div>
           <div className="text-left">
@@ -146,7 +147,7 @@ const Messages = () => {
               className={`flex ${m.from === "client" ? "justify-end" : "justify-start"}`}
             >
               {m.from === "designer" && (
-                <img src={avatar} alt="" className="w-7 h-7 rounded-full object-cover mr-2 mt-auto flex-shrink-0" />
+                <div className="mr-2 mt-auto flex-shrink-0"><ContactAvatar seed={designerId} photoUrl={avatar} size={28} /></div>
               )}
               <div
                 className={`max-w-[75%] px-4 py-3 ${
@@ -176,7 +177,7 @@ const Messages = () => {
               exit={{ opacity: 0, y: -4 }}
               className="flex items-center gap-2"
             >
-              <img src={avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+              <div className="flex-shrink-0"><ContactAvatar seed={designerId} photoUrl={avatar} size={28} /></div>
               <div className="glass-card rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-muted-foreground typing-dot" />
                 <div className="w-2 h-2 rounded-full bg-muted-foreground typing-dot" />

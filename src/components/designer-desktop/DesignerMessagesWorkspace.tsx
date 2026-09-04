@@ -3,6 +3,7 @@ import { CheckCheck, Search, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DesktopOnly, WorkspaceHeader } from "./DesktopKit";
 import { CallButtons } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 export interface ConversationView {
   id: string;
@@ -74,9 +75,7 @@ const DesignerMessagesWorkspace = ({
                   activeChat === c.id ? "bg-primary/10 border-primary/40" : "bg-card border-border hover:bg-secondary/40")}
               >
                 <div className="relative flex-shrink-0">
-                  <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <span className="text-xs font-bold text-primary">{c.clientInitials}</span>
-                  </div>
+                  <ContactAvatar seed={c.id} size={44} />
                   {c.online && (
                     <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-status-completed ring-2 ring-card" />
                   )}
@@ -109,9 +108,7 @@ const DesignerMessagesWorkspace = ({
           ) : (
             <>
               <div className="px-6 py-4 border-b border-border flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-bold text-primary">{activeConvo.clientInitials}</span>
-                </div>
+                <ContactAvatar seed={activeConvo.id} size={40} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground">{activeConvo.clientName}</p>
                   <p className="text-[10px] text-muted-foreground">

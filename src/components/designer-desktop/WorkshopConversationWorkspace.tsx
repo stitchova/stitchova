@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { CheckCheck, Megaphone, Pin, Send, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CallButtons } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 export interface WorkshopMemberView {
   id: string;
@@ -49,10 +50,13 @@ const WorkshopConversationWorkspace = ({
     <div className="mx-auto max-w-[1200px] grid grid-cols-[1fr_minmax(260px,300px)] gap-6 items-start">
       <div className="rounded-3xl bg-card border border-border flex flex-col h-[720px]">
         <div className="px-6 py-4 border-b border-border flex items-center gap-3">
-          <div className={cn("w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm",
-            isGroup ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
-            {isGroup ? <Users className="w-5 h-5" /> : headerInitials}
-          </div>
+          {isGroup ? (
+            <div className="w-11 h-11 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+              <Users className="w-5 h-5" />
+            </div>
+          ) : (
+            <ContactAvatar seed={headerName} size={44} />
+          )}
           <div className="min-w-0">
             <p className="text-sm font-bold text-foreground truncate">{headerName}</p>
             <p className="text-[10px] text-muted-foreground">{headerSub}</p>
@@ -89,8 +93,8 @@ const WorkshopConversationWorkspace = ({
                 className={cn("flex", mine ? "justify-end" : "justify-start")}
               >
                 {!mine && isGroup && (
-                  <div className="w-8 h-8 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold flex items-center justify-center mr-2 mt-auto flex-shrink-0">
-                    {sender?.initials ?? "?"}
+                  <div className="mr-2 mt-auto flex-shrink-0">
+                    <ContactAvatar seed={m.senderId} size={32} />
                   </div>
                 )}
                 <div className={cn("max-w-[58%] px-4 py-3 rounded-2xl",
@@ -151,9 +155,7 @@ const WorkshopConversationWorkspace = ({
         <div className="space-y-2 max-h-[600px] overflow-y-auto scrollbar-hide pr-1">
           {members.map((m) => (
             <div key={m.id} className="flex items-center gap-3 rounded-2xl bg-secondary/40 p-3">
-              <div className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold flex items-center justify-center">
-                {m.initials}
-              </div>
+              <ContactAvatar seed={m.id} size={36} />
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-foreground truncate">{m.name}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{m.role}</p>
