@@ -22,7 +22,8 @@ const WorkshopWorkspace = ({ canAnnounce = true, initialChatId = "group" }: { ca
   const endRef = useRef<HTMLDivElement>(null);
 
   const conversations = useMemo(() => {
-    const list = [{ chatId: "group", title: "Workshop group", subtitle: "Everyone in the atelier", initials: "WG" }];
+    const list: { chatId: string; title: string; subtitle: string; initials: string; memberId?: string }[] =
+      [{ chatId: "group", title: "Workshop group", subtitle: "Everyone in the atelier", initials: "WG" }];
     members
       .filter((m) => m.id !== currentUserId)
       .forEach((m) => list.push({
@@ -30,6 +31,7 @@ const WorkshopWorkspace = ({ canAnnounce = true, initialChatId = "group" }: { ca
         title: m.name,
         subtitle: m.role,
         initials: m.initials,
+        memberId: m.id,
       }));
     return list.filter((c) => `${c.title} ${c.subtitle}`.toLowerCase().includes(query.toLowerCase()));
   }, [members, currentUserId, dmChatId, query]);
