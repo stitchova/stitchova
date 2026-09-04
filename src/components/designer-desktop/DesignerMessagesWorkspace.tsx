@@ -74,7 +74,7 @@ const DesignerMessagesWorkspace = ({
                 className={cn("w-full text-left rounded-2xl p-3 flex items-center gap-3 border transition-colors",
                   activeChat === c.id ? "bg-primary/10 border-primary/40" : "bg-card border-border hover:bg-secondary/40")}
               >
-                <div className="relative flex-shrink-0">
+                x
                   <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <span className="text-xs font-bold text-primary">{c.clientInitials}</span>
                   </div>
