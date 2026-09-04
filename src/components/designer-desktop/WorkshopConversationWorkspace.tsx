@@ -50,10 +50,13 @@ const WorkshopConversationWorkspace = ({
     <div className="mx-auto max-w-[1200px] grid grid-cols-[1fr_minmax(260px,300px)] gap-6 items-start">
       <div className="rounded-3xl bg-card border border-border flex flex-col h-[720px]">
         <div className="px-6 py-4 border-b border-border flex items-center gap-3">
-          <div className={cn("w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm",
-            isGroup ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
-            {isGroup ? <Users className="w-5 h-5" /> : headerInitials}
-          </div>
+          {isGroup ? (
+            <div className="w-11 h-11 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+              <Users className="w-5 h-5" />
+            </div>
+          ) : (
+            <ContactAvatar seed={headerName} size={44} />
+          )}
           <div className="min-w-0">
             <p className="text-sm font-bold text-foreground truncate">{headerName}</p>
             <p className="text-[10px] text-muted-foreground">{headerSub}</p>
