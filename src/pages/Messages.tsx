@@ -177,7 +177,7 @@ const Messages = () => {
               exit={{ opacity: 0, y: -4 }}
               className="flex items-center gap-2"
             >
-              <img src={avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+              <div className="flex-shrink-0"><ContactAvatar seed={designerId} photoUrl={avatar} size={28} /></div>
               <div className="glass-card rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-muted-foreground typing-dot" />
                 <div className="w-2 h-2 rounded-full bg-muted-foreground typing-dot" />
