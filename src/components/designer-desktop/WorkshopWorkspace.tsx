@@ -4,8 +4,9 @@ import { Send, Users, MessageCircle, Megaphone } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { useWorkshopChat } from "@/contexts/WorkshopChatContext";
 import { cn } from "@/lib/utils";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 import {
-  DesktopOnly, WorkspaceHeader, ListDetail, ListPanel, ListRow, DetailPanel, DetailHeader, Avatar,
+  DesktopOnly, WorkspaceHeader, ListDetail, ListPanel, ListRow, DetailPanel, DetailHeader,
 } from "./DesktopKit";
 
 const time = (t: number) =>
