@@ -108,9 +108,7 @@ const DesignerMessagesWorkspace = ({
           ) : (
             <>
               <div className="px-6 py-4 border-b border-border flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-bold text-primary">{activeConvo.clientInitials}</span>
-                </div>
+                <ContactAvatar seed={activeConvo.id} size={40} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground">{activeConvo.clientName}</p>
                   <p className="text-[10px] text-muted-foreground">
