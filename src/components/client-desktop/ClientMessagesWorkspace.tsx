@@ -29,7 +29,7 @@ interface Props {
 
 /** Tablet/desktop workspace for the client ↔ designer chat thread. */
 const ClientMessagesWorkspace = ({
-  designerName, avatar, postThumb, messages, showTyping, input, onInput, onSend, onOpenDesigner, onAudioCall, onVideoCall,
+  designerId, designerName, avatar, postThumb, messages, showTyping, input, onInput, onSend, onOpenDesigner, onAudioCall, onVideoCall,
 }: Props) => (
   <div className="hidden lg:block px-8 pt-6 pb-16">
     <div className="mx-auto max-w-[1080px] grid grid-cols-[1fr_minmax(280px,320px)] gap-6 items-start">
