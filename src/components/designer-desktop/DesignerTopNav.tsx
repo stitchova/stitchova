@@ -46,7 +46,7 @@ const DesignerTopNav = () => {
             const active = isActive(item.path);
             return (
               <button key={item.path} onClick={() => navigate(item.path)}
-                className={cn("relative px-4 py-2 rounded-full text-xs font-semibold transition-colors flex items-center gap-1.5",
+                className={cn("relative px-4 py-2 rounded-full text-xs font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap leading-none",
                   active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>
                 {active && (
                   <motion.div layoutId="designerTopNavPill" className="absolute inset-0 rounded-full bg-primary glow-primary"
