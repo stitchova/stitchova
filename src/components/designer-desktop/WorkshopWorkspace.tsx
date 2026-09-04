@@ -65,7 +65,11 @@ const WorkshopWorkspace = ({ canAnnounce = true, initialChatId = "group" }: { ca
               const last = getChatMessages(c.chatId).slice(-1)[0];
               return (
                 <ListRow key={c.chatId} active={c.chatId === chatId} onClick={() => setChatId(c.chatId)}
-                  leading={<Avatar initials={c.initials} />}
+                  leading={c.memberId ? <ContactAvatar seed={c.memberId} size={40} /> : (
+                    <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-4 h-4 text-primary" />
+                    </div>
+                  )}
                   title={c.title}
                   meta={last ? last.text : c.subtitle}
                   pill={unread > 0 ? { label: String(unread), tone: "primary" } : undefined} />
