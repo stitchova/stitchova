@@ -114,11 +114,13 @@ const WorkshopConversation = () => {
         <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/workshop-chat")}>
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </motion.button>
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-          header.isGroup ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-        }`}>
-          {header.isGroup ? <Users className="w-5 h-5" /> : header.initials}
-        </div>
+        {header.isGroup ? (
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+            <Users className="w-5 h-5" />
+          </div>
+        ) : (
+          <ContactAvatar seed={header.name} size={40} />
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-foreground truncate">{header.name}</p>
           <p className="text-[10px] text-muted-foreground">{header.sub}</p>
