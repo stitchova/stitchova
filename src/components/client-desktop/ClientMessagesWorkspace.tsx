@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCheck, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CallButtons } from "@/components/CallOverlay";
+import ContactAvatar from "@/components/messaging/ContactAvatar";
 
 export interface ClientMessageView {
   id: number;
