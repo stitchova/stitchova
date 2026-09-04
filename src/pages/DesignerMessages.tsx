@@ -406,8 +406,8 @@ const DesignerMessages = () => {
           <div className="relative">
             {/* Profile Header */}
             <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent pt-12 pb-6 px-6 text-center">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-primary/10">
-                <span className="text-2xl font-bold text-primary">{activeConvo?.clientInitials}</span>
+              <div className="mx-auto mb-3 w-fit">
+                <ContactAvatar seed={activeConvo?.id ?? ""} size={80} />
               </div>
               <h2 className="text-lg font-bold text-foreground">{activeConvo?.clientName}</h2>
               <p className="text-xs text-muted-foreground mt-1">{activeConvo?.online ? "🟢 Online now" : "Last seen recently"}</p>
