@@ -172,9 +172,7 @@ const DesignerMessages = () => {
               whileTap={{ scale: 0.98 }} onClick={() => setActiveChat(c.id)}
               className="w-full card-glass p-4 flex items-center gap-3.5 group">
               <div className="relative flex-shrink-0">
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center" style={{ width: 52, height: 52 }}>
-                  <span className="text-sm font-bold text-primary">{c.clientInitials}</span>
-                </div>
+                <ContactAvatar seed={c.id} size={52} />
                 {c.online && (
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
                     className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-status-completed ring-[3px] ring-background" />
