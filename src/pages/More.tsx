@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift, FileText, Send, Brain } from "lucide-react";
+import { User, Scissors, CreditCard, BarChart3, Settings, HelpCircle, ChevronRight, Camera, Crown, LogOut, ClipboardList, Palette, MessagesSquare, Gift, FileText, Send, Brain, Package } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import FeatureGate from "@/components/FeatureGate";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ const menuItems = [
   { icon: Crown, label: "Subscription", desc: "Manage your plan", path: "/subscription" },
   { icon: Palette, label: "Themes", desc: "Choose your color palette", path: "/themes" },
   { icon: Scissors, label: "Workers", desc: "Manage your tailoring team", path: "/workers", requiresPlan: "pro" as const },
+  { icon: Package, label: "My Shop", desc: "Sell ready pieces on your client-facing profile", path: "/my-shop", requiresPlan: "pro" as const },
   { icon: ClipboardList, label: "Staff Dashboard", desc: "Pending orders, appointments & overdue payments", path: "/staff-dashboard" },
   { icon: Gift, label: "Referrals", desc: "Invite clients & earn rewards", path: "/referrals" },
   { icon: MessagesSquare, label: "Workshop Chat", desc: "Group, DMs & announcements", path: "/workshop-chat" },

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Star, MapPin, CalendarDays, MessageCircle, Heart, Shield, Clock, ChevronRight, Play, Film, Package } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShowcase } from "@/contexts/ShowcaseContext";
+import { useShop } from "@/contexts/ShopContext";
 import { useReviews, relativeTime } from "@/contexts/ReviewsContext";
 import { useAtelier, parsePrice } from "@/contexts/AtelierContext";
 import { useToast } from "@/hooks/use-toast";
@@ -97,6 +98,8 @@ const DesignerProfilePage = () => {
   });
   const { postsByDesigner } = useShowcase();
   const showcasePosts = postsByDesigner(id || "nana-ama");
+  const { activeProductsByDesigner } = useShop();
+  const shopProducts = activeProductsByDesigner(id || "nana-ama");
 
   const designer = designerData[id || "nana-ama"] || designerData["nana-ama"];
   const { byDesigner } = useReviews();
@@ -211,6 +214,25 @@ const DesignerProfilePage = () => {
             </span>
           ))}
         </div>
+
+        {/* Shop entry — a distinct destination, not a swapped-in tab: clicking
+            it navigates to the designer's dedicated shop page. */}
+        {shopProducts.length > 0 && (
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate(`/designer/${id}/shop`)}
+            className="w-full mt-4 rounded-2xl card-elevated p-4 flex items-center gap-3 text-left"
+          >
+            <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+              <Package className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Visit Shop</p>
+              <p className="text-[11px] text-muted-foreground">{shopProducts.length} piece{shopProducts.length !== 1 ? "s" : ""} available to order</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          </motion.button>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 mt-5 bg-secondary rounded-xl p-1">

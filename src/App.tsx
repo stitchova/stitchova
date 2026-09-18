@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { WorkshopChatProvider } from "@/contexts/WorkshopChatContext";
 import { LockProvider } from "@/contexts/LockContext";
 import { ShowcaseProvider } from "@/contexts/ShowcaseContext";
+import { ShopProvider } from "@/contexts/ShopContext";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
 import LockGate from "@/components/LockGate";
@@ -31,6 +32,11 @@ import Measurements from "./pages/Measurements";
 import ClientHome from "./pages/ClientHome";
 import DiscoverDesigners from "./pages/DiscoverDesigners";
 import DesignerProfilePage from "./pages/DesignerProfilePage";
+import DesignerShop from "./pages/DesignerShop";
+import ShopProductDetail from "./pages/ShopProductDetail";
+import ShopCart from "./pages/ShopCart";
+import ShopCheckout from "./pages/ShopCheckout";
+import DesignerMyShop from "./pages/DesignerMyShop";
 import ClientOrders from "./pages/ClientOrders";
 import Messages from "./pages/Messages";
 import DesignerMessages from "./pages/DesignerMessages";
@@ -152,6 +158,11 @@ const AppShell = () => {
               <Route path="/client-home" element={<C><ClientHome /></C>} />
               <Route path="/discover" element={<C><DiscoverDesigners /></C>} />
               <Route path="/designer/:id" element={<C><DesignerProfilePage /></C>} />
+              <Route path="/designer/:id/shop" element={<C><DesignerShop /></C>} />
+              <Route path="/designer/:id/shop/:productId" element={<C><ShopProductDetail /></C>} />
+              <Route path="/cart" element={<C><ShopCart /></C>} />
+              <Route path="/checkout" element={<C><ShopCheckout /></C>} />
+              <Route path="/my-shop" element={<D><DesignerMyShop /></D>} />
               <Route path="/client-orders" element={<C><ClientOrders /></C>} />
               <Route path="/messages" element={<C><Messages /></C>} />
               <Route path="/review/:id" element={<C><ReviewDesigner /></C>} />
@@ -193,6 +204,7 @@ const App = () => (
             <SubscriptionProvider>
               <WorkshopChatProvider>
                 <ShowcaseProvider>
+                <ShopProvider>
                 <BrandInvoiceProvider>
                 <NotificationsProvider>
                 <ReviewsProvider>
@@ -204,6 +216,7 @@ const App = () => (
                 </ReviewsProvider>
                 </NotificationsProvider>
                 </BrandInvoiceProvider>
+                </ShopProvider>
                 </ShowcaseProvider>
               </WorkshopChatProvider>
             </SubscriptionProvider>
