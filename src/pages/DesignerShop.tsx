@@ -78,25 +78,28 @@ const DesignerShop = () => {
           </div>
         </div>
 
-        {/* Category chips */}
+        {/* Category rail */}
         {categoriesInUse.length > 0 && (
-          <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
-            <button onClick={() => setCategory(null)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0 ${
-                category === null ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground"
-              }`}>
-              All
-            </button>
-            {categoriesInUse.map((c) => (
-              <button key={c} onClick={() => setCategory(c)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0 ${
-                  category === c ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground"
-                }`}>
-                {c}
-              </button>
-            ))}
+          <div className="px-4 pb-4 flex gap-3 overflow-x-auto scrollbar-hide">
+            {[{ key: null as string | null, label: "New In" }, ...categoriesInUse.map((c) => ({ key: c as string | null, label: c }))].map((item, i) => {
+              const Icon = item.key === null ? Sparkles : categoryIcons[(i - 1) % categoryIcons.length];
+              const active = category === item.key;
+              return (
+                <button key={item.label} onClick={() => setCategory(item.key)} className="flex-shrink-0 flex flex-col items-center gap-1.5 w-16">
+                  <span className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors ${
+                    active ? "bg-primary/15 border-primary text-primary" : "bg-card border-border text-muted-foreground"
+                  }`}>
+                    <Icon className="w-5 h-5" />
+                  </span>
+                  <span className={`text-[10px] font-semibold truncate w-full text-center ${active ? "text-foreground" : "text-muted-foreground"}`}>
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
+
 
         {/* Product grid */}
         <div className="px-4 grid grid-cols-2 gap-3 mt-1">
