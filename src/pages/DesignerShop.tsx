@@ -143,7 +143,23 @@ const DesignerShop = () => {
             <EmptyState icon={Package} title="No products found" description="Try a different search or category." />
           </div>
         )}
+
+        <div className="px-4 mt-6">
+          <div className="grid grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-card/60 py-3">
+            {[
+              { Icon: Truck, label: "Free Shipping" },
+              { Icon: RefreshCcw, label: "Easy Returns" },
+              { Icon: ShieldCheck, label: "Secure Payment" },
+            ].map(({ Icon, label }) => (
+              <div key={label} className="flex flex-col items-center gap-1 px-2">
+                <Icon className="w-4 h-4 text-primary" />
+                <p className="text-[9px] font-semibold text-foreground text-center">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
     </>
   );
 };
