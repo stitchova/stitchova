@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Heart, ShoppingCart, Check, Share2 } from "lucide-react";
+import { ArrowLeft, Heart, ShoppingCart, Check, Share2, Truck, RefreshCcw, ShieldCheck } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShop } from "@/contexts/ShopContext";
 import { formatMoney } from "@/lib/currency";
