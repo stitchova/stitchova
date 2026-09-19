@@ -19,6 +19,9 @@ const designerNames: Record<string, string> = {
   "efya-designs": "Efya Designs",
 };
 
+const categoryIcons = [Shirt, Shirt, Shirt, Shirt, Shirt, ShoppingBag, Glasses];
+
+
 const DesignerShop = () => {
   const navigate = useNavigate();
   const { id = "nana-ama" } = useParams();
