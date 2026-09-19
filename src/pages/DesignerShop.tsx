@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Search, ShoppingCart, Heart } from "lucide-react";
+import { ArrowLeft, Search, ShoppingCart, Heart, Sparkles, Shirt, ShoppingBag, Glasses, Truck, RefreshCcw, ShieldCheck } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShop, SHOP_CATEGORIES } from "@/contexts/ShopContext";
 import { formatMoney } from "@/lib/currency";
